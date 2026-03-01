@@ -3,10 +3,10 @@ KenPom + T-Rank NCAA Basketball Predictor
 -------------------------------------------
 Workflow:
   1. Paste KenPom table into kenpom_raw.txt (weekly refresh)
-  2. Run this script
-  3. Script pulls today's NCAAB matchups from ESPN
-  4. Script pulls Barttorvik T-Rank ratings (auto-fetch, or paste
-     into barttorvik_raw.txt as fallback)
+  2. Paste Barttorvik T-Rank table into barttorvik_raw.txt (weekly refresh)
+     (select-all from barttorvik.com/trank.php and paste as-is)
+  3. Run this script
+  4. Script pulls today's NCAAB matchups from ESPN
   5. Script pulls live lines from The Odds API
   6. Runs possession-based model with both KenPom & T-Rank data,
      applies 3.5-pt home court advantage, flags edges vs Vegas
@@ -130,93 +130,58 @@ def parse_kenpom(filepath: str) -> dict[str, Team]:
 # ══════════════════════════════════════════════════════
 # STEP 1b: LOAD BARTTORVIK T-RANK
 # ══════════════════════════════════════════════════════
-def fetch_barttorvik() -> dict[str, Team]:
-    """
-    Pull current T-Rank ratings from barttorvik.com.
-    Returns dict of Team objects keyed by team name, or {} on failure.
-
-    JSON endpoint returns array of arrays with columns matching the
-    T-Rank page: Rk, Team, Conf, Rec, AdjOE, AdjDE, Barthag,
-    EFG_O, EFG_D, TOR, TORD, ORB, DRB, FTR, FTRD, 2P_O, 2P_D,
-    3P_O, 3P_D, AdjT, WAB
-    """
-    year = datetime.now().year
-    url = (
-        f"https://barttorvik.com/trank.php?year={year}&top=0"
-        "&conlimit=All&venue=All&type=pointed&json=1"
-    )
-    try:
-        resp = requests.get(url, timeout=10,
-                            headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        print(f"  Barttorvik API fetch failed: {e}")
-        return {}
-
-    if not isinstance(data, list) or not data:
-        return {}
-
-    teams = {}
-    for row in data:
-        if not isinstance(row, (list, tuple)) or len(row) < 20:
-            continue
-        try:
-            name  = str(row[1]).strip()
-            adj_o = float(row[4])
-            adj_d = float(row[5])
-            adj_t = float(row[19])
-            teams[name] = Team(name=name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
-        except (ValueError, IndexError, TypeError):
-            continue
-    return teams
-
-
 def parse_barttorvik(filepath: str) -> dict[str, Team]:
     """
-    Parse raw Barttorvik T-Rank copy-paste (fallback when API is unavailable).
+    Parse raw Barttorvik T-Rank copy-paste from barttorvik.com/trank.php.
 
-    Go to barttorvik.com/trank.php, select-all the table, paste into
-    barttorvik_raw.txt.  Tab-separated columns:
-    Rk | Team | Conf | Rec | AdjOE | AdjDE | Barthag | ... | AdjT | WAB
+    The site produces a staggered multi-line format when copy-pasted, where
+    each stat and its rank appear on interleaved lines. Each team block:
+      Line +0:  {Rk}\\t{Team}\\t{Conf}\\t{G}\\t{Rec}
+      Line +1:  {AdjOE}                      (standalone value)
+      Line +2:  {AdjOE_rank}\\t{AdjDE}
+      Line +3:  {AdjDE_rank}\\t{Barthag}
+      ...
+      Line +18: {3PRD_rank}\\t{AdjT}
+      Line +19: {AdjT_rank}\\t{WAB}
+      Line +20: {WAB_rank}
+
+    Select-all the table on barttorvik.com/trank.php and paste into
+    barttorvik_raw.txt. No editing needed.
     """
     teams = {}
     with open(filepath, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split("\t")
-            if not parts[0].strip().isdigit():
-                continue
-            if len(parts) < 20:
-                continue
+        lines = [line.rstrip("\n") for line in f]
+
+    for i, line in enumerate(lines):
+        parts = line.strip().split("\t")
+        # Team header: integer rank, letter-starting team name, record with dash
+        if (len(parts) >= 5
+                and parts[0].strip().isdigit()
+                and parts[1].strip()
+                and parts[1].strip()[0].isalpha()
+                and "-" in parts[4].strip()):
+            team_name = parts[1].strip()
             try:
-                name  = parts[1].strip()
-                adj_o = float(parts[4].strip())
-                adj_d = float(parts[5].strip())
-                adj_t = float(parts[19].strip())
-                teams[name] = Team(name=name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
+                adj_o = float(lines[i + 1].strip())
+                adj_d = float(lines[i + 2].strip().split("\t")[1])
+                adj_t = float(lines[i + 18].strip().split("\t")[1])
+                teams[team_name] = Team(name=team_name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
             except (ValueError, IndexError):
                 continue
     return teams
 
 
 def load_barttorvik() -> dict[str, Team]:
-    """Load Barttorvik T-Rank data: try API first, fall back to paste file."""
-    teams = fetch_barttorvik()
+    """Load Barttorvik T-Rank data from barttorvik_raw.txt."""
+    if not Path(BARTTORVIK_FILE).exists():
+        print(f"  Barttorvik: {BARTTORVIK_FILE} not found -- skipping T-Rank.")
+        return {}
+    teams = parse_barttorvik(BARTTORVIK_FILE)
     if teams:
-        print(f"  Loaded {len(teams)} teams from Barttorvik API.")
-        return teams
-
-    if Path(BARTTORVIK_FILE).exists():
-        teams = parse_barttorvik(BARTTORVIK_FILE)
-        if teams:
-            print(f"  Loaded {len(teams)} teams from {BARTTORVIK_FILE}.")
-            return teams
-
-    print("  Barttorvik: no data available (API unreachable and no barttorvik_raw.txt).")
-    return {}
+        print(f"  Loaded {len(teams)} teams from {BARTTORVIK_FILE}.")
+    else:
+        print(f"  Barttorvik: no data parsed from {BARTTORVIK_FILE}.")
+    return teams
 
 
 def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:

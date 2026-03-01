@@ -32,17 +32,22 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from thefuzz import process
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 # ══════════════════════════════════════════════════════
 # CONFIG
 # ══════════════════════════════════════════════════════
-ODDS_API_KEY    = "YOUR_API_KEY_HERE"   # Free at the-odds-api.com
+ODDS_API_KEY    = os.getenv("ODDS_API_KEY")   # Free at the-odds-api.com
 ODDS_BOOK       = "draftkings"          # draftkings, fanduel, betmgm, etc.
 EDGE_THRESHOLD  = 3.0                   # Flag if model vs line differs >= this
 FUZZY_THRESHOLD = 75                    # Min fuzzy match score (0-100)
 
 # Discord webhook (set via environment variable)
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 # Log files
 PREDICTIONS_LOG = "predictions_log.csv"
@@ -231,7 +236,7 @@ def get_todays_matchups() -> list[Matchup]:
     No API key required.
     """
     today = datetime.now(timezone.utc).strftime("%Y%m%d")
-    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={today}&limit=100"
+    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={today}&groups=50"
     
     try:
         resp = requests.get(url, timeout=10)

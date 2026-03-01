@@ -1,15 +1,21 @@
 """
-KenPom NCAA Basketball Predictor
----------------------------------
+KenPom + T-Rank NCAA Basketball Predictor
+-------------------------------------------
 Workflow:
   1. Paste KenPom table into kenpom_raw.txt (weekly refresh)
   2. Run this script
   3. Script pulls today's NCAAB matchups from ESPN
-  4. Script pulls live lines from The Odds API
-  5. Fuzzy matches teams, runs model, flags edges
-  6. Logs all predictions to predictions_log.csv
-  7. Run: python kenpom_predictor.py --results  to enter actual scores
-  8. Run: python kenpom_predictor.py --report   to see model accuracy
+  4. Script pulls Barttorvik T-Rank ratings (auto-fetch, or paste
+     into barttorvik_raw.txt as fallback)
+  5. Script pulls live lines from The Odds API
+  6. Runs possession-based model with both KenPom & T-Rank data,
+     applies 3.5-pt home court advantage, flags edges vs Vegas
+  7. When both KenPom and T-Rank agree on an edge direction,
+     the game is flagged as HIGH CONFIDENCE
+  8. Posts results to Discord (set DISCORD_WEBHOOK_URL env var)
+  9. Logs all predictions to predictions_log.csv
+ 10. Run: python kenpom_predictor.py --results  to enter actual scores
+ 11. Run: python kenpom_predictor.py --report   to see model accuracy
 
 Dependencies:
   pip install requests thefuzz python-Levenshtein
@@ -41,6 +47,7 @@ DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 # Log files
 PREDICTIONS_LOG = "predictions_log.csv"
 RESULTS_LOG     = "results_log.csv"
+BARTTORVIK_FILE = "barttorvik_raw.txt"
 
 # Model constants
 AVG_EFFICIENCY     = 100.0
@@ -48,7 +55,7 @@ AVG_TEMPO_2026     = 68.4
 LAMBDA             = 0.88
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
-HCA                = 3.2
+HCA                = 3.5
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES
@@ -114,6 +121,98 @@ def parse_kenpom(filepath: str) -> dict[str, Team]:
             except (ValueError, IndexError):
                 continue
     return teams
+
+# ══════════════════════════════════════════════════════
+# STEP 1b: LOAD BARTTORVIK T-RANK
+# ══════════════════════════════════════════════════════
+def fetch_barttorvik() -> dict[str, Team]:
+    """
+    Pull current T-Rank ratings from barttorvik.com.
+    Returns dict of Team objects keyed by team name, or {} on failure.
+
+    JSON endpoint returns array of arrays with columns matching the
+    T-Rank page: Rk, Team, Conf, Rec, AdjOE, AdjDE, Barthag,
+    EFG_O, EFG_D, TOR, TORD, ORB, DRB, FTR, FTRD, 2P_O, 2P_D,
+    3P_O, 3P_D, AdjT, WAB
+    """
+    year = datetime.now().year
+    url = (
+        f"https://barttorvik.com/trank.php?year={year}&top=0"
+        "&conlimit=All&venue=All&type=pointed&json=1"
+    )
+    try:
+        resp = requests.get(url, timeout=10,
+                            headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"  Barttorvik API fetch failed: {e}")
+        return {}
+
+    if not isinstance(data, list) or not data:
+        return {}
+
+    teams = {}
+    for row in data:
+        if not isinstance(row, (list, tuple)) or len(row) < 20:
+            continue
+        try:
+            name  = str(row[1]).strip()
+            adj_o = float(row[4])
+            adj_d = float(row[5])
+            adj_t = float(row[19])
+            teams[name] = Team(name=name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
+        except (ValueError, IndexError, TypeError):
+            continue
+    return teams
+
+
+def parse_barttorvik(filepath: str) -> dict[str, Team]:
+    """
+    Parse raw Barttorvik T-Rank copy-paste (fallback when API is unavailable).
+
+    Go to barttorvik.com/trank.php, select-all the table, paste into
+    barttorvik_raw.txt.  Tab-separated columns:
+    Rk | Team | Conf | Rec | AdjOE | AdjDE | Barthag | ... | AdjT | WAB
+    """
+    teams = {}
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split("\t")
+            if not parts[0].strip().isdigit():
+                continue
+            if len(parts) < 20:
+                continue
+            try:
+                name  = parts[1].strip()
+                adj_o = float(parts[4].strip())
+                adj_d = float(parts[5].strip())
+                adj_t = float(parts[19].strip())
+                teams[name] = Team(name=name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
+            except (ValueError, IndexError):
+                continue
+    return teams
+
+
+def load_barttorvik() -> dict[str, Team]:
+    """Load Barttorvik T-Rank data: try API first, fall back to paste file."""
+    teams = fetch_barttorvik()
+    if teams:
+        print(f"  Loaded {len(teams)} teams from Barttorvik API.")
+        return teams
+
+    if Path(BARTTORVIK_FILE).exists():
+        teams = parse_barttorvik(BARTTORVIK_FILE)
+        if teams:
+            print(f"  Loaded {len(teams)} teams from {BARTTORVIK_FILE}.")
+            return teams
+
+    print("  Barttorvik: no data available (API unreachable and no barttorvik_raw.txt).")
+    return {}
+
 
 def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:
     """Fuzzy match a team name string to the KenPom dataset."""
@@ -245,13 +344,18 @@ def predict_game(home: Team, away: Team, neutral: bool = False) -> dict:
 # STEP 5: RUN FULL SLATE + FLAG EDGES
 # ══════════════════════════════════════════════════════
 def run_slate(kenpom_file: str = "kenpom_raw.txt"):
-    print(f"\n{'═'*65}")
-    print(f"  KenPom NCAA Predictor  |  {datetime.now().strftime('%A %b %d, %Y')}")
-    print(f"{'═'*65}")
+    print(f"\n{'═'*70}")
+    print(f"  KenPom + T-Rank NCAA Predictor  |  {datetime.now().strftime('%A %b %d, %Y')}")
+    print(f"{'═'*70}")
 
     # Load KenPom
-    teams = parse_kenpom(kenpom_file)
-    print(f"  Loaded {len(teams)} teams from KenPom data.\n")
+    kp_teams = parse_kenpom(kenpom_file)
+    print(f"  Loaded {len(kp_teams)} teams from KenPom data.")
+
+    # Load Barttorvik T-Rank
+    bt_teams = load_barttorvik()
+
+    print()
 
     # Today's games
     matchups = get_todays_matchups()
@@ -262,104 +366,163 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
     # Attach lines
     matchups = get_odds(matchups)
 
-    edges = []
+    entries = []
     no_data = []
 
     for m in matchups:
-        home_team = fuzzy_lookup(m.home, teams)
-        away_team = fuzzy_lookup(m.away, teams)
+        kp_home = fuzzy_lookup(m.home, kp_teams)
+        kp_away = fuzzy_lookup(m.away, kp_teams)
 
-        if not home_team or not away_team:
+        if not kp_home or not kp_away:
             no_data.append(f"  NO KENPOM DATA: {m.away} @ {m.home}")
             continue
 
-        result = predict_game(home_team, away_team, neutral=m.neutral)
+        # ── KenPom prediction ──
+        kp_result = predict_game(kp_home, kp_away, neutral=m.neutral)
 
-        spread_edge = None
-        total_edge  = None
+        kp_spread_edge = None
+        kp_total_edge  = None
         if m.vegas_spread is not None:
-            spread_edge = round(m.vegas_spread - result["spread"], 1)
+            kp_spread_edge = round(m.vegas_spread - kp_result["spread"], 1)
         if m.vegas_total is not None:
-            total_edge = round(result["total"] - m.vegas_total, 1)
+            kp_total_edge = round(kp_result["total"] - m.vegas_total, 1)
 
-        # Determine favorites
-        model_fav  = home_team.name if result["spread"] < 0 else away_team.name
-        model_line = abs(result["spread"])
-        vegas_fav  = home_team.name if (m.vegas_spread or 0) < 0 else away_team.name
+        # ── Barttorvik prediction (if available) ──
+        bt_result = None
+        bt_spread_edge = None
+        bt_total_edge  = None
+        if bt_teams:
+            bt_home = fuzzy_lookup(m.home, bt_teams)
+            bt_away = fuzzy_lookup(m.away, bt_teams)
+            if bt_home and bt_away:
+                bt_result = predict_game(bt_home, bt_away, neutral=m.neutral)
+                if m.vegas_spread is not None:
+                    bt_spread_edge = round(m.vegas_spread - bt_result["spread"], 1)
+                if m.vegas_total is not None:
+                    bt_total_edge = round(bt_result["total"] - m.vegas_total, 1)
+
+        # Determine favorites (KenPom is primary)
+        model_fav  = kp_home.name if kp_result["spread"] < 0 else kp_away.name
+        model_line = abs(kp_result["spread"])
+        vegas_fav  = kp_home.name if (m.vegas_spread or 0) < 0 else kp_away.name
         vegas_line = abs(m.vegas_spread) if m.vegas_spread is not None else None
 
         # Flag edge games
-        is_spread_edge = spread_edge is not None and abs(spread_edge) >= EDGE_THRESHOLD
-        is_total_edge  = total_edge  is not None and abs(total_edge)  >= EDGE_THRESHOLD
+        is_spread_edge = kp_spread_edge is not None and abs(kp_spread_edge) >= EDGE_THRESHOLD
+        is_total_edge  = kp_total_edge  is not None and abs(kp_total_edge)  >= EDGE_THRESHOLD
+
+        # Confidence: HIGH when both KenPom and T-Rank agree on edge direction
+        confidence = ""
+        if bt_result and is_spread_edge and bt_spread_edge is not None:
+            same_spread_dir = (kp_spread_edge > 0) == (bt_spread_edge > 0)
+            bt_also_edge    = abs(bt_spread_edge) >= EDGE_THRESHOLD
+            if same_spread_dir and bt_also_edge:
+                confidence = "HIGH"
 
         entry = {
-            "home": home_team.name, "away": away_team.name,
+            "home": kp_home.name, "away": kp_away.name,
             "neutral": m.neutral,
-            "result": result,
+            "result": kp_result,
+            "bt_result": bt_result,
             "model_fav": model_fav, "model_line": model_line,
             "vegas_fav": vegas_fav, "vegas_line": vegas_line,
             "vegas_spread": m.vegas_spread, "vegas_total": m.vegas_total,
-            "spread_edge": spread_edge, "total_edge": total_edge,
+            "spread_edge": kp_spread_edge, "total_edge": kp_total_edge,
+            "bt_spread_edge": bt_spread_edge, "bt_total_edge": bt_total_edge,
             "is_edge": is_spread_edge or is_total_edge,
             "is_spread_edge": is_spread_edge,
             "is_total_edge": is_total_edge,
+            "confidence": confidence,
         }
 
-        edges.append(entry)
+        entries.append(entry)
 
     # ── Print all games ──
-    print(f"  TODAY'S GAMES ({len(edges)} with KenPom data)\n")
-    print(f"  {'Matchup':<35} {'Model':>10} {'Vegas':>10} {'Edge':>8}")
-    print(f"  {'─'*35} {'─'*10} {'─'*10} {'─'*8}")
+    has_bt = any(e["bt_result"] for e in entries)
+    print(f"  TODAY'S GAMES ({len(entries)} with data)\n")
+    if has_bt:
+        print(f"  {'Matchup':<35} {'KP Spread':>10} {'BT Spread':>10} {'Vegas':>10} {'Edge':>8}")
+        print(f"  {'─'*35} {'─'*10} {'─'*10} {'─'*10} {'─'*8}")
+    else:
+        print(f"  {'Matchup':<35} {'Model':>10} {'Vegas':>10} {'Edge':>8}")
+        print(f"  {'─'*35} {'─'*10} {'─'*10} {'─'*8}")
 
-    for e in edges:
+    for e in entries:
         venue = " [N]" if e["neutral"] else ""
         matchup = f"{e['away']} @ {e['home']}{venue}"
-        model_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
         vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
         edge_str  = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
-        flag      = " ◄◄◄" if e["is_edge"] else ""
-        print(f"  {matchup:<35} {model_str:>10} {vegas_str:>10} {edge_str:>8}{flag}")
+        flag = ""
+        if e["confidence"] == "HIGH":
+            flag = " ◄◄◄ HIGH"
+        elif e["is_edge"]:
+            flag = " ◄◄◄"
+
+        if has_bt:
+            bt_r = e["bt_result"]
+            if bt_r:
+                bt_fav  = e["home"] if bt_r["spread"] < 0 else e["away"]
+                bt_line = abs(bt_r["spread"])
+                bt_str = f"{bt_fav} -{bt_line:.1f}"
+            else:
+                bt_str = "N/A"
+            print(f"  {matchup:<35} {kp_str:>10} {bt_str:>10} {vegas_str:>10} {edge_str:>8}{flag}")
+        else:
+            print(f"  {matchup:<35} {kp_str:>10} {vegas_str:>10} {edge_str:>8}{flag}")
 
     # ── Print edge games ──
-    edge_games = [e for e in edges if e["is_edge"]]
+    edge_games = [e for e in entries if e["is_edge"]]
     if edge_games:
-        print(f"\n{'═'*65}")
+        print(f"\n{'═'*70}")
         print(f"  EDGE GAMES (model vs line >= {EDGE_THRESHOLD} pts)")
-        print(f"{'═'*65}")
+        print(f"{'═'*70}")
         for e in edge_games:
             r = e["result"]
-            print(f"\n  {e['away']} @ {e['home']}")
-            print(f"  Model : {e['home']} {r['home_score']}  |  {e['away']} {r['away_score']}")
+            conf_tag = "  *** HIGH CONFIDENCE ***" if e["confidence"] == "HIGH" else ""
+            print(f"\n  {e['away']} @ {e['home']}{conf_tag}")
+            print(f"  KenPom: {e['home']} {r['home_score']}  |  {e['away']} {r['away_score']}")
             print(f"          Total {r['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
+            if e["bt_result"]:
+                bt = e["bt_result"]
+                bt_fav  = e["home"] if bt["spread"] < 0 else e["away"]
+                bt_line = abs(bt["spread"])
+                print(f"  T-Rank: {e['home']} {bt['home_score']}  |  {e['away']} {bt['away_score']}")
+                print(f"          Total {bt['total']}  |  Spread {bt_fav} -{bt_line:.1f}")
             if e["vegas_spread"] is not None:
                 print(f"  Vegas : {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}")
             if e["is_spread_edge"]:
                 direction = "home" if e["spread_edge"] > 0 else "away"
-                print(f"  SPREAD EDGE: model likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
+                print(f"  KP SPREAD EDGE: model likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
+            if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
+                direction = "home" if e["bt_spread_edge"] > 0 else "away"
+                print(f"  BT SPREAD EDGE: T-Rank likes {direction} team by {abs(e['bt_spread_edge']):.1f} pts vs market")
             if e["is_total_edge"]:
                 direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-                print(f"  TOTAL EDGE : model says {direction} by {abs(e['total_edge']):.1f} pts")
+                print(f"  TOTAL EDGE    : model says {direction} by {abs(e['total_edge']):.1f} pts")
 
     if no_data:
-        print(f"\n  SKIPPED (not in KenPom top 25 -- lower ranked teams):")
+        print(f"\n  SKIPPED (not in KenPom data):")
         for nd in no_data:
             print(nd)
 
     # Log all predictions
-    if edges:
-        log_predictions(edges)
-        send_discord_message(edges)
+    if entries:
+        log_predictions(entries)
+        send_discord_message(entries)
 
-    print(f"\n{'═'*65}\n")
+    print(f"\n{'═'*70}\n")
 
 # ══════════════════════════════════════════════════════
 # STEP 6: LOG PREDICTIONS TO CSV
 # ══════════════════════════════════════════════════════
 PREDICTIONS_HEADERS = [
     "date", "home_team", "away_team", "neutral",
-    "model_home_score", "model_away_score", "model_total", "model_spread",
-    "vegas_spread", "vegas_total", "spread_edge", "total_edge", "is_edge"
+    "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
+    "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
+    "vegas_spread", "vegas_total",
+    "kp_spread_edge", "kp_total_edge", "bt_spread_edge", "bt_total_edge",
+    "is_edge", "confidence"
 ]
 
 def log_predictions(entries: list[dict]):
@@ -374,21 +537,29 @@ def log_predictions(entries: list[dict]):
         if write_header:
             writer.writeheader()
         for e in entries:
-            r = e["result"]
+            kp = e["result"]
+            bt = e["bt_result"]
             writer.writerow({
                 "date":             today,
                 "home_team":        e["home"],
                 "away_team":        e["away"],
                 "neutral":          e["neutral"],
-                "model_home_score": r["home_score"],
-                "model_away_score": r["away_score"],
-                "model_total":      r["total"],
-                "model_spread":     r["spread"],
+                "kp_home_score":    kp["home_score"],
+                "kp_away_score":    kp["away_score"],
+                "kp_total":         kp["total"],
+                "kp_spread":        kp["spread"],
+                "bt_home_score":    bt["home_score"] if bt else "",
+                "bt_away_score":    bt["away_score"] if bt else "",
+                "bt_total":         bt["total"]      if bt else "",
+                "bt_spread":        bt["spread"]     if bt else "",
                 "vegas_spread":     e["vegas_spread"] if e["vegas_spread"] is not None else "",
                 "vegas_total":      e["vegas_total"]  if e["vegas_total"]  is not None else "",
-                "spread_edge":      e["spread_edge"]  if e["spread_edge"]  is not None else "",
-                "total_edge":       e["total_edge"]   if e["total_edge"]   is not None else "",
+                "kp_spread_edge":   e["spread_edge"]    if e["spread_edge"]    is not None else "",
+                "kp_total_edge":    e["total_edge"]     if e["total_edge"]     is not None else "",
+                "bt_spread_edge":   e["bt_spread_edge"] if e["bt_spread_edge"] is not None else "",
+                "bt_total_edge":    e["bt_total_edge"]  if e["bt_total_edge"]  is not None else "",
                 "is_edge":          e["is_edge"],
+                "confidence":       e["confidence"],
             })
 
     print(f"  Logged {len(entries)} predictions to {PREDICTIONS_LOG}")
@@ -403,47 +574,66 @@ def send_discord_message(entries: list[dict]):
 
     today = datetime.now().strftime("%A %b %d, %Y")
     edge_games = [e for e in entries if e["is_edge"]]
+    high_conf  = [e for e in entries if e["confidence"] == "HIGH"]
 
     # ── Build all-games table ──
     lines = []
     for e in entries:
         venue = " [N]" if e["neutral"] else ""
         matchup = f"{e['away']} @ {e['home']}{venue}"
-        model_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
         vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
         edge_str = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
-        flag = " ◄◄◄" if e["is_edge"] else ""
-        lines.append(f"{matchup}\n  Model: {model_str} | Vegas: {vegas_str} | Edge: {edge_str}{flag}")
+        flag = ""
+        if e["confidence"] == "HIGH":
+            flag = " ◄◄◄ HIGH"
+        elif e["is_edge"]:
+            flag = " ◄◄◄"
+        lines.append(f"{matchup}\n  KP: {kp_str} | Vegas: {vegas_str} | Edge: {edge_str}{flag}")
 
     all_games_text = "\n".join(lines) if lines else "No games today."
-    # Discord embed field value limit is 1024 chars; description limit is 4096
     if len(all_games_text) > 4000:
         all_games_text = all_games_text[:3997] + "..."
 
     # ── Build edge games detail ──
     edge_lines = []
     for e in edge_games:
-        r = e["result"]
-        parts = [f"**{e['away']} @ {e['home']}**"]
-        parts.append(f"Model: {e['home']} {r['home_score']}  |  {e['away']} {r['away_score']}")
-        parts.append(f"Total {r['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
+        kp = e["result"]
+        conf_tag = " *** HIGH CONFIDENCE ***" if e["confidence"] == "HIGH" else ""
+        parts = [f"**{e['away']} @ {e['home']}**{conf_tag}"]
+        parts.append(f"KenPom: {e['home']} {kp['home_score']}  |  {e['away']} {kp['away_score']}")
+        parts.append(f"KP Total {kp['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
+        if e["bt_result"]:
+            bt = e["bt_result"]
+            bt_fav  = e["home"] if bt["spread"] < 0 else e["away"]
+            bt_line = abs(bt["spread"])
+            parts.append(f"T-Rank: {e['home']} {bt['home_score']}  |  {e['away']} {bt['away_score']}")
+            parts.append(f"BT Total {bt['total']}  |  Spread {bt_fav} -{bt_line:.1f}")
         if e["vegas_spread"] is not None:
             parts.append(f"Vegas: {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}")
         if e["is_spread_edge"]:
             direction = "home" if e["spread_edge"] > 0 else "away"
-            parts.append(f"SPREAD EDGE: model likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
+            parts.append(f"KP SPREAD EDGE: likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
+        if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
+            direction = "home" if e["bt_spread_edge"] > 0 else "away"
+            parts.append(f"BT SPREAD EDGE: likes {direction} team by {abs(e['bt_spread_edge']):.1f} pts vs market")
         if e["is_total_edge"]:
             direction = "OVER" if e["total_edge"] > 0 else "UNDER"
             parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
         edge_lines.append("\n".join(parts))
 
     # ── Construct Discord payload with embeds ──
+    footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
+    if high_conf:
+        footer_parts.append(f"{len(high_conf)} high-confidence")
+    footer_text = " | ".join(footer_parts)
+
     embeds = [
         {
-            "title": f"KenPom Predictor | {today}",
+            "title": f"KenPom + T-Rank Predictor | {today}",
             "description": f"```\n{all_games_text}\n```",
-            "color": 0x1E90FF,  # Blue
-            "footer": {"text": f"{len(entries)} games analyzed | {len(edge_games)} edge games found"},
+            "color": 0x1E90FF,
+            "footer": {"text": footer_text},
         }
     ]
 
@@ -454,7 +644,7 @@ def send_discord_message(entries: list[dict]):
         embeds.append({
             "title": f"Edge Games (model vs line >= {EDGE_THRESHOLD} pts)",
             "description": edge_text,
-            "color": 0xFF4500,  # Red-orange
+            "color": 0xFF4500,
         })
 
     payload = {"embeds": embeds}
@@ -480,7 +670,7 @@ def send_discord_message(entries: list[dict]):
 RESULTS_HEADERS = [
     "date", "home_team", "away_team",
     "actual_home_score", "actual_away_score", "actual_total", "actual_spread",
-    "model_home_score", "model_away_score", "model_total", "model_spread",
+    "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
     "vegas_spread", "vegas_total",
     "spread_error", "total_error",
     "spread_vs_vegas_error", "model_beat_vegas"
@@ -531,9 +721,13 @@ def enter_results():
 
         for p in pending:
             print(f"  {p['date']}  |  {p['away_team']} @ {p['home_team']}")
-            print(f"  Model: {p['home_team']} {p['model_home_score']} - {p['away_team']} {p['model_away_score']}")
+            print(f"  KenPom: {p['home_team']} {p['kp_home_score']} - {p['away_team']} {p['kp_away_score']}")
+            if p.get("bt_home_score"):
+                print(f"  T-Rank: {p['home_team']} {p['bt_home_score']} - {p['away_team']} {p['bt_away_score']}")
             if p["vegas_spread"]:
                 print(f"  Vegas spread: {p['vegas_spread']}  |  Vegas total: {p['vegas_total']}")
+            if p.get("confidence"):
+                print(f"  Confidence: {p['confidence']}")
 
             home_in = input(f"  Actual {p['home_team']} score (or skip/quit): ").strip()
             if home_in.lower() == "quit":
@@ -555,16 +749,16 @@ def enter_results():
 
             actual_total  = actual_home + actual_away
             actual_spread = -(actual_home - actual_away)  # Neg = home won
-            spread_error  = round(float(p["model_spread"]) - actual_spread, 1)
-            total_error   = round(float(p["model_total"]) - actual_total, 1)
+            spread_error  = round(float(p["kp_spread"]) - actual_spread, 1)
+            total_error   = round(float(p["kp_total"]) - actual_total, 1)
 
             spread_vs_vegas = ""
             model_beat_vegas = ""
             if p["vegas_spread"]:
                 vegas_spread_error = round(float(p["vegas_spread"]) - actual_spread, 1)
-                spread_vs_vegas    = round(abs(float(p["spread_error"])) - abs(vegas_spread_error), 1) if p["spread_error"] else ""
+                spread_vs_vegas    = round(abs(spread_error) - abs(vegas_spread_error), 1)
                 # Negative = model was closer than Vegas
-                model_beat_vegas   = "YES" if spread_vs_vegas != "" and spread_vs_vegas < 0 else "NO"
+                model_beat_vegas   = "YES" if spread_vs_vegas < 0 else "NO"
 
             writer.writerow({
                 "date":                 p["date"],
@@ -574,10 +768,10 @@ def enter_results():
                 "actual_away_score":    actual_away,
                 "actual_total":         actual_total,
                 "actual_spread":        actual_spread,
-                "model_home_score":     p["model_home_score"],
-                "model_away_score":     p["model_away_score"],
-                "model_total":          p["model_total"],
-                "model_spread":         p["model_spread"],
+                "kp_home_score":        p["kp_home_score"],
+                "kp_away_score":        p["kp_away_score"],
+                "kp_total":             p["kp_total"],
+                "kp_spread":            p["kp_spread"],
                 "vegas_spread":         p["vegas_spread"],
                 "vegas_total":          p["vegas_total"],
                 "spread_error":         spread_error,
@@ -619,7 +813,7 @@ def performance_report():
     correct_direction = sum(
         1 for r in rows
         if r["spread_error"] and
-        (float(r["model_spread"]) < 0) == (float(r["actual_spread"]) < 0)
+        (float(r["kp_spread"]) < 0) == (float(r["actual_spread"]) < 0)
     )
 
     print(f"\n{'═'*60}")

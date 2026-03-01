@@ -15,10 +15,12 @@ Dependencies:
   pip install requests thefuzz python-Levenshtein
 """
 
+import os
 import re
 import csv
 import sys
 import math
+import json
 import requests
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -32,6 +34,9 @@ ODDS_API_KEY    = "YOUR_API_KEY_HERE"   # Free at the-odds-api.com
 ODDS_BOOK       = "draftkings"          # draftkings, fanduel, betmgm, etc.
 EDGE_THRESHOLD  = 3.0                   # Flag if model vs line differs >= this
 FUZZY_THRESHOLD = 75                    # Min fuzzy match score (0-100)
+
+# Discord webhook (set via environment variable)
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 
 # Log files
 PREDICTIONS_LOG = "predictions_log.csv"
@@ -344,6 +349,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
     # Log all predictions
     if edges:
         log_predictions(edges)
+        send_discord_message(edges)
 
     print(f"\n{'═'*65}\n")
 
@@ -386,6 +392,87 @@ def log_predictions(entries: list[dict]):
             })
 
     print(f"  Logged {len(entries)} predictions to {PREDICTIONS_LOG}")
+
+# ══════════════════════════════════════════════════════
+# DISCORD WEBHOOK
+# ══════════════════════════════════════════════════════
+def send_discord_message(entries: list[dict]):
+    """Format predictions and send to Discord via webhook."""
+    if not DISCORD_WEBHOOK_URL:
+        return
+
+    today = datetime.now().strftime("%A %b %d, %Y")
+    edge_games = [e for e in entries if e["is_edge"]]
+
+    # ── Build all-games table ──
+    lines = []
+    for e in entries:
+        venue = " [N]" if e["neutral"] else ""
+        matchup = f"{e['away']} @ {e['home']}{venue}"
+        model_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+        vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
+        edge_str = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
+        flag = " ◄◄◄" if e["is_edge"] else ""
+        lines.append(f"{matchup}\n  Model: {model_str} | Vegas: {vegas_str} | Edge: {edge_str}{flag}")
+
+    all_games_text = "\n".join(lines) if lines else "No games today."
+    # Discord embed field value limit is 1024 chars; description limit is 4096
+    if len(all_games_text) > 4000:
+        all_games_text = all_games_text[:3997] + "..."
+
+    # ── Build edge games detail ──
+    edge_lines = []
+    for e in edge_games:
+        r = e["result"]
+        parts = [f"**{e['away']} @ {e['home']}**"]
+        parts.append(f"Model: {e['home']} {r['home_score']}  |  {e['away']} {r['away_score']}")
+        parts.append(f"Total {r['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
+        if e["vegas_spread"] is not None:
+            parts.append(f"Vegas: {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}")
+        if e["is_spread_edge"]:
+            direction = "home" if e["spread_edge"] > 0 else "away"
+            parts.append(f"SPREAD EDGE: model likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
+        if e["is_total_edge"]:
+            direction = "OVER" if e["total_edge"] > 0 else "UNDER"
+            parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
+        edge_lines.append("\n".join(parts))
+
+    # ── Construct Discord payload with embeds ──
+    embeds = [
+        {
+            "title": f"KenPom Predictor | {today}",
+            "description": f"```\n{all_games_text}\n```",
+            "color": 0x1E90FF,  # Blue
+            "footer": {"text": f"{len(entries)} games analyzed | {len(edge_games)} edge games found"},
+        }
+    ]
+
+    if edge_games:
+        edge_text = "\n\n".join(edge_lines)
+        if len(edge_text) > 4000:
+            edge_text = edge_text[:3997] + "..."
+        embeds.append({
+            "title": f"Edge Games (model vs line >= {EDGE_THRESHOLD} pts)",
+            "description": edge_text,
+            "color": 0xFF4500,  # Red-orange
+        })
+
+    payload = {"embeds": embeds}
+
+    try:
+        resp = requests.post(
+            DISCORD_WEBHOOK_URL,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=10,
+        )
+        if resp.status_code == 204:
+            print(f"  Discord: predictions posted successfully.")
+        else:
+            print(f"  Discord: webhook returned status {resp.status_code} -- {resp.text}")
+    except Exception as e:
+        print(f"  Discord: failed to send -- {e}")
+
 
 # ══════════════════════════════════════════════════════
 # STEP 7: ENTER ACTUAL RESULTS

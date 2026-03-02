@@ -592,6 +592,11 @@ def send_discord_message(entries: list[dict]):
             parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
         edge_lines.append("\n".join(parts))
 
+    edge_fields = [
+        {"name": line.split("\n")[0], "value": "\n".join(line.split("\n")[1:])[:1024] or "\u200b", "inline": False}
+        for line in edge_lines
+    ]
+
     # ── Construct and send Discord payloads (two separate requests) ──
     # Discord caps total embed chars at 6000 per request; splitting avoids that.
     footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
@@ -618,7 +623,7 @@ def send_discord_message(entries: list[dict]):
     _post(
         {"embeds": [{
             "title":       f"KenPom + T-Rank Predictor | {today}",
-            "description": f"```\n{table_text}\n```",
+            "description": f"```\n{all_games_text}\n```",
             "color":       0x1E90FF,
             "footer":      {"text": footer_text},
         }]},

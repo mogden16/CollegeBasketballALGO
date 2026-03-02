@@ -263,34 +263,65 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         print(f"ERROR: Could not fetch odds -- {e}")
         return matchups
 
-    # Build odds lookup: (home_team, away_team) -> {spread, total}
+    # Build odds lookup: (home_team, away_team) -> {spread_home, spread_away, total}
     odds_lookup = {}
     for game in odds_data:
         h = game.get("home_team", "")
         a = game.get("away_team", "")
-        spread = total = None
+        spread_home = spread_away = total = None
         for bookie in game.get("bookmakers", []):
             for market in bookie.get("markets", []):
                 if market["key"] == "spreads":
                     for outcome in market["outcomes"]:
                         if outcome["name"] == h:
-                            spread = outcome["point"]
+                            spread_home = outcome["point"]
+                        elif outcome["name"] == a:
+                            spread_away = outcome["point"]
                 if market["key"] == "totals":
                     for outcome in market["outcomes"]:
                         if outcome["name"] == "Over":
                             total = outcome["point"]
-        odds_lookup[(h, a)] = {"spread": spread, "total": total}
+        odds_lookup[(h, a)] = {"spread_home": spread_home, "spread_away": spread_away, "total": total}
 
-    # Fuzzy match matchups to odds
-    odds_teams = [f"{h} vs {a}" for h, a in odds_lookup.keys()]
+    # Build a flat name→game index so we can match each team individually.
+    # Matching full "A vs B" strings is unreliable because token-sort fuzzy
+    # scoring treats "A vs B" and "B vs A" as nearly identical.
+    api_team_names: list[str] = []
+    team_to_game: dict[str, tuple[str, str]] = {}
+    for (h, a) in odds_lookup:
+        api_team_names.append(h)
+        api_team_names.append(a)
+        team_to_game[h] = (h, a)
+        team_to_game[a] = (h, a)
+
     for m in matchups:
-        query = f"{m.home} vs {m.away}"
-        match, score = process.extractOne(query, odds_teams) if odds_teams else ("", 0)
-        if score >= FUZZY_THRESHOLD:
-            parts = match.split(" vs ")
-            key = (parts[0], parts[1])
-            m.vegas_spread = odds_lookup[key]["spread"]
-            m.vegas_total  = odds_lookup[key]["total"]
+        if not api_team_names:
+            break
+
+        # Step 1: find the API team that best matches ESPN's home team
+        home_match, home_score = process.extractOne(m.home, api_team_names)
+        if home_score < FUZZY_THRESHOLD:
+            continue
+
+        game_key = team_to_game[home_match]
+        api_h, api_a = game_key
+        entry = odds_lookup[game_key]
+
+        # Step 2: verify the away team also matches the other team in that game
+        other_api_team = api_a if home_match == api_h else api_h
+        _, away_score = process.extractOne(m.away, [other_api_team])
+        if away_score < FUZZY_THRESHOLD:
+            continue
+
+        # Step 3: assign spread from ESPN home team's perspective
+        if home_match == api_h:
+            # ESPN home == API home → use home spread directly
+            m.vegas_spread = entry["spread_home"]
+        else:
+            # ESPN home == API away (teams swapped) → use away spread
+            m.vegas_spread = entry["spread_away"]
+
+        m.vegas_total = entry["total"]
 
     return matchups
 

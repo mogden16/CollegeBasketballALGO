@@ -288,21 +288,8 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         match, score = process.extractOne(query, odds_teams) if odds_teams else ("", 0)
         if score >= FUZZY_THRESHOLD:
             parts = match.split(" vs ")
-            api_home, api_away = parts[0], parts[1]
-            key = (api_home, api_away)
-            raw_spread = odds_lookup[key]["spread"]
-
-            # Detect home/away swap between ESPN and The Odds API.
-            # The stored spread is always from the API home team's perspective
-            # (negative = API home favored). If ESPN's home team better matches
-            # the API's away team, the designations are swapped and the spread
-            # sign must be flipped to stay consistent with the codebase
-            # convention: negative = ESPN home team favored.
-            home_match, _ = process.extractOne(m.home, [api_home, api_away])
-            if home_match == api_away:
-                raw_spread = -raw_spread if raw_spread is not None else None
-
-            m.vegas_spread = raw_spread
+            key = (parts[0], parts[1])
+            m.vegas_spread = odds_lookup[key]["spread"]
             m.vegas_total  = odds_lookup[key]["total"]
 
     return matchups

@@ -1,36 +1,52 @@
 """
 dump_team_names.py
 ------------------
-One-shot diagnostic: fetches today's ESPN NCAAB games and today's Odds API
-games, then prints a side-by-side comparison with fuzzy match scores.
+Diagnostic: shows how every ESPN team name maps to KenPom, Barttorvik,
+and The Odds API so you can spot mismatches and fill in team_aliases.txt.
 
-For every ESPN matchup it shows:
-  - the ESPN home / away names
-  - the best-matching Odds API game
-  - the individual fuzzy scores for home and away
-  - a WARN flag when either score is below FUZZY_THRESHOLD
+For each ESPN team it prints:
+  KenPom     best-match name + fuzzy score
+  Barttorvik best-match name + fuzzy score
+  Odds API   best-match name + fuzzy score
+  *** WARN *** on any row where the score is below FUZZY_THRESHOLD
 
-Run this on a game day, then copy the output into team_aliases.txt (see
-format at the bottom of this file) for any pairs marked WARN.
+When mismatches exist it writes a starter team_aliases.txt with one
+section per source ([kenpom], [barttorvik], [odds_api]).  Edit the
+right-hand side of each flagged line to the exact name used by that
+source, then re-run the main predictor — it will use the exact aliases
+instead of fuzzy-matching.
 
 Usage:
     python dump_team_names.py
 """
 
 import os
+import sys
 import requests
 from datetime import datetime, timezone
 from thefuzz import process
 from dotenv import load_dotenv
+from pathlib import Path
+
+# Re-use the parse functions from the main script (safe because of __main__ guard)
+from kenpom_predictor import (
+    parse_kenpom,
+    parse_barttorvik,
+    ODDS_API_KEY,
+    ODDS_BOOK,
+    FUZZY_THRESHOLD,
+)
 
 load_dotenv()
 
-ODDS_API_KEY    = os.getenv("ODDS_API_KEY")
-ODDS_BOOK       = "draftkings"
-FUZZY_THRESHOLD = 75
+KENPOM_FILE    = "kenpom_raw.txt"
+BARTTORVIK_FILE = "barttorvik_raw.txt"
+ALIAS_FILE      = "team_aliases.txt"
 
-# ── ESPN ──────────────────────────────────────────────────────────────────────
-def fetch_espn_games() -> list[tuple[str, str]]:
+
+# ── Data fetchers ─────────────────────────────────────────────────────────────
+
+def fetch_espn_teams() -> list[str]:
     today = datetime.now(timezone.utc).strftime("%Y%m%d")
     url = (
         "https://site.api.espn.com/apis/site/v2/sports/basketball/"
@@ -40,25 +56,19 @@ def fetch_espn_games() -> list[tuple[str, str]]:
     resp.raise_for_status()
     data = resp.json()
 
-    games = []
+    names = []
     for event in data.get("events", []):
-        home = away = None
         for comp in event.get("competitions", [{}]):
             for team in comp.get("competitors", []):
                 name = team.get("team", {}).get("displayName", "")
-                if team.get("homeAway") == "home":
-                    home = name
-                else:
-                    away = name
-        if home and away:
-            games.append((home, away))
-    return games
+                if name:
+                    names.append(name)
+    return names
 
 
-# ── Odds API ──────────────────────────────────────────────────────────────────
-def fetch_api_teams() -> list[str]:
+def fetch_odds_api_teams() -> list[str]:
     if not ODDS_API_KEY:
-        print("ERROR: ODDS_API_KEY not set.")
+        print("  WARNING: ODDS_API_KEY not set — skipping Odds API column.")
         return []
     url = (
         "https://api.the-odds-api.com/v4/sports/basketball_ncaab/odds/"
@@ -66,64 +76,107 @@ def fetch_api_teams() -> list[str]:
     )
     resp = requests.get(url, timeout=10)
     resp.raise_for_status()
-    data = resp.json()
-
     teams = []
-    for game in data:
-        h = game.get("home_team", "")
-        a = game.get("away_team", "")
-        if h:
-            teams.append(h)
-        if a:
-            teams.append(a)
+    for game in resp.json():
+        for key in ("home_team", "away_team"):
+            name = game.get(key, "")
+            if name:
+                teams.append(name)
     return teams
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def best_match(query: str, candidates: list[str]) -> tuple[str, int]:
+    if not candidates:
+        return ("(no data)", 0)
+    return process.extractOne(query, candidates)
+
+
+def status(score: int) -> str:
+    return "OK" if score >= FUZZY_THRESHOLD else "*** WARN ***"
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
+
 def main():
-    print("Fetching ESPN games...")
-    espn_games = fetch_espn_games()
-    print(f"  {len(espn_games)} games found on ESPN.\n")
+    # Load local data files
+    kp_names = list(parse_kenpom(KENPOM_FILE).keys()) if Path(KENPOM_FILE).exists() else []
+    bt_names = list(parse_barttorvik(BARTTORVIK_FILE).keys()) if Path(BARTTORVIK_FILE).exists() else []
+
+    print(f"  KenPom    : {len(kp_names)} teams loaded from {KENPOM_FILE}")
+    print(f"  Barttorvik: {len(bt_names)} teams loaded from {BARTTORVIK_FILE}")
+
+    print("\nFetching ESPN games...")
+    try:
+        espn_names = fetch_espn_teams()
+        print(f"  {len(espn_names)} ESPN team entries found.\n")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        sys.exit(1)
 
     print("Fetching Odds API teams...")
-    api_teams = fetch_api_teams()
-    print(f"  {len(api_teams) // 2} games found on Odds API ({len(api_teams)} team entries).\n")
+    try:
+        odds_names = fetch_odds_api_teams()
+        print(f"  {len(odds_names)} Odds API team entries found.\n")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        odds_names = []
 
-    if not api_teams:
-        print("No Odds API data — check your ODDS_API_KEY.")
-        return
+    # Collect warnings per source: {source: {espn_name: best_guess}}
+    warns: dict[str, dict[str, str]] = {"kenpom": {}, "barttorvik": {}, "odds_api": {}}
 
-    print(f"{'ESPN Home':<35} {'Best API Match':<35} {'Score':>6}  Status")
-    print(f"{'─'*35} {'─'*35} {'─'*6}  {'─'*6}")
+    COL = 32
+    print(f"{'ESPN name':<{COL}}  {'Source':<10} {'Best match':<{COL}} {'Score':>5}  Status")
+    print(f"{'─'*COL}  {'─'*10} {'─'*COL} {'─'*5}  {'─'*12}")
 
-    warn_pairs: list[tuple[str, str]] = []
+    for espn_name in sorted(set(espn_names)):
+        printed_name = False
 
-    for espn_home, espn_away in espn_games:
-        for espn_name in (espn_home, espn_away):
-            api_match, score = process.extractOne(espn_name, api_teams)
-            status = "OK" if score >= FUZZY_THRESHOLD else "*** WARN ***"
-            print(f"  {espn_name:<33} {api_match:<35} {score:>6}  {status}")
+        for source_label, source_key, name_list in [
+            ("KenPom",     "kenpom",     kp_names),
+            ("Barttorvik", "barttorvik", bt_names),
+            ("Odds API",   "odds_api",   odds_names),
+        ]:
+            match, score = best_match(espn_name, name_list)
+            st = status(score)
+            label_col = espn_name if not printed_name else ""
+            print(f"{label_col:<{COL}}  {source_label:<10} {match:<{COL}} {score:>5}  {st}")
+            printed_name = True
             if score < FUZZY_THRESHOLD:
-                warn_pairs.append((espn_name, api_match))
+                warns[source_key][espn_name] = match
         print()
 
-    # ── Write starter alias file for WARN pairs ───────────────────────────────
-    alias_path = "team_aliases.txt"
-    if warn_pairs:
-        print(f"\n{'═'*80}")
-        print(f"  {len(warn_pairs)} unmatched name(s). Starter alias file written to: {alias_path}")
-        print(f"  Edit the right-hand side of each line to the correct Odds API name.")
-        print(f"{'═'*80}\n")
-        with open(alias_path, "w") as f:
-            f.write("# team_aliases.txt\n")
-            f.write("# Format: espn_name = odds_api_name\n")
-            f.write("# One mapping per line. Lines starting with # are comments.\n")
-            f.write("# The right-hand side must exactly match the name used by The Odds API.\n\n")
-            for espn_name, best_guess in warn_pairs:
-                f.write(f"{espn_name} = {best_guess}  # <-- verify/correct this\n")
-    else:
-        print("\nAll ESPN names matched the Odds API above the threshold — no aliases needed today.")
-        print("(If you still see wrong spreads, lower FUZZY_THRESHOLD in this script and re-run.)")
+    # ── Write/update starter alias file ──────────────────────────────────────
+    total_warns = sum(len(v) for v in warns.values())
+
+    if total_warns == 0:
+        print("All ESPN names matched all sources above the threshold.")
+        print("No team_aliases.txt changes needed.")
+        return
+
+    print(f"{'═'*80}")
+    print(f"  {total_warns} unmatched name(s) found across all sources.")
+    print(f"  Writing starter entries to: {ALIAS_FILE}")
+    print(f"  Edit each right-hand side to the EXACT name used by that data source.")
+    print(f"{'═'*80}\n")
+
+    with open(ALIAS_FILE, "w") as f:
+        f.write("# team_aliases.txt\n")
+        f.write("# Maps ESPN team names to the exact name each data source uses.\n")
+        f.write("# Format:  espn_name = source_name\n")
+        f.write("# Sections: [kenpom]  [barttorvik]  [odds_api]\n")
+        f.write("# Lines starting with # are comments.  Blank lines are ignored.\n\n")
+
+        for section, label in [("kenpom", "KenPom"), ("barttorvik", "Barttorvik"), ("odds_api", "Odds API")]:
+            if not warns[section]:
+                continue
+            f.write(f"[{section}]\n")
+            for espn_name, best_guess in sorted(warns[section].items()):
+                f.write(f"{espn_name} = {best_guess}  # <-- verify: correct {label} name\n")
+            f.write("\n")
+
+    print(f"Wrote {ALIAS_FILE}. Edit it, then run: python kenpom_predictor.py")
 
 
 if __name__ == "__main__":

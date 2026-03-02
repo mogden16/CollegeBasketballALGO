@@ -61,6 +61,48 @@ LAMBDA             = 0.88
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
 HCA                = 3.5
+TEAM_ALIASES_FILE  = "team_aliases.txt"
+
+# ══════════════════════════════════════════════════════
+# TEAM ALIAS LOADER
+# ══════════════════════════════════════════════════════
+def load_aliases(path: str = TEAM_ALIASES_FILE) -> dict[str, dict[str, str]]:
+    """
+    Load team name aliases from a sectioned text file.
+
+    Format:
+        [kenpom]
+        ESPN Name = KenPom Name
+
+        [barttorvik]
+        ESPN Name = Barttorvik Name
+
+        [odds_api]
+        ESPN Name = Odds API Name
+
+    Returns {section: {espn_name: source_name}}.
+    Run dump_team_names.py to generate the starter file.
+    """
+    aliases: dict[str, dict[str, str]] = {}
+    if not Path(path).exists():
+        return aliases
+    current: str | None = None
+    with open(path) as f:
+        for raw in f:
+            line = raw.split("#")[0].strip()   # strip inline comments
+            if not line:
+                continue
+            if line.startswith("[") and line.endswith("]"):
+                current = line[1:-1].lower()
+                aliases.setdefault(current, {})
+                continue
+            if current and "=" in line:
+                espn, _, source = line.partition("=")
+                aliases[current][espn.strip()] = source.strip()
+    return aliases
+
+
+TEAM_ALIASES: dict[str, dict[str, str]] = load_aliases()
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES
@@ -184,10 +226,23 @@ def load_barttorvik() -> dict[str, Team]:
     return teams
 
 
-def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:
-    """Fuzzy match a team name string to the KenPom dataset."""
+def fuzzy_lookup(
+    query: str,
+    team_dict: dict[str, Team],
+    threshold: int = FUZZY_THRESHOLD,
+    section: str | None = None,
+) -> Team | None:
+    """Look up a team by ESPN name in a KenPom or Barttorvik dict.
+
+    If *section* is given (e.g. 'kenpom' or 'barttorvik') and team_aliases.txt
+    contains an alias for *query* in that section, the alias is used as an
+    exact lookup before falling back to fuzzy matching.
+    """
+    resolved = TEAM_ALIASES.get(section, {}).get(query, query) if section else query
+    if resolved in team_dict:
+        return team_dict[resolved]
     keys = list(team_dict.keys())
-    match, score = process.extractOne(query, keys)
+    match, score = process.extractOne(resolved, keys)
     if score >= threshold:
         return team_dict[match]
     return None
@@ -294,12 +349,20 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         team_to_game[h] = (h, a)
         team_to_game[a] = (h, a)
 
+    odds_aliases = TEAM_ALIASES.get("odds_api", {})
+
     for m in matchups:
         if not api_team_names:
             break
 
-        # Step 1: find the API team that best matches ESPN's home team
-        home_match, home_score = process.extractOne(m.home, api_team_names)
+        # Step 1: find the API team that best matches ESPN's home team.
+        # If team_aliases.txt has an [odds_api] entry for this name, use it
+        # as an exact key into team_to_game before falling back to fuzzy.
+        home_query = odds_aliases.get(m.home, m.home)
+        if home_query in team_to_game:
+            home_match, home_score = home_query, 100
+        else:
+            home_match, home_score = process.extractOne(home_query, api_team_names)
         if home_score < FUZZY_THRESHOLD:
             continue
 
@@ -307,9 +370,14 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         api_h, api_a = game_key
         entry = odds_lookup[game_key]
 
-        # Step 2: verify the away team also matches the other team in that game
+        # Step 2: verify the away team also matches the other team in that game.
+        # Apply alias for the away team as well before fuzzy-checking.
+        away_query = odds_aliases.get(m.away, m.away)
         other_api_team = api_a if home_match == api_h else api_h
-        _, away_score = process.extractOne(m.away, [other_api_team])
+        if away_query == other_api_team:
+            away_score = 100
+        else:
+            _, away_score = process.extractOne(away_query, [other_api_team])
         if away_score < FUZZY_THRESHOLD:
             continue
 
@@ -375,8 +443,8 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
     no_data = []
 
     for m in matchups:
-        kp_home = fuzzy_lookup(m.home, kp_teams)
-        kp_away = fuzzy_lookup(m.away, kp_teams)
+        kp_home = fuzzy_lookup(m.home, kp_teams, section="kenpom")
+        kp_away = fuzzy_lookup(m.away, kp_teams, section="kenpom")
 
         if not kp_home or not kp_away:
             no_data.append(f"  NO KENPOM DATA: {m.away} @ {m.home}")
@@ -397,8 +465,8 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
         bt_spread_edge = None
         bt_total_edge  = None
         if bt_teams:
-            bt_home = fuzzy_lookup(m.home, bt_teams)
-            bt_away = fuzzy_lookup(m.away, bt_teams)
+            bt_home = fuzzy_lookup(m.home, bt_teams, section="barttorvik")
+            bt_away = fuzzy_lookup(m.away, bt_teams, section="barttorvik")
             if bt_home and bt_away:
                 bt_result = predict_game(bt_home, bt_away, neutral=m.neutral)
                 if m.vegas_spread is not None:

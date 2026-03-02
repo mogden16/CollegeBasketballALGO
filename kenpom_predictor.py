@@ -263,23 +263,25 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         print(f"ERROR: Could not fetch odds -- {e}")
         return matchups
 
-    # Build odds lookup: (home_team, away_team) -> {spread, total}
+    # Build odds lookup: (home_team, away_team) -> {spread_home, spread_away, total}
     odds_lookup = {}
     for game in odds_data:
         h = game.get("home_team", "")
         a = game.get("away_team", "")
-        spread = total = None
+        spread_home = spread_away = total = None
         for bookie in game.get("bookmakers", []):
             for market in bookie.get("markets", []):
                 if market["key"] == "spreads":
                     for outcome in market["outcomes"]:
                         if outcome["name"] == h:
-                            spread = outcome["point"]
+                            spread_home = outcome["point"]
+                        elif outcome["name"] == a:
+                            spread_away = outcome["point"]
                 if market["key"] == "totals":
                     for outcome in market["outcomes"]:
                         if outcome["name"] == "Over":
                             total = outcome["point"]
-        odds_lookup[(h, a)] = {"spread": spread, "total": total}
+        odds_lookup[(h, a)] = {"spread_home": spread_home, "spread_away": spread_away, "total": total}
 
     # Fuzzy match matchups to odds
     odds_teams = [f"{h} vs {a}" for h, a in odds_lookup.keys()]
@@ -289,8 +291,17 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         if score >= FUZZY_THRESHOLD:
             parts = match.split(" vs ")
             key = (parts[0], parts[1])
-            m.vegas_spread = odds_lookup[key]["spread"]
-            m.vegas_total  = odds_lookup[key]["total"]
+            api_home = parts[0]
+            entry = odds_lookup[key]
+            # Check if ESPN's home team aligns with the API's home team.
+            # When they differ (home/away swapped), use the away team's spread point
+            # so the value is always from ESPN's home team's perspective.
+            _, home_score = process.extractOne(m.home, [api_home]) if api_home else ("", 0)
+            if home_score >= FUZZY_THRESHOLD:
+                m.vegas_spread = entry["spread_home"]
+            else:
+                m.vegas_spread = entry["spread_away"]
+            m.vegas_total = entry["total"]
 
     return matchups
 

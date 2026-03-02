@@ -1,0 +1,28 @@
+# team_aliases.txt
+# Maps ESPN team names to the exact name each data source uses.
+# Format:  espn_name = source_name
+# Sections: [kenpom]  [barttorvik]  [odds_api]
+# Lines starting with # are comments.  Blank lines are ignored.
+# Run dump_team_names.py on a game day to identify new mismatches.
+
+[kenpom]
+Delaware State Hornets = Delaware St.
+IU Indianapolis Jaguars = IU Indy
+Idaho State Bengals = Idaho St.
+Northern Arizona = Northern Arizona
+Northern Arizona Lumberjacks = Northern Arizona
+Northwestern State Demons = Northwestern St.
+SE Louisiana Lions = Southeastern Louisiana
+South Carolina State Bulldogs = South Carolina St.
+Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris
+
+[barttorvik]
+Delaware State Hornets = Delaware St.
+IU Indianapolis Jaguars = IU Indy
+Idaho State Bengals = Idaho St.
+Northern Arizona = Northern Arizona
+Northern Arizona Lumberjacks = Northern Arizona
+Northwestern State Demons = Northwestern St.
+SE Louisiana Lions = Southeastern Louisiana
+South Carolina State Bulldogs = South Carolina St.
+Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris

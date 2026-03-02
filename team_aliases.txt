@@ -15,6 +15,7 @@ Northwestern State Demons = Northwestern St.
 SE Louisiana Lions = Southeastern Louisiana
 South Carolina State Bulldogs = South Carolina St.
 Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris
+Texas A&M Corpus Christi Islanders = Texas A&M Corpus Chris
 
 [barttorvik]
 Delaware State Hornets = Delaware St.
@@ -26,3 +27,4 @@ Northwestern State Demons = Northwestern St.
 SE Louisiana Lions = Southeastern Louisiana
 South Carolina State Bulldogs = South Carolina St.
 Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris
+Texas A&M Corpus Christi Islanders = Texas A&M Corpus Chris

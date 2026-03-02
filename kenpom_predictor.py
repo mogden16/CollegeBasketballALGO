@@ -103,6 +103,12 @@ def load_aliases(path: str = TEAM_ALIASES_FILE) -> dict[str, dict[str, str]]:
 
 
 TEAM_ALIASES: dict[str, dict[str, str]] = load_aliases()
+if TEAM_ALIASES:
+    total = sum(len(v) for v in TEAM_ALIASES.values())
+    print(f"  [aliases] Loaded {total} alias(es) from {TEAM_ALIASES_FILE}: "
+          + ", ".join(f"{k}={len(v)}" for k, v in TEAM_ALIASES.items()))
+else:
+    print(f"  [aliases] {TEAM_ALIASES_FILE} not found or empty — using fuzzy matching only.")
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES
@@ -244,6 +250,10 @@ def fuzzy_lookup(
     keys = list(team_dict.keys())
     match, score = process.extractOne(resolved, keys)
     if score >= threshold:
+        if resolved != query or match.lower() != query.lower():
+            # Print whenever an alias was applied OR fuzzy had to fire
+            alias_note = f" [alias→{resolved!r}]" if resolved != query else ""
+            print(f"  [lookup/{section}] {query!r}{alias_note} → fuzzy matched {match!r} ({score})")
         return team_dict[match]
     return None
 

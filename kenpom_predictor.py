@@ -193,108 +193,6 @@ def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_
     return None
 
 # ══════════════════════════════════════════════════════
-# TEAM NAME NORMALIZATION
-# ══════════════════════════════════════════════════════
-# ESPN returns full displayNames (e.g., "Michigan State Spartans").
-# KenPom uses abbreviated forms (e.g., "Michigan St").
-# Normalizing before fuzzy matching prevents incorrect matches like
-# "Michigan State" → "Michigan" instead of "Michigan St".
-
-_ESPN_NICKNAMES = (
-    "Crimson Tide", "Volunteers", "Wildcats", "Bulldogs", "Tigers", "Gators",
-    "Tar Heels", "Blue Devils", "Wolfpack", "Wolf Pack", "Demon Deacons",
-    "Cavaliers", "Hokies", "Hurricanes", "Fighting Irish", "Boilermakers",
-    "Badgers", "Wolverines", "Spartans", "Buckeyes", "Hoosiers", "Hawkeyes",
-    "Gophers", "Huskers", "Cornhuskers", "Jayhawks", "Cowboys", "Bears",
-    "Bruins", "Trojans", "Ducks", "Beavers", "Cougars", "Huskies", "Utes",
-    "Buffaloes", "Sun Devils", "Cardinal", "Golden Bears", "Longhorns",
-    "Aggies", "Red Raiders", "Horned Frogs", "Mustangs", "Rebels",
-    "Razorbacks", "Gamecocks", "Seminoles", "Orange", "Golden Eagles",
-    "Eagles", "Owls", "Panthers", "Rams", "Mountaineers", "Yellow Jackets",
-    "Falcons", "Musketeers", "Flyers", "Friars", "Bearcats", "Billikens",
-    "Runnin' Utes", "Mean Green", "Roadrunners", "Lobos", "Miners", "Aztecs",
-    "Toreros", "Rainbow Warriors", "Warriors", "Anteaters", "Spiders",
-    "Monarchs", "Flames", "Penguins", "Zips", "Blue Raiders", "Racers",
-    "Colonels", "Red Wolves", "Hilltoppers", "Cardinals", "Chanticleers",
-    "Paladins", "Mocs", "Skyhawks", "Bison", "Dukes", "Catamounts",
-    "Grizzlies", "Lumberjacks", "Jaguars", "Blazers", "Mavericks", "Waves",
-    "Peacocks", "Retrievers", "Seawolves", "Highlanders", "Matadors",
-    "49ers", "Warhawks", "Redhawks", "RedHawks", "Ramblin' Wrecks",
-)
-
-# Explicit ESPN displayName (lowercase) → KenPom name overrides
-_ESPN_TO_KENPOM = {
-    "connecticut":           "Connecticut",
-    "uconn":                 "Connecticut",
-    "ole miss":              "Mississippi",
-    "louisiana state":       "LSU",
-    "lsu":                   "LSU",
-    "nc state":              "N.C. State",
-    "north carolina state":  "N.C. State",
-    "pittsburgh":            "Pittsburgh",
-    "pitt":                  "Pittsburgh",
-    "miami":                 "Miami FL",
-    "miami (fl)":            "Miami FL",
-    "miami (oh)":            "Miami OH",
-    "central florida":       "UCF",
-    "ucf":                   "UCF",
-    "uab":                   "UAB",
-    "utep":                  "UTEP",
-    "utsa":                  "UTSA",
-    "vcu":                   "VCU",
-    "smu":                   "SMU",
-    "tcu":                   "TCU",
-    "byu":                   "BYU",
-    "unlv":                  "UNLV",
-    "umass":                 "Massachusetts",
-    "massachusetts":         "Massachusetts",
-    "southern california":   "USC",
-    "usc":                   "USC",
-    "cal":                   "California",
-    "st. john's":            "St. John's",
-    "saint john's":          "St. John's",
-    "st. joseph's":          "Saint Joseph's",
-    "loyola chicago":        "Loyola Chicago",
-    "loyola (chi)":          "Loyola Chicago",
-    "bowling green":         "Bowling Green",
-    "bowling green state":   "Bowling Green",
-    "appalachian state":     "App State",
-    "appalachian st":        "App State",
-}
-
-
-def normalize_espn_name(name: str) -> str:
-    """
-    Normalize an ESPN team displayName to match KenPom naming conventions.
-
-    1. Checks explicit override map (handles acronyms, special cases).
-    2. Strips trailing mascot nickname (e.g., "Spartans", "Wolverines").
-    3. Re-checks override map after stripping.
-    4. Converts trailing " State" → " St" (KenPom standard abbreviation).
-    """
-    name = name.strip()
-
-    # 1. Full-name override (e.g., "Ole Miss" → "Mississippi")
-    if name.lower() in _ESPN_TO_KENPOM:
-        return _ESPN_TO_KENPOM[name.lower()]
-
-    # 2. Strip trailing mascot nickname (longest match first)
-    clean = name
-    for nick in sorted(_ESPN_NICKNAMES, key=len, reverse=True):
-        if clean.endswith(" " + nick):
-            clean = clean[: -(len(nick) + 1)].strip()
-            break
-
-    # 3. Override after stripping (e.g., "Michigan State Spartans" → "Michigan State" → "Michigan St")
-    if clean.lower() in _ESPN_TO_KENPOM:
-        return _ESPN_TO_KENPOM[clean.lower()]
-
-    # 4. "State" → "St" for state schools (KenPom abbreviation)
-    clean = re.sub(r'\bState$', 'St', clean)
-
-    return clean
-
-# ══════════════════════════════════════════════════════
 # STEP 2: PULL TODAY'S MATCHUPS FROM ESPN
 # ══════════════════════════════════════════════════════
 def get_todays_matchups() -> list[Matchup]:
@@ -322,8 +220,7 @@ def get_todays_matchups() -> list[Matchup]:
         # ESPN returns home/away via homeAway flag
         home = away = None
         for c in competitors:
-            raw_name  = c.get("team", {}).get("displayName", "")
-            team_name = normalize_espn_name(raw_name)
+            team_name = c.get("team", {}).get("displayName", "")
             if c.get("homeAway") == "home":
                 home = team_name
             else:
@@ -645,95 +542,57 @@ def send_discord_message(entries: list[dict]):
     if not DISCORD_WEBHOOK_URL:
         return
 
-    today    = datetime.now().strftime("%A %b %d, %Y")
+    today = datetime.now().strftime("%A %b %d, %Y")
     edge_games = [e for e in entries if e["is_edge"]]
     high_conf  = [e for e in entries if e["confidence"] == "HIGH"]
-    has_bt     = any(e["bt_result"] for e in entries)
 
-    # ── All-games summary table (monospace code block) ──
-    # Spread convention: negative = home favored, positive = away favored
-    W_MATCH = 33
-    W_COL   = 7
-
-    if has_bt:
-        header  = f"{'Away @ Home':<{W_MATCH}} {'KP':>{W_COL}} {'BT':>{W_COL}} {'Vegas':>{W_COL}} {'Edge':>{W_COL}}"
-    else:
-        header  = f"{'Away @ Home':<{W_MATCH}} {'KP':>{W_COL}} {'Vegas':>{W_COL}} {'Edge':>{W_COL}}"
-    divider = "─" * len(header)
-
-    table_rows = [header, divider]
+    # ── Build all-games table ──
+    lines = []
     for e in entries:
-        venue   = " [N]" if e["neutral"] else ""
+        venue = " [N]" if e["neutral"] else ""
         matchup = f"{e['away']} @ {e['home']}{venue}"
-        if len(matchup) > W_MATCH:
-            matchup = matchup[:W_MATCH - 1] + "…"
+        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+        vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
+        edge_str = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
+        flag = ""
+        if e["confidence"] == "HIGH":
+            flag = " ◄◄◄ HIGH"
+        elif e["is_edge"]:
+            flag = " ◄◄◄"
+        lines.append(f"{matchup}\n  KP: {kp_str} | Vegas: {vegas_str} | Edge: {edge_str}{flag}")
 
-        kp_s    = f"{e['result']['spread']:+.1f}"
-        vegas_s = f"{e['vegas_spread']:+.1f}" if e["vegas_spread"] is not None else "N/A"
-        edge_s  = f"{e['spread_edge']:+.1f}"  if e["spread_edge"]  is not None else "N/A"
+    all_games_text = "\n".join(lines) if lines else "No games today."
+    if len(all_games_text) > 4000:
+        all_games_text = all_games_text[:3997] + "..."
 
-        flag = " ◄◄" if e["confidence"] == "HIGH" else (" ◄" if e["is_edge"] else "")
-
-        if has_bt:
-            bt_s = f"{e['bt_result']['spread']:+.1f}" if e["bt_result"] else "N/A"
-            row  = f"{matchup:<{W_MATCH}} {kp_s:>{W_COL}} {bt_s:>{W_COL}} {vegas_s:>{W_COL}} {edge_s:>{W_COL}}{flag}"
-        else:
-            row  = f"{matchup:<{W_MATCH}} {kp_s:>{W_COL}} {vegas_s:>{W_COL}} {edge_s:>{W_COL}}{flag}"
-
-        table_rows.append(row)
-
-    table_rows.append("")
-    table_rows.append("(−) = home favored  |  ◄ = edge  |  ◄◄ = high conf")
-    table_text = "\n".join(table_rows)
-    if len(table_text) > 4000:
-        table_text = table_text[:3997] + "..."
-
-    # ── Edge games — one Discord embed field per game ──
-    edge_fields = []
+    # ── Build edge games detail ──
+    edge_lines = []
     for e in edge_games:
         kp = e["result"]
-
-        # Field name: matchup + confidence badge
-        badge      = " 🔥 HIGH CONFIDENCE" if e["confidence"] == "HIGH" else ""
-        field_name = f"{e['away']} @ {e['home']}{badge}"
-
-        # Field value: structured lines
-        lines = []
-        lines.append(
-            f"**KenPom:** {e['home']} {kp['home_score']} — {e['away']} {kp['away_score']}"
-            f"  |  Total {kp['total']}  |  Spread {kp['spread']:+.1f}"
-        )
+        conf_tag = " *** HIGH CONFIDENCE ***" if e["confidence"] == "HIGH" else ""
+        parts = [f"**{e['away']} @ {e['home']}**{conf_tag}"]
+        parts.append(f"KenPom: {e['home']} {kp['home_score']}  |  {e['away']} {kp['away_score']}")
+        parts.append(f"KP Total {kp['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
         if e["bt_result"]:
             bt = e["bt_result"]
-            lines.append(
-                f"**T-Rank:** {e['home']} {bt['home_score']} — {e['away']} {bt['away_score']}"
-                f"  |  Total {bt['total']}  |  Spread {bt['spread']:+.1f}"
-            )
+            bt_fav  = e["home"] if bt["spread"] < 0 else e["away"]
+            bt_line = abs(bt["spread"])
+            parts.append(f"T-Rank: {e['home']} {bt['home_score']}  |  {e['away']} {bt['away_score']}")
+            parts.append(f"BT Total {bt['total']}  |  Spread {bt_fav} -{bt_line:.1f}")
         if e["vegas_spread"] is not None:
-            lines.append(
-                f"**Vegas:**  {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}"
-            )
-
-        edge_parts = []
+            parts.append(f"Vegas: {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}")
         if e["is_spread_edge"]:
-            side = "home" if e["spread_edge"] > 0 else "away"
-            edge_parts.append(f"Spread → **{side}** by {abs(e['spread_edge']):.1f} pts vs mkt")
+            direction = "home" if e["spread_edge"] > 0 else "away"
+            parts.append(f"KP SPREAD EDGE: likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
         if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
-            side = "home" if e["bt_spread_edge"] > 0 else "away"
-            edge_parts.append(f"BT Sprd → **{side}** by {abs(e['bt_spread_edge']):.1f} pts vs mkt")
+            direction = "home" if e["bt_spread_edge"] > 0 else "away"
+            parts.append(f"BT SPREAD EDGE: likes {direction} team by {abs(e['bt_spread_edge']):.1f} pts vs market")
         if e["is_total_edge"]:
-            side = "OVER" if e["total_edge"] > 0 else "UNDER"
-            edge_parts.append(f"Total → **{side}** by {abs(e['total_edge']):.1f} pts")
-        if edge_parts:
-            lines.append("🎯 " + "  |  ".join(edge_parts))
+            direction = "OVER" if e["total_edge"] > 0 else "UNDER"
+            parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
+        edge_lines.append("\n".join(parts))
 
-        edge_fields.append({
-            "name":   field_name[:256],
-            "value":  "\n".join(lines)[:1024],
-            "inline": False,
-        })
-
-    # ── Construct Discord payload ──
+    # ── Construct Discord payload with embeds ──
     footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
     if high_conf:
         footer_parts.append(f"{len(high_conf)} high-confidence")
@@ -741,18 +600,21 @@ def send_discord_message(entries: list[dict]):
 
     embeds = [
         {
-            "title":       f"KenPom + T-Rank Predictor | {today}",
-            "description": f"```\n{table_text}\n```",
-            "color":       0x1E90FF,
-            "footer":      {"text": footer_text},
+            "title": f"KenPom + T-Rank Predictor | {today}",
+            "description": f"```\n{all_games_text}\n```",
+            "color": 0x1E90FF,
+            "footer": {"text": footer_text},
         }
     ]
 
-    if edge_fields:
+    if edge_games:
+        edge_text = "\n\n".join(edge_lines)
+        if len(edge_text) > 4000:
+            edge_text = edge_text[:3997] + "..."
         embeds.append({
-            "title":  f"Edge Games  (model vs line ≥ {EDGE_THRESHOLD} pts)",
-            "color":  0xFF4500,
-            "fields": edge_fields,
+            "title": f"Edge Games (model vs line >= {EDGE_THRESHOLD} pts)",
+            "description": edge_text,
+            "color": 0xFF4500,
         })
 
     payload = {"embeds": embeds}

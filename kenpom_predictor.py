@@ -592,46 +592,49 @@ def send_discord_message(entries: list[dict]):
             parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
         edge_lines.append("\n".join(parts))
 
-    # ── Construct Discord payload with embeds ──
+    # ── Construct and send Discord payloads (two separate requests) ──
+    # Discord caps total embed chars at 6000 per request; splitting avoids that.
     footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
     if high_conf:
         footer_parts.append(f"{len(high_conf)} high-confidence")
     footer_text = " | ".join(footer_parts)
 
-    embeds = [
-        {
-            "title": f"KenPom + T-Rank Predictor | {today}",
-            "description": f"```\n{all_games_text}\n```",
-            "color": 0x1E90FF,
-            "footer": {"text": footer_text},
-        }
-    ]
+    def _post(payload: dict, label: str) -> None:
+        try:
+            resp = requests.post(
+                DISCORD_WEBHOOK_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
+            if resp.status_code == 204:
+                print(f"  Discord: {label} posted successfully.")
+            else:
+                print(f"  Discord: {label} returned status {resp.status_code} -- {resp.text}")
+        except Exception as exc:
+            print(f"  Discord: failed to send {label} -- {exc}")
 
-    if edge_games:
-        edge_text = "\n\n".join(edge_lines)
-        if len(edge_text) > 4000:
-            edge_text = edge_text[:3997] + "..."
-        embeds.append({
-            "title": f"Edge Games (model vs line >= {EDGE_THRESHOLD} pts)",
-            "description": edge_text,
-            "color": 0xFF4500,
-        })
+    # Message 1: all-games table
+    _post(
+        {"embeds": [{
+            "title":       f"KenPom + T-Rank Predictor | {today}",
+            "description": f"```\n{table_text}\n```",
+            "color":       0x1E90FF,
+            "footer":      {"text": footer_text},
+        }]},
+        "all-games table",
+    )
 
-    payload = {"embeds": embeds}
-
-    try:
-        resp = requests.post(
-            DISCORD_WEBHOOK_URL,
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=10,
+    # Message 2: edge games (only when present)
+    if edge_fields:
+        _post(
+            {"embeds": [{
+                "title":  f"Edge Games  (model vs line ≥ {EDGE_THRESHOLD} pts)",
+                "color":  0xFF4500,
+                "fields": edge_fields,
+            }]},
+            "edge games",
         )
-        if resp.status_code == 204:
-            print(f"  Discord: predictions posted successfully.")
-        else:
-            print(f"  Discord: webhook returned status {resp.status_code} -- {resp.text}")
-    except Exception as e:
-        print(f"  Discord: failed to send -- {e}")
 
 
 # ══════════════════════════════════════════════════════

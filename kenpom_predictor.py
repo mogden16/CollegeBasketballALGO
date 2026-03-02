@@ -546,64 +546,7 @@ def send_discord_message(entries: list[dict]):
     edge_games = [e for e in entries if e["is_edge"]]
     high_conf  = [e for e in entries if e["confidence"] == "HIGH"]
 
-    # ── Build all-games table ──
-    lines = []
-    for e in entries:
-        venue = " [N]" if e["neutral"] else ""
-        matchup = f"{e['away']} @ {e['home']}{venue}"
-        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
-        vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
-        edge_str = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
-        flag = ""
-        if e["confidence"] == "HIGH":
-            flag = " ◄◄◄ HIGH"
-        elif e["is_edge"]:
-            flag = " ◄◄◄"
-        lines.append(f"{matchup}\n  KP: {kp_str} | Vegas: {vegas_str} | Edge: {edge_str}{flag}")
-
-    all_games_text = "\n".join(lines) if lines else "No games today."
-    if len(all_games_text) > 4000:
-        all_games_text = all_games_text[:3997] + "..."
-
-    # ── Build edge games detail ──
-    edge_lines = []
-    for e in edge_games:
-        kp = e["result"]
-        conf_tag = " *** HIGH CONFIDENCE ***" if e["confidence"] == "HIGH" else ""
-        parts = [f"**{e['away']} @ {e['home']}**{conf_tag}"]
-        parts.append(f"KenPom: {e['home']} {kp['home_score']}  |  {e['away']} {kp['away_score']}")
-        parts.append(f"KP Total {kp['total']}  |  Spread {e['model_fav']} -{e['model_line']:.1f}")
-        if e["bt_result"]:
-            bt = e["bt_result"]
-            bt_fav  = e["home"] if bt["spread"] < 0 else e["away"]
-            bt_line = abs(bt["spread"])
-            parts.append(f"T-Rank: {e['home']} {bt['home_score']}  |  {e['away']} {bt['away_score']}")
-            parts.append(f"BT Total {bt['total']}  |  Spread {bt_fav} -{bt_line:.1f}")
-        if e["vegas_spread"] is not None:
-            parts.append(f"Vegas: {e['vegas_fav']} -{e['vegas_line']:.1f}  |  Total {e['vegas_total']}")
-        if e["is_spread_edge"]:
-            direction = "home" if e["spread_edge"] > 0 else "away"
-            parts.append(f"KP SPREAD EDGE: likes {direction} team by {abs(e['spread_edge']):.1f} pts vs market")
-        if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
-            direction = "home" if e["bt_spread_edge"] > 0 else "away"
-            parts.append(f"BT SPREAD EDGE: likes {direction} team by {abs(e['bt_spread_edge']):.1f} pts vs market")
-        if e["is_total_edge"]:
-            direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-            parts.append(f"TOTAL EDGE: model says {direction} by {abs(e['total_edge']):.1f} pts")
-        edge_lines.append("\n".join(parts))
-
-    edge_fields = [
-        {"name": line.split("\n")[0], "value": "\n".join(line.split("\n")[1:])[:1024] or "\u200b", "inline": False}
-        for line in edge_lines
-    ]
-
-    # ── Construct and send Discord payloads (two separate requests) ──
-    # Discord caps total embed chars at 6000 per request; splitting avoids that.
-    footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
-    if high_conf:
-        footer_parts.append(f"{len(high_conf)} high-confidence")
-    footer_text = " | ".join(footer_parts)
-
+    # ── Helper: post one payload ──
     def _post(payload: dict, label: str) -> None:
         try:
             resp = requests.post(
@@ -619,26 +562,90 @@ def send_discord_message(entries: list[dict]):
         except Exception as exc:
             print(f"  Discord: failed to send {label} -- {exc}")
 
-    # Message 1: all-games table
-    _post(
-        {"embeds": [{
-            "title":       f"KenPom + T-Rank Predictor | {today}",
-            "description": f"```\n{all_games_text}\n```",
-            "color":       0x1E90FF,
-            "footer":      {"text": footer_text},
-        }]},
-        "all-games table",
-    )
+    # ── Build all-games as inline embed fields (renders as a card grid in Discord) ──
+    all_fields = []
+    for e in entries:
+        venue = " `[N]`" if e["neutral"] else ""
+        if e["confidence"] == "HIGH":
+            prefix = "⚡⚡ "
+        elif e["is_edge"]:
+            prefix = "⚡ "
+        else:
+            prefix = ""
+        name      = f"{prefix}**{e['away']} @ {e['home']}**{venue}"
+        kp_str    = f"{e['model_fav']} -{e['model_line']:.1f}"
+        vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
+        edge_str  = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
+        value     = f"KP: `{kp_str}`\nVegas: `{vegas_str}`\nEdge: `{edge_str}`"
+        all_fields.append({"name": name, "value": value, "inline": True})
 
-    # Message 2: edge games (only when present)
-    if edge_fields:
+    footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
+    if high_conf:
+        footer_parts.append(f"{len(high_conf)} high-confidence")
+    footer_text = " | ".join(footer_parts)
+
+    # Send all-games in chunks of 20 fields (Discord max is 25; stay under 6000-char limit)
+    CHUNK = 20
+    field_chunks = [all_fields[i:i + CHUNK] for i in range(0, len(all_fields), CHUNK)] or [[]]
+    for idx, chunk in enumerate(field_chunks):
+        title = f"KenPom + T-Rank Predictor | {today}"
+        if len(field_chunks) > 1:
+            title += f"  ({idx + 1}/{len(field_chunks)})"
+        embed: dict = {
+            "title":  title,
+            "color":  0x1E90FF,
+            "fields": chunk or [{"name": "No games today", "value": "\u200b", "inline": False}],
+        }
+        if idx == len(field_chunks) - 1:
+            embed["footer"] = {"text": footer_text}
+        _post({"embeds": [embed]}, f"all-games ({idx + 1}/{len(field_chunks)})")
+
+    # ── Send edge games: one embed per game to stay under Discord's 6000-char limit ──
+    for i, e in enumerate(edge_games):
+        kp      = e["result"]
+        is_high = e["confidence"] == "HIGH"
+        title   = f"{'⚡⚡ HIGH CONF  ' if is_high else '⚡  '}{e['away']} @ {e['home']}"
+        fields: list[dict] = []
+
+        kp_body = (
+            f"`{e['home']}` **{kp['home_score']}**  vs  `{e['away']}` **{kp['away_score']}**\n"
+            f"Spread: **{e['model_fav']} -{e['model_line']:.1f}**  |  Total: **{kp['total']}**"
+        )
+        fields.append({"name": "KenPom", "value": kp_body, "inline": False})
+
+        if e["bt_result"]:
+            bt     = e["bt_result"]
+            bt_fav = e["home"] if bt["spread"] < 0 else e["away"]
+            bt_val = (
+                f"`{e['home']}` **{bt['home_score']}**  vs  `{e['away']}` **{bt['away_score']}**\n"
+                f"Spread: **{bt_fav} -{abs(bt['spread']):.1f}**  |  Total: **{bt['total']}**"
+            )
+            fields.append({"name": "T-Rank", "value": bt_val, "inline": False})
+
+        if e["vegas_spread"] is not None:
+            v_val = f"Spread: **{e['vegas_fav']} -{e['vegas_line']:.1f}**  |  Total: **{e['vegas_total']}**"
+            fields.append({"name": "Vegas Line", "value": v_val, "inline": False})
+
+        edge_parts: list[str] = []
+        if e["is_spread_edge"]:
+            direction = e["home"] if e["spread_edge"] > 0 else e["away"]
+            edge_parts.append(f"Spread: **{direction}** by {abs(e['spread_edge']):.1f} pts over Vegas")
+        if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
+            direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
+            edge_parts.append(f"T-Rank: **{direction}** by {abs(e['bt_spread_edge']):.1f} pts over Vegas")
+        if e["is_total_edge"]:
+            direction = "OVER" if e["total_edge"] > 0 else "UNDER"
+            edge_parts.append(f"Total: **{direction}** by {abs(e['total_edge']):.1f} pts")
+        if edge_parts:
+            fields.append({"name": "Edge Summary", "value": "\n".join(edge_parts), "inline": False})
+
         _post(
             {"embeds": [{
-                "title":  f"Edge Games  (model vs line ≥ {EDGE_THRESHOLD} pts)",
-                "color":  0xFF4500,
-                "fields": edge_fields,
+                "title":  title,
+                "color":  0xFFD700 if is_high else 0xFF4500,
+                "fields": fields,
             }]},
-            "edge games",
+            f"edge game {i + 1}/{len(edge_games)} ({e['away']} @ {e['home']})",
         )
 
 

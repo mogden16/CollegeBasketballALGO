@@ -490,16 +490,19 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
         vegas_fav  = kp_home.name if (m.vegas_spread or 0) < 0 else kp_away.name
         vegas_line = abs(m.vegas_spread) if m.vegas_spread is not None else None
 
-        # Flag edge games
-        is_spread_edge = kp_spread_edge is not None and abs(kp_spread_edge) >= EDGE_THRESHOLD
-        is_total_edge  = kp_total_edge  is not None and abs(kp_total_edge)  >= EDGE_THRESHOLD
+        # Flag edge games — either model meeting threshold qualifies
+        kp_is_spread_edge = kp_spread_edge is not None and abs(kp_spread_edge) >= EDGE_THRESHOLD
+        kp_is_total_edge  = kp_total_edge  is not None and abs(kp_total_edge)  >= EDGE_THRESHOLD
+        bt_is_spread_edge = bt_spread_edge is not None and abs(bt_spread_edge) >= EDGE_THRESHOLD
+        bt_is_total_edge  = bt_total_edge  is not None and abs(bt_total_edge)  >= EDGE_THRESHOLD
 
-        # Confidence: HIGH when both KenPom and T-Rank agree on edge direction
+        is_spread_edge = kp_is_spread_edge or bt_is_spread_edge
+        is_total_edge  = kp_is_total_edge  or bt_is_total_edge
+
+        # Confidence: HIGH when both models agree on spread edge direction
         confidence = ""
-        if bt_result and is_spread_edge and bt_spread_edge is not None:
-            same_spread_dir = (kp_spread_edge > 0) == (bt_spread_edge > 0)
-            bt_also_edge    = abs(bt_spread_edge) >= EDGE_THRESHOLD
-            if same_spread_dir and bt_also_edge:
+        if kp_is_spread_edge and bt_is_spread_edge:
+            if (kp_spread_edge > 0) == (bt_spread_edge > 0):
                 confidence = "HIGH"
 
         entry = {
@@ -512,6 +515,8 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             "vegas_spread": m.vegas_spread, "vegas_total": m.vegas_total,
             "spread_edge": kp_spread_edge, "total_edge": kp_total_edge,
             "bt_spread_edge": bt_spread_edge, "bt_total_edge": bt_total_edge,
+            "kp_is_spread_edge": kp_is_spread_edge, "kp_is_total_edge": kp_is_total_edge,
+            "bt_is_spread_edge": bt_is_spread_edge, "bt_is_total_edge": bt_is_total_edge,
             "is_edge": is_spread_edge or is_total_edge,
             "is_spread_edge": is_spread_edge,
             "is_total_edge": is_total_edge,
@@ -739,20 +744,21 @@ def send_discord_message(entries: list[dict]):
             if e["vegas_spread"] is not None:
                 lines.append(f"**Vegas:** {e['vegas_fav']} -{e['vegas_line']:.1f}  |  O/U {e['vegas_total']}")
 
-            # Edge summary — always show BT analysis so both models are visible
-            if e["is_spread_edge"]:
-                direction = e["home"] if e["spread_edge"] > 0 else e["away"]
-                lines.append(f"**KP Edge:** {direction} {e['spread_edge']:+.1f} vs market")
+            # Spread edge — show both models, flag which one(s) triggered
+            if e["spread_edge"] is not None:
+                kp_tag = " 🔺" if e["kp_is_spread_edge"] else ""
+                lines.append(f"**KP Spread Edge:** {e['spread_edge']:+.1f}{kp_tag}")
             if e["bt_spread_edge"] is not None:
-                direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
-                confirms = " ✓" if abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD and (e["bt_spread_edge"] > 0) == (e["spread_edge"] > 0) else ""
-                lines.append(f"**BT Edge:** {direction} {e['bt_spread_edge']:+.1f} vs market{confirms}")
-            if e["is_total_edge"]:
-                direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-                lines.append(f"**KP Total:** {direction} by {abs(e['total_edge']):.1f}")
+                bt_tag = " 🔺" if e["bt_is_spread_edge"] else ""
+                lines.append(f"**BT Spread Edge:** {e['bt_spread_edge']:+.1f}{bt_tag}")
+
+            # Total edge — show both models, flag which one(s) triggered
+            if e["total_edge"] is not None:
+                kp_tag = " 🔺" if e["kp_is_total_edge"] else ""
+                lines.append(f"**KP Total Edge:** {e['total_edge']:+.1f}{kp_tag}")
             if e["bt_total_edge"] is not None:
-                direction = "OVER" if e["bt_total_edge"] > 0 else "UNDER"
-                lines.append(f"**BT Total:** {direction} by {abs(e['bt_total_edge']):.1f}")
+                bt_tag = " 🔺" if e["bt_is_total_edge"] else ""
+                lines.append(f"**BT Total Edge:** {e['bt_total_edge']:+.1f}{bt_tag}")
 
             edge_fields.append({"name": name, "value": "\n".join(lines), "inline": False})
 

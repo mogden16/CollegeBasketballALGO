@@ -739,16 +739,20 @@ def send_discord_message(entries: list[dict]):
             if e["vegas_spread"] is not None:
                 lines.append(f"**Vegas:** {e['vegas_fav']} -{e['vegas_line']:.1f}  |  O/U {e['vegas_total']}")
 
-            # Edge summary
+            # Edge summary — always show BT analysis so both models are visible
             if e["is_spread_edge"]:
                 direction = e["home"] if e["spread_edge"] > 0 else e["away"]
-                lines.append(f"**KP Edge:** {direction} +{abs(e['spread_edge']):.1f} vs market")
-            if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
+                lines.append(f"**KP Edge:** {direction} {e['spread_edge']:+.1f} vs market")
+            if e["bt_spread_edge"] is not None:
                 direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
-                lines.append(f"**BT Edge:** {direction} +{abs(e['bt_spread_edge']):.1f} vs market")
+                confirms = " ✓" if abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD and (e["bt_spread_edge"] > 0) == (e["spread_edge"] > 0) else ""
+                lines.append(f"**BT Edge:** {direction} {e['bt_spread_edge']:+.1f} vs market{confirms}")
             if e["is_total_edge"]:
                 direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-                lines.append(f"**Total Edge:** {direction} by {abs(e['total_edge']):.1f}")
+                lines.append(f"**KP Total:** {direction} by {abs(e['total_edge']):.1f}")
+            if e["bt_total_edge"] is not None:
+                direction = "OVER" if e["bt_total_edge"] > 0 else "UNDER"
+                lines.append(f"**BT Total:** {direction} by {abs(e['bt_total_edge']):.1f}")
 
             edge_fields.append({"name": name, "value": "\n".join(lines), "inline": False})
 

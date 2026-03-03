@@ -713,53 +713,59 @@ def send_discord_message(entries: list[dict]):
             embed["footer"] = {"text": footer_text}
         _post({"embeds": [embed]}, f"all-games ({idx + 1}/{len(field_chunks)})")
 
-    # ── Individual edge game posts disabled (keeping the single all-games embed above) ──
-    # for i, e in enumerate(edge_games):
-    #     kp      = e["result"]
-    #     is_high = e["confidence"] == "HIGH"
-    #     title   = f"{'⚡⚡ HIGH CONF  ' if is_high else '⚡  '}{e['away']} @ {e['home']}"
-    #     fields: list[dict] = []
-    #
-    #     kp_body = (
-    #         f"`{e['home']}` **{kp['home_score']}**  vs  `{e['away']}` **{kp['away_score']}**\n"
-    #         f"Spread: **{e['model_fav']} -{e['model_line']:.1f}**  |  Total: **{kp['total']}**"
-    #     )
-    #     fields.append({"name": "KenPom", "value": kp_body, "inline": False})
-    #
-    #     if e["bt_result"]:
-    #         bt     = e["bt_result"]
-    #         bt_fav = e["home"] if bt["spread"] < 0 else e["away"]
-    #         bt_val = (
-    #             f"`{e['home']}` **{bt['home_score']}**  vs  `{e['away']}` **{bt['away_score']}**\n"
-    #             f"Spread: **{bt_fav} -{abs(bt['spread']):.1f}**  |  Total: **{bt['total']}**"
-    #         )
-    #         fields.append({"name": "T-Rank", "value": bt_val, "inline": False})
-    #
-    #     if e["vegas_spread"] is not None:
-    #         v_val = f"Spread: **{e['vegas_fav']} -{e['vegas_line']:.1f}**  |  Total: **{e['vegas_total']}**"
-    #         fields.append({"name": "Vegas Line", "value": v_val, "inline": False})
-    #
-    #     edge_parts: list[str] = []
-    #     if e["is_spread_edge"]:
-    #         direction = e["home"] if e["spread_edge"] > 0 else e["away"]
-    #         edge_parts.append(f"Spread: **{direction}** by {abs(e['spread_edge']):.1f} pts over Vegas")
-    #     if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
-    #         direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
-    #         edge_parts.append(f"T-Rank: **{direction}** by {abs(e['bt_spread_edge']):.1f} pts over Vegas")
-    #     if e["is_total_edge"]:
-    #         direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-    #         edge_parts.append(f"Total: **{direction}** by {abs(e['total_edge']):.1f} pts")
-    #     if edge_parts:
-    #         fields.append({"name": "Edge Summary", "value": "\n".join(edge_parts), "inline": False})
-    #
-    #     _post(
-    #         {"embeds": [{
-    #             "title":  title,
-    #             "color":  0xFFD700 if is_high else 0xFF4500,
-    #             "fields": fields,
-    #         }]},
-    #         f"edge game {i + 1}/{len(edge_games)} ({e['away']} @ {e['home']})",
-    #     )
+    # ── Edge-games alert embed ────────────────────────────────────────────────
+    if edge_games:
+        edge_fields = []
+        for e in edge_games:
+            kp  = e["result"]
+            bt  = e["bt_result"]
+            is_high = e["confidence"] == "HIGH"
+
+            title_tag = "⚡⚡ HIGH CONFIDENCE" if is_high else "⚡ EDGE PLAY"
+            name = f"{title_tag} — **{e['away']} @ {e['home']}**"
+
+            lines = []
+
+            # KenPom line
+            lines.append(f"**KP:**  {e['model_fav']} -{e['model_line']:.1f}")
+
+            # Barttorvik line (if available)
+            if bt:
+                bt_fav  = e["home"] if bt["spread"] < 0 else e["away"]
+                bt_line = abs(bt["spread"])
+                lines.append(f"**BT:**  {bt_fav} -{bt_line:.1f}")
+
+            # Vegas line
+            if e["vegas_spread"] is not None:
+                lines.append(f"**Vegas:** {e['vegas_fav']} -{e['vegas_line']:.1f}  |  O/U {e['vegas_total']}")
+
+            # Edge summary
+            if e["is_spread_edge"]:
+                direction = e["home"] if e["spread_edge"] > 0 else e["away"]
+                lines.append(f"**KP Edge:** {direction} +{abs(e['spread_edge']):.1f} vs market")
+            if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
+                direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
+                lines.append(f"**BT Edge:** {direction} +{abs(e['bt_spread_edge']):.1f} vs market")
+            if e["is_total_edge"]:
+                direction = "OVER" if e["total_edge"] > 0 else "UNDER"
+                lines.append(f"**Total Edge:** {direction} by {abs(e['total_edge']):.1f}")
+
+            edge_fields.append({"name": name, "value": "\n".join(lines), "inline": False})
+
+        conf_count = len([e for e in edge_games if e["confidence"] == "HIGH"])
+        edge_footer = f"{len(edge_games)} edge play(s)"
+        if conf_count:
+            edge_footer += f"  |  {conf_count} high-confidence"
+
+        _post(
+            {"embeds": [{
+                "title":  f"🎯 Edge Plays | {today}",
+                "color":  0xFFD700,
+                "fields": edge_fields,
+                "footer": {"text": edge_footer},
+            }]},
+            f"edge-plays ({len(edge_games)} game(s))",
+        )
 
 
 # ══════════════════════════════════════════════════════

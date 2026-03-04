@@ -412,16 +412,31 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
         vegas_fav  = kp_home.name if (m.vegas_spread or 0) < 0 else kp_away.name
         vegas_line = abs(m.vegas_spread) if m.vegas_spread is not None else None
 
-        # Flag edge games
-        is_spread_edge = kp_spread_edge is not None and abs(kp_spread_edge) >= EDGE_THRESHOLD
+        # Flag edge games — edge if EITHER model differs from Vegas by >= threshold
+        kp_is_spread_edge = kp_spread_edge is not None and abs(kp_spread_edge) >= EDGE_THRESHOLD
+        bt_is_spread_edge = bt_spread_edge is not None and abs(bt_spread_edge) >= EDGE_THRESHOLD
+        is_spread_edge = kp_is_spread_edge or bt_is_spread_edge
         is_total_edge  = kp_total_edge  is not None and abs(kp_total_edge)  >= EDGE_THRESHOLD
 
-        # Confidence: HIGH when both KenPom and T-Rank agree on edge direction
+        # Average spread edge across available models
+        avg_spread_edge = None
+        if kp_spread_edge is not None and bt_spread_edge is not None:
+            avg_spread_edge = round((kp_spread_edge + bt_spread_edge) / 2, 1)
+        elif kp_spread_edge is not None:
+            avg_spread_edge = kp_spread_edge
+        elif bt_spread_edge is not None:
+            avg_spread_edge = bt_spread_edge
+
+        # Edge team: determined by direction of average edge (positive = home team undervalued)
+        edge_team = None
+        if is_spread_edge and avg_spread_edge is not None:
+            edge_team = kp_home.name if avg_spread_edge > 0 else kp_away.name
+
+        # Confidence: HIGH when BOTH models see edge >= threshold in same direction
         confidence = ""
-        if bt_result and is_spread_edge and bt_spread_edge is not None:
+        if kp_is_spread_edge and bt_is_spread_edge:
             same_spread_dir = (kp_spread_edge > 0) == (bt_spread_edge > 0)
-            bt_also_edge    = abs(bt_spread_edge) >= EDGE_THRESHOLD
-            if same_spread_dir and bt_also_edge:
+            if same_spread_dir:
                 confidence = "HIGH"
 
         entry = {
@@ -434,6 +449,10 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             "vegas_spread": m.vegas_spread, "vegas_total": m.vegas_total,
             "spread_edge": kp_spread_edge, "total_edge": kp_total_edge,
             "bt_spread_edge": bt_spread_edge, "bt_total_edge": bt_total_edge,
+            "avg_spread_edge": avg_spread_edge,
+            "edge_team": edge_team,
+            "kp_is_spread_edge": kp_is_spread_edge,
+            "bt_is_spread_edge": bt_is_spread_edge,
             "is_edge": is_spread_edge or is_total_edge,
             "is_spread_edge": is_spread_edge,
             "is_total_edge": is_total_edge,
@@ -607,11 +626,35 @@ def send_discord_message(entries: list[dict]):
             prefix = "⚡ "
         else:
             prefix = ""
-        name      = f"{prefix}**{e['away']} @ {e['home']}**{venue}"
-        kp_str    = f"{e['model_fav']} -{e['model_line']:.1f}"
+        name = f"{prefix}**{e['away']} @ {e['home']}**{venue}"
+
+        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+
+        bt_str = "N/A"
+        if e["bt_result"]:
+            bt = e["bt_result"]
+            bt_fav = e["home"] if bt["spread"] < 0 else e["away"]
+            bt_str = f"{bt_fav} -{abs(bt['spread']):.1f}"
+
         vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
-        edge_str  = f"{e['spread_edge']:+.1f}" if e["spread_edge"] is not None else "N/A"
-        value     = f"KP: `{kp_str}`\nVegas: `{vegas_str}`\nEdge: `{edge_str}`"
+        avg_edge_str = f"{e['avg_spread_edge']:+.1f}" if e.get("avg_spread_edge") is not None else "N/A"
+
+        value_parts = [
+            f"KP: `{kp_str}`",
+            f"BT: `{bt_str}`",
+            f"Vegas: `{vegas_str}`",
+            f"Edge: `{avg_edge_str}`",
+        ]
+
+        if e["is_spread_edge"] and e.get("edge_team"):
+            pts = abs(e["avg_spread_edge"]) if e.get("avg_spread_edge") is not None else 0
+            team = e["edge_team"]
+            if e["confidence"] == "HIGH":
+                value_parts.append(f"🔥 **HIGH CONF: Take {team}** (+{pts:.1f} pts)")
+            else:
+                value_parts.append(f"🚨 **Take {team}** (+{pts:.1f} pts vs Vegas)")
+
+        value = "\n".join(value_parts)
         all_fields.append({"name": name, "value": value, "inline": True})
 
     footer_parts = [f"{len(entries)} games analyzed", f"{len(edge_games)} edge games"]
@@ -635,53 +678,47 @@ def send_discord_message(entries: list[dict]):
             embed["footer"] = {"text": footer_text}
         _post({"embeds": [embed]}, f"all-games ({idx + 1}/{len(field_chunks)})")
 
-    # ── Individual edge game posts disabled (keeping the single all-games embed above) ──
-    # for i, e in enumerate(edge_games):
-    #     kp      = e["result"]
-    #     is_high = e["confidence"] == "HIGH"
-    #     title   = f"{'⚡⚡ HIGH CONF  ' if is_high else '⚡  '}{e['away']} @ {e['home']}"
-    #     fields: list[dict] = []
-    #
-    #     kp_body = (
-    #         f"`{e['home']}` **{kp['home_score']}**  vs  `{e['away']}` **{kp['away_score']}**\n"
-    #         f"Spread: **{e['model_fav']} -{e['model_line']:.1f}**  |  Total: **{kp['total']}**"
-    #     )
-    #     fields.append({"name": "KenPom", "value": kp_body, "inline": False})
-    #
-    #     if e["bt_result"]:
-    #         bt     = e["bt_result"]
-    #         bt_fav = e["home"] if bt["spread"] < 0 else e["away"]
-    #         bt_val = (
-    #             f"`{e['home']}` **{bt['home_score']}**  vs  `{e['away']}` **{bt['away_score']}**\n"
-    #             f"Spread: **{bt_fav} -{abs(bt['spread']):.1f}**  |  Total: **{bt['total']}**"
-    #         )
-    #         fields.append({"name": "T-Rank", "value": bt_val, "inline": False})
-    #
-    #     if e["vegas_spread"] is not None:
-    #         v_val = f"Spread: **{e['vegas_fav']} -{e['vegas_line']:.1f}**  |  Total: **{e['vegas_total']}**"
-    #         fields.append({"name": "Vegas Line", "value": v_val, "inline": False})
-    #
-    #     edge_parts: list[str] = []
-    #     if e["is_spread_edge"]:
-    #         direction = e["home"] if e["spread_edge"] > 0 else e["away"]
-    #         edge_parts.append(f"Spread: **{direction}** by {abs(e['spread_edge']):.1f} pts over Vegas")
-    #     if e["bt_spread_edge"] is not None and abs(e["bt_spread_edge"]) >= EDGE_THRESHOLD:
-    #         direction = e["home"] if e["bt_spread_edge"] > 0 else e["away"]
-    #         edge_parts.append(f"T-Rank: **{direction}** by {abs(e['bt_spread_edge']):.1f} pts over Vegas")
-    #     if e["is_total_edge"]:
-    #         direction = "OVER" if e["total_edge"] > 0 else "UNDER"
-    #         edge_parts.append(f"Total: **{direction}** by {abs(e['total_edge']):.1f} pts")
-    #     if edge_parts:
-    #         fields.append({"name": "Edge Summary", "value": "\n".join(edge_parts), "inline": False})
-    #
-    #     _post(
-    #         {"embeds": [{
-    #             "title":  title,
-    #             "color":  0xFFD700 if is_high else 0xFF4500,
-    #             "fields": fields,
-    #         }]},
-    #         f"edge game {i + 1}/{len(edge_games)} ({e['away']} @ {e['home']})",
-    #     )
+    # ── Individual edge alert posts (one per edge game) ──
+    for i, e in enumerate(edge_games):
+        is_high = e["confidence"] == "HIGH"
+        title = f"{'⚡⚡ HIGH CONFIDENCE | ' if is_high else '⚡ EDGE ALERT | '}{e['away']} @ {e['home']}"
+
+        kp_str = f"{e['model_fav']} -{e['model_line']:.1f}"
+
+        bt_str = "N/A"
+        if e["bt_result"]:
+            bt = e["bt_result"]
+            bt_fav = e["home"] if bt["spread"] < 0 else e["away"]
+            bt_str = f"{bt_fav} -{abs(bt['spread']):.1f}"
+
+        vegas_str = f"{e['vegas_fav']} -{e['vegas_line']:.1f}" if e["vegas_line"] else "N/A"
+        avg_edge_str = f"{e['avg_spread_edge']:+.1f}" if e.get("avg_spread_edge") is not None else "N/A"
+
+        team = e.get("edge_team", "N/A")
+        pts = abs(e["avg_spread_edge"]) if e.get("avg_spread_edge") is not None else 0
+
+        if is_high:
+            alert_text = f"🔥 Take **{team}** — they are **{pts:.1f} pts better** than the Vegas spread\n*(Both KenPom & T-Rank agree)*"
+        else:
+            model_tag = "KenPom" if e["kp_is_spread_edge"] else "T-Rank"
+            alert_text = f"🚨 Take **{team}** — they are **{pts:.1f} pts better** than the Vegas spread\n*({model_tag} edge)*"
+
+        fields = [
+            {"name": "KenPom Spread", "value": f"`{kp_str}`", "inline": True},
+            {"name": "T-Rank Spread", "value": f"`{bt_str}`", "inline": True},
+            {"name": "Vegas Spread",  "value": f"`{vegas_str}`", "inline": True},
+            {"name": "Edge (KP & BT avg vs Vegas)", "value": f"`{avg_edge_str}`", "inline": True},
+            {"name": "Alert", "value": alert_text, "inline": False},
+        ]
+
+        _post(
+            {"embeds": [{
+                "title":  title,
+                "color":  0xFFD700 if is_high else 0xFF4500,
+                "fields": fields,
+            }]},
+            f"edge alert {i + 1}/{len(edge_games)} ({e['away']} @ {e['home']})",
+        )
 
 
 # ══════════════════════════════════════════════════════

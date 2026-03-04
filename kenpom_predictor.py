@@ -418,7 +418,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
         is_spread_edge = kp_is_spread_edge or bt_is_spread_edge
         is_total_edge  = kp_total_edge  is not None and abs(kp_total_edge)  >= EDGE_THRESHOLD
 
-        # Average spread edge across available models
+        # Average spread edge across available models (informational only)
         avg_spread_edge = None
         if kp_spread_edge is not None and bt_spread_edge is not None:
             avg_spread_edge = round((kp_spread_edge + bt_spread_edge) / 2, 1)
@@ -427,10 +427,21 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
         elif bt_spread_edge is not None:
             avg_spread_edge = bt_spread_edge
 
-        # Edge team: determined by direction of average edge (positive = home team undervalued)
+        # best_spread_edge: largest individual edge (by abs value) among models that crossed threshold
+        # Used for edge_team direction and displayed "pts better" — avoids cancellation from averaging
+        best_spread_edge = None
+        _candidates = []
+        if kp_is_spread_edge and kp_spread_edge is not None:
+            _candidates.append(kp_spread_edge)
+        if bt_is_spread_edge and bt_spread_edge is not None:
+            _candidates.append(bt_spread_edge)
+        if _candidates:
+            best_spread_edge = max(_candidates, key=abs)
+
+        # Edge team: determined by direction of best (strongest) individual model edge
         edge_team = None
-        if is_spread_edge and avg_spread_edge is not None:
-            edge_team = kp_home.name if avg_spread_edge > 0 else kp_away.name
+        if is_spread_edge and best_spread_edge is not None:
+            edge_team = kp_home.name if best_spread_edge > 0 else kp_away.name
 
         # Confidence: HIGH when BOTH models see edge >= threshold in same direction
         confidence = ""
@@ -450,6 +461,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             "spread_edge": kp_spread_edge, "total_edge": kp_total_edge,
             "bt_spread_edge": bt_spread_edge, "bt_total_edge": bt_total_edge,
             "avg_spread_edge": avg_spread_edge,
+            "best_spread_edge": best_spread_edge,
             "edge_team": edge_team,
             "kp_is_spread_edge": kp_is_spread_edge,
             "bt_is_spread_edge": bt_is_spread_edge,
@@ -647,7 +659,7 @@ def send_discord_message(entries: list[dict]):
         ]
 
         if e["is_spread_edge"] and e.get("edge_team"):
-            pts = abs(e["avg_spread_edge"]) if e.get("avg_spread_edge") is not None else 0
+            pts = abs(e["best_spread_edge"]) if e.get("best_spread_edge") is not None else 0
             team = e["edge_team"]
             if e["confidence"] == "HIGH":
                 value_parts.append(f"🔥 **HIGH CONF: Take {team}** (+{pts:.1f} pts)")
@@ -696,7 +708,7 @@ def send_discord_message(entries: list[dict]):
         avg_edge_str = f"{e['avg_spread_edge']:+.1f}" if e.get("avg_spread_edge") is not None else "N/A"
 
         team = e.get("edge_team", "N/A")
-        pts = abs(e["avg_spread_edge"]) if e.get("avg_spread_edge") is not None else 0
+        pts = abs(e["best_spread_edge"]) if e.get("best_spread_edge") is not None else 0
 
         if is_high:
             alert_text = f"🔥 Take **{team}** — they are **{pts:.1f} pts better** than the Vegas spread\n*(Both KenPom & T-Rank agree)*"

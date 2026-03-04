@@ -678,8 +678,9 @@ def send_discord_message(entries: list[dict]):
             embed["footer"] = {"text": footer_text}
         _post({"embeds": [embed]}, f"all-games ({idx + 1}/{len(field_chunks)})")
 
-    # ── Individual edge alert posts (one per edge game) ──
-    for i, e in enumerate(edge_games):
+    # ── Individual edge alert posts (one per spread edge game only) ──
+    spread_edge_games = [e for e in edge_games if e["is_spread_edge"]]
+    for i, e in enumerate(spread_edge_games):
         is_high = e["confidence"] == "HIGH"
         title = f"{'⚡⚡ HIGH CONFIDENCE | ' if is_high else '⚡ EDGE ALERT | '}{e['away']} @ {e['home']}"
 
@@ -717,7 +718,7 @@ def send_discord_message(entries: list[dict]):
                 "color":  0xFFD700 if is_high else 0xFF4500,
                 "fields": fields,
             }]},
-            f"edge alert {i + 1}/{len(edge_games)} ({e['away']} @ {e['home']})",
+            f"edge alert {i + 1}/{len(spread_edge_games)} ({e['away']} @ {e['home']})",
         )
 
 

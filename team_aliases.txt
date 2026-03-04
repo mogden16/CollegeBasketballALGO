@@ -1,0 +1,94 @@
+# team_aliases.txt
+# Maps ESPN team names to the exact name each data source uses.
+# Format:  espn_name = source_name
+# Sections: [kenpom]  [barttorvik]  [odds_api]
+# Lines starting with # are comments.  Blank lines are ignored.
+# Run dump_team_names.py on a game day to identify new mismatches.
+
+[kenpom]
+# ── Previously fixed ─────────────────────────────────
+Delaware State Hornets = Delaware St.
+IU Indianapolis Jaguars = IU Indy
+Idaho State Bengals = Idaho St.
+Northern Arizona = Northern Arizona
+Northern Arizona Lumberjacks = Northern Arizona
+Northwestern State Demons = Northwestern St.
+SE Louisiana Lions = Southeastern Louisiana
+South Carolina State Bulldogs = South Carolina St.
+Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris
+Texas A&M Corpus Christi Islanders = Texas A&M Corpus Chris
+# ── Wrong team matched ────────────────────────────────
+C Michigan = Central Michigan
+E Michigan = Eastern Michigan
+Miss Valley St = Mississippi Valley St.
+N Illinois = Northern Illinois
+NC A&T = North Carolina A&T
+Ole Miss = Mississippi
+Purdue FW = Purdue Fort Wayne
+UMass = Massachusetts
+Utah State = Utah St.
+W Michigan = Western Michigan
+# ── Right team, exact match (silences fuzzy noise) ───
+Alabama St = Alabama St.
+Alcorn St = Alcorn St.
+AR-Pine Bluff = Arkansas Pine Bluff
+Arizona St = Arizona St.
+Ball State = Ball St.
+Boise St = Boise St.
+Fresno St = Fresno St.
+Georgia St = Georgia St.
+Grambling = Grambling St.
+Jackson St = Jackson St.
+Kansas St = Kansas St.
+Kent State = Kent St.
+Mississippi St = Mississippi St.
+Oklahoma St = Oklahoma St.
+San Diego St = San Diego St.
+San José St = San Jose St.
+St John's = St. John's
+UAlbany = Albany
+UL Monroe = Louisiana Monroe
+
+[barttorvik]
+# ── Previously fixed ─────────────────────────────────
+Delaware State Hornets = Delaware St.
+IU Indianapolis Jaguars = IU Indy
+Idaho State Bengals = Idaho St.
+Northern Arizona = Northern Arizona
+Northern Arizona Lumberjacks = Northern Arizona
+Northwestern State Demons = Northwestern St.
+SE Louisiana Lions = Southeastern Louisiana
+South Carolina State Bulldogs = South Carolina St.
+Texas A&M-Corpus Christi Islanders = Texas A&M Corpus Chris
+Texas A&M Corpus Christi Islanders = Texas A&M Corpus Chris
+# ── Wrong team matched ────────────────────────────────
+C Michigan = Central Michigan
+E Michigan = Eastern Michigan
+Miss Valley St = Mississippi Valley St.
+N Illinois = Northern Illinois
+NC A&T = North Carolina A&T
+Ole Miss = Mississippi
+Purdue FW = Purdue Fort Wayne
+UMass = Massachusetts
+Utah State = Utah St.
+W Michigan = Western Michigan
+# ── Right team, exact match (silences fuzzy noise) ───
+Alabama St = Alabama St.
+Alcorn St = Alcorn St.
+AR-Pine Bluff = Arkansas Pine Bluff
+Arizona St = Arizona St.
+Ball State = Ball St.
+Boise St = Boise St.
+Fresno St = Fresno St.
+Georgia St = Georgia St.
+Grambling = Grambling St.
+Jackson St = Jackson St.
+Kansas St = Kansas St.
+Kent State = Kent St.
+Mississippi St = Mississippi St.
+Oklahoma St = Oklahoma St.
+San Diego St = San Diego St.
+San José St = San Jose St.
+St John's = St. John's
+UAlbany = Albany
+UL Monroe = Louisiana Monroe

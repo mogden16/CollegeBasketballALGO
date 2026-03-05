@@ -853,6 +853,41 @@ def performance_report():
 
     print(f"\n{'═'*60}\n")
 
+
+def picks_performance_report():
+    """Print past pick performance based on resolved games."""
+    if not Path(RESULTS_LOG).exists():
+        print("No results log found. Enter some actual scores first with --results.")
+        return
+
+    with open(RESULTS_LOG, newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    if not rows:
+        print("Results log is empty.")
+        return
+
+    graded_rows = [r for r in rows if r.get("kp_spread") and r.get("actual_spread")]
+    if not graded_rows:
+        print("No graded picks found yet.")
+        return
+
+    wins = sum(
+        1 for r in graded_rows
+        if (float(r["kp_spread"]) < 0) == (float(r["actual_spread"]) < 0)
+    )
+    losses = len(graded_rows) - wins
+    win_pct = (wins / len(graded_rows)) * 100
+
+    print(f"\n{'═'*60}")
+    print("  PICKS PERFORMANCE")
+    print(f"{'═'*60}")
+    print(f"  Picks graded       : {len(graded_rows)}")
+    print(f"  Wins               : {wins}")
+    print(f"  Losses             : {losses}")
+    print(f"  Win rate           : {win_pct:.1f}%")
+    print(f"\n{'═'*60}\n")
+
 # ══════════════════════════════════════════════════════
 # ENTRY POINT
 # ══════════════════════════════════════════════════════
@@ -861,5 +896,7 @@ if __name__ == "__main__":
         enter_results()
     elif "--report" in sys.argv:
         performance_report()
+    elif "--picks" in sys.argv:
+        picks_performance_report()
     else:
         run_slate("kenpom_raw.txt")

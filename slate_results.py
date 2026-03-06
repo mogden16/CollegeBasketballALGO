@@ -31,6 +31,19 @@ RESULTS_HEADERS = [
     "spread_vs_vegas_error", "model_beat_vegas"
 ]
 
+
+def _read_csv(path: str, known_headers: list[str]) -> list[dict]:
+    """Read a CSV, auto-detecting missing header rows by checking if the first field is a date."""
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        first_line = f.readline()
+        f.seek(0)
+        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
+            reader = csv.DictReader(f, fieldnames=known_headers)
+        else:
+            reader = csv.DictReader(f)
+        return [{k.strip(): v.strip() for k, v in row.items() if k} for row in reader]
+
+
 # ══════════════════════════════════════════════════════
 # ENTER ACTUAL RESULTS (interactive)
 # ══════════════════════════════════════════════════════
@@ -44,20 +57,12 @@ def enter_results():
         print("No predictions log found. Run the predictor first.")
         return
 
-    with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
-        first_line = f.readline()
-        f.seek(0)
-        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
-            reader = csv.DictReader(f, fieldnames=PREDICTIONS_HEADERS)
-        else:
-            reader = csv.DictReader(f)
-        predictions = list(reader)
+    predictions = _read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS)
 
     resolved = set()
     if Path(RESULTS_LOG).exists():
-        with open(RESULTS_LOG, newline="") as f:
-            for row in csv.DictReader(f):
-                resolved.add((row["date"], row["home_team"], row["away_team"]))
+        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS):
+            resolved.add((row["date"], row["home_team"], row["away_team"]))
 
     pending = [
         p for p in predictions
@@ -214,8 +219,7 @@ def performance_report():
         print("No results log found. Enter some actual scores first with --results.")
         return
 
-    with open(RESULTS_LOG, newline="") as f:
-        rows = list(csv.DictReader(f))
+    rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS)
 
     if not rows:
         print("Results log is empty.")
@@ -264,15 +268,7 @@ def check_results():
         print("No predictions log found. Run the predictor first.")
         return []
 
-    with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
-        first_line = f.readline()
-        f.seek(0)
-        # Detect headerless CSV: if the first field looks like a date, supply headers
-        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
-            reader = csv.DictReader(f, fieldnames=PREDICTIONS_HEADERS)
-        else:
-            reader = csv.DictReader(f)
-        predictions = [{k.strip(): v.strip() for k, v in row.items() if k} for row in reader]
+    predictions = _read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS)
 
     if not predictions:
         print("  No predictions found in log.")
@@ -284,10 +280,9 @@ def check_results():
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
-        with open(RESULTS_LOG, newline="", encoding="utf-8-sig") as f:
-            existing_rows = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
-            for row in existing_rows:
-                resolved.add((row["date"], row["home_team"], row["away_team"]))
+        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS)
+        for row in existing_rows:
+            resolved.add((row["date"], row["home_team"], row["away_team"]))
 
     pending = [
         p for p in predictions

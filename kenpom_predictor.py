@@ -681,7 +681,7 @@ RESULTS_HEADERS = [
     "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
     "vegas_spread", "vegas_total",
     "spread_error", "total_error",
-    "spread_vs_vegas_error", "model_beat_vegas"
+    "spread_vs_vegas_error", "model_beat_vegas", "is_edge"
 ]
 
 def enter_results():
@@ -745,8 +745,11 @@ def enter_results():
                 continue
 
             away_in = input(f"  Actual {p['away_team']} score: ").strip()
-            if away_in.lower() in ("quit", "skip"):
+            if away_in.lower() == "quit":
                 break
+            if away_in.lower() == "skip":
+                print()
+                continue
 
             try:
                 actual_home = float(home_in)
@@ -762,8 +765,9 @@ def enter_results():
 
             spread_vs_vegas = ""
             model_beat_vegas = ""
-            if p["vegas_spread"]:
-                vegas_spread_error = round(float(p["vegas_spread"]) - actual_spread, 1)
+            vegas_spread_raw = (p.get("vegas_spread") or "").strip()
+            if vegas_spread_raw:
+                vegas_spread_error = round(float(vegas_spread_raw) - actual_spread, 1)
                 spread_vs_vegas    = round(abs(spread_error) - abs(vegas_spread_error), 1)
                 # Negative = model was closer than Vegas
                 model_beat_vegas   = "YES" if spread_vs_vegas < 0 else "NO"
@@ -786,6 +790,7 @@ def enter_results():
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,
                 "model_beat_vegas":     model_beat_vegas,
+                "is_edge":              p.get("is_edge", ""),
             })
 
             print(f"  Saved. Spread error: {spread_error:+.1f} pts  |  Total error: {total_error:+.1f} pts\n")

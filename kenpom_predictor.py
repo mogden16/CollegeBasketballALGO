@@ -722,20 +722,36 @@ def enter_results():
     results_path = Path(RESULTS_LOG)
     write_header = not results_path.exists()
 
+    def _first_present(row: dict, *keys: str, default: str = "") -> str:
+        for key in keys:
+            value = row.get(key)
+            if value not in (None, ""):
+                return value
+        return default
+
     with open(results_path, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=RESULTS_HEADERS)
         if write_header:
             writer.writeheader()
 
         for p in pending:
+            kp_home_score = _first_present(p, "kp_home_score", "home_score")
+            kp_away_score = _first_present(p, "kp_away_score", "away_score")
+            kp_total      = _first_present(p, "kp_total", "total")
+            kp_spread     = _first_present(p, "kp_spread", "spread")
+
             print(f"  {p['date']}  |  {p['away_team']} @ {p['home_team']}")
-            print(f"  KenPom: {p['home_team']} {p['kp_home_score']} - {p['away_team']} {p['kp_away_score']}")
+            print(f"  KenPom: {p['home_team']} {kp_home_score} - {p['away_team']} {kp_away_score}")
             if p.get("bt_home_score"):
                 print(f"  T-Rank: {p['home_team']} {p['bt_home_score']} - {p['away_team']} {p['bt_away_score']}")
-            if p["vegas_spread"]:
-                print(f"  Vegas spread: {p['vegas_spread']}  |  Vegas total: {p['vegas_total']}")
+            if p.get("vegas_spread"):
+                print(f"  Vegas spread: {p.get('vegas_spread', '')}  |  Vegas total: {p.get('vegas_total', '')}")
             if p.get("confidence"):
                 print(f"  Confidence: {p['confidence']}")
+
+            if not kp_total or not kp_spread:
+                print("  Missing KenPom spread/total columns for this row, skipping.\n")
+                continue
 
             home_in = input(f"  Actual {p['home_team']} score (or skip/quit): ").strip()
             if home_in.lower() == "quit":
@@ -760,8 +776,8 @@ def enter_results():
 
             actual_total  = actual_home + actual_away
             actual_spread = -(actual_home - actual_away)  # Neg = home won
-            spread_error  = round(float(p["kp_spread"]) - actual_spread, 1)
-            total_error   = round(float(p["kp_total"]) - actual_total, 1)
+            spread_error  = round(float(kp_spread) - actual_spread, 1)
+            total_error   = round(float(kp_total) - actual_total, 1)
 
             spread_vs_vegas = ""
             model_beat_vegas = ""
@@ -780,12 +796,12 @@ def enter_results():
                 "actual_away_score":    actual_away,
                 "actual_total":         actual_total,
                 "actual_spread":        actual_spread,
-                "kp_home_score":        p["kp_home_score"],
-                "kp_away_score":        p["kp_away_score"],
-                "kp_total":             p["kp_total"],
-                "kp_spread":            p["kp_spread"],
-                "vegas_spread":         p["vegas_spread"],
-                "vegas_total":          p["vegas_total"],
+                "kp_home_score":        kp_home_score,
+                "kp_away_score":        kp_away_score,
+                "kp_total":             kp_total,
+                "kp_spread":            kp_spread,
+                "vegas_spread":         p.get("vegas_spread", ""),
+                "vegas_total":          p.get("vegas_total", ""),
                 "spread_error":         spread_error,
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,

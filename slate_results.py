@@ -26,6 +26,7 @@ RESULTS_HEADERS = [
     "date", "home_team", "away_team",
     "actual_home_score", "actual_away_score", "actual_total", "actual_spread",
     "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
+    "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
     "vegas_spread", "vegas_total",
     "spread_error", "total_error",
     "spread_vs_vegas_error", "model_beat_vegas"
@@ -153,36 +154,88 @@ def enter_results():
 # ══════════════════════════════════════════════════════
 # PERFORMANCE SUMMARY (shared helper)
 # ══════════════════════════════════════════════════════
+def _pct(num: int, denom: int) -> str:
+    return f"{num}/{denom} ({100 * num / denom:.1f}%)" if denom else "N/A"
+
+
 def performance_summary(rows: list[dict], label: str) -> str:
     """Build performance stats string for a set of result rows."""
     if not rows:
         return f"\n  {label}: No data."
 
     n = len(rows)
-    spread_errors = [abs(float(r["spread_error"])) for r in rows if r["spread_error"]]
-    total_errors  = [abs(float(r["total_error"]))  for r in rows if r["total_error"]]
+    spread_errors = [abs(float(r["spread_error"])) for r in rows if r.get("spread_error")]
+    total_errors  = [abs(float(r["total_error"]))  for r in rows if r.get("total_error")]
     beat_vegas    = [r for r in rows if r.get("model_beat_vegas") == "YES"]
     vs_vegas_rows = [r for r in rows if r.get("model_beat_vegas") in ("YES", "NO")]
 
     mae_spread = sum(spread_errors) / len(spread_errors) if spread_errors else None
     mae_total  = sum(total_errors)  / len(total_errors)  if total_errors  else None
 
-    correct_direction = sum(
-        1 for r in rows
-        if r["spread_error"] and
-        (float(r["kp_spread"]) < 0) == (float(r["actual_spread"]) < 0)
-    )
+    # --- Moneyline: did the model pick the correct winner? ---
+    # spread < 0 means home is favored / won
+    ml_correct = 0
+    ml_total = 0
+    for r in rows:
+        kp = r.get("kp_spread", "")
+        actual = r.get("actual_spread", "")
+        if not kp or not actual:
+            continue
+        kp_val, actual_val = float(kp), float(actual)
+        if actual_val == 0:
+            continue  # push / no winner
+        ml_total += 1
+        if (kp_val < 0) == (actual_val < 0):
+            ml_correct += 1
+
+    # --- KP spread ATS: did KP correctly pick the right side vs Vegas? ---
+    kp_ats_correct = 0
+    kp_ats_total = 0
+    for r in rows:
+        kp = r.get("kp_spread", "")
+        vegas = r.get("vegas_spread", "")
+        actual = r.get("actual_spread", "")
+        if not kp or not vegas or not actual:
+            continue
+        kp_val, vegas_val, actual_val = float(kp), float(vegas), float(actual)
+        if kp_val == vegas_val:
+            continue  # no edge, no pick
+        kp_ats_total += 1
+        # KP says take home ATS if kp_spread < vegas_spread (home stronger than Vegas thinks)
+        kp_says_home = kp_val < vegas_val
+        home_covered = actual_val < vegas_val
+        if kp_says_home == home_covered:
+            kp_ats_correct += 1
+
+    # --- BT spread ATS: did T-Rank correctly pick the right side vs Vegas? ---
+    bt_ats_correct = 0
+    bt_ats_total = 0
+    for r in rows:
+        bt = r.get("bt_spread", "")
+        vegas = r.get("vegas_spread", "")
+        actual = r.get("actual_spread", "")
+        if not bt or not vegas or not actual:
+            continue
+        bt_val, vegas_val, actual_val = float(bt), float(vegas), float(actual)
+        if bt_val == vegas_val:
+            continue
+        bt_ats_total += 1
+        bt_says_home = bt_val < vegas_val
+        home_covered = actual_val < vegas_val
+        if bt_says_home == home_covered:
+            bt_ats_correct += 1
 
     lines = []
     lines.append(f"\n{'═'*60}")
     lines.append(f"  {label}  |  {n} games")
     lines.append(f"{'═'*60}")
-    lines.append(f"  Spread MAE         : {mae_spread:.2f} pts" if mae_spread else "  Spread MAE: N/A")
-    lines.append(f"  Total MAE          : {mae_total:.2f} pts"  if mae_total  else "  Total MAE : N/A")
-    lines.append(f"  Direction accuracy : {correct_direction}/{n} ({100*correct_direction/n:.1f}%)")
+    lines.append(f"  KP Spread MAE      : {mae_spread:.2f} pts" if mae_spread else "  KP Spread MAE      : N/A")
+    lines.append(f"  Total MAE          : {mae_total:.2f} pts"  if mae_total  else "  Total MAE          : N/A")
+    lines.append(f"  Moneyline (KP)     : {_pct(ml_correct, ml_total)}")
+    lines.append(f"  KP Spread ATS      : {_pct(kp_ats_correct, kp_ats_total)}")
+    lines.append(f"  BT Spread ATS      : {_pct(bt_ats_correct, bt_ats_total)}")
     if vs_vegas_rows:
-        pct = 100 * len(beat_vegas) / len(vs_vegas_rows)
-        lines.append(f"  Model beat Vegas   : {len(beat_vegas)}/{len(vs_vegas_rows)} ({pct:.1f}%)")
+        lines.append(f"  KP Closer Than Vegas: {_pct(len(beat_vegas), len(vs_vegas_rows))}")
 
     return "\n".join(lines)
 
@@ -361,6 +414,10 @@ def check_results():
                 "kp_away_score":        pred_away,
                 "kp_total":             pred_total,
                 "kp_spread":            pred_spread,
+                "bt_home_score":        p.get("bt_home_score", ""),
+                "bt_away_score":        p.get("bt_away_score", ""),
+                "bt_total":             p.get("bt_total", ""),
+                "bt_spread":            p.get("bt_spread", ""),
                 "vegas_spread":         p.get("vegas_spread", ""),
                 "vegas_total":          p.get("vegas_total", ""),
                 "spread_error":         spread_error,

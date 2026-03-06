@@ -920,13 +920,13 @@ def check_results():
         return
 
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
-        predictions = [{k.strip(): v for k, v in row.items()} for row in csv.DictReader(f)]
+        predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
 
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
         with open(RESULTS_LOG, newline="", encoding="utf-8-sig") as f:
-            existing_rows = [{k.strip(): v for k, v in row.items()} for row in csv.DictReader(f)]
+            existing_rows = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
             for row in existing_rows:
                 resolved.add((row["date"], row["home_team"], row["away_team"]))
 

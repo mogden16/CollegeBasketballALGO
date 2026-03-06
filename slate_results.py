@@ -1,17 +1,16 @@
 """
-Slate Results — Enter scores, auto-check via ESPN, performance reports.
+Slate Results — Auto-check scores via ESPN, log results, performance report.
 Uses predictions logged by kenpom_predictor.py.
 
 Usage:
+  python slate_results.py             Run full pipeline: check → report → Discord
   python slate_results.py --results   Enter actual scores interactively
-  python slate_results.py --check     Auto-fetch scores from ESPN
-  python slate_results.py --report    Print model accuracy + send to Discord
 """
 
 import csv
 import sys
 import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from pathlib import Path
 from thefuzz import process
 
@@ -253,18 +252,18 @@ def performance_report():
 def check_results():
     """
     Automatically fetch actual scores from ESPN, compare to predictions,
-    log results, and print overall + last-day performance.
+    and log results. Returns all result rows (existing + new).
     """
     if not Path(PREDICTIONS_LOG).exists():
         print("No predictions log found. Run the predictor first.")
-        return
+        return []
 
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
         predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
 
     if not predictions:
         print("  No predictions found in log.")
-        return
+        return []
 
     def _col(p, kp_name, model_name):
         return p.get(kp_name, p.get(model_name, ""))
@@ -284,9 +283,7 @@ def check_results():
 
     if not pending:
         print("No pending predictions to resolve. All caught up.")
-        if existing_rows:
-            _print_check_summary(existing_rows)
-        return
+        return existing_rows
 
     dates = sorted(set(p["date"] for p in pending))
     print(f"\n  Fetching scores for {len(dates)} date(s): {', '.join(dates)}")
@@ -367,23 +364,27 @@ def check_results():
             new_rows.append(row)
 
     print(f"\n  Resolved {len(new_rows)} game(s). Results saved to {RESULTS_LOG}")
-
-    all_rows = existing_rows + new_rows
-    _print_check_summary(all_rows)
+    return existing_rows + new_rows
 
 
-def _print_check_summary(all_rows: list[dict]):
-    """Print overall and last-day performance after check_results."""
-    text = performance_summary(all_rows, "OVERALL PERFORMANCE")
-    print(text)
+# ══════════════════════════════════════════════════════
+# FULL PIPELINE: check → report → Discord
+# ══════════════════════════════════════════════════════
+def run_results_pipeline():
+    """Daily automated pipeline: check ESPN scores, then report + Discord."""
+    print(f"\n{'═'*60}")
+    print(f"  Slate Results Pipeline  |  {datetime.now().strftime('%A %b %d, %Y')}")
+    print(f"{'═'*60}")
 
-    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    recent_rows = [r for r in all_rows if r["date"] in (today, yesterday)]
-    if recent_rows:
-        recent_text = performance_summary(recent_rows, "LAST 24 HOURS")
-        print(recent_text)
-    print()
+    # Step 1: Check results via ESPN
+    all_rows = check_results()
+
+    if not all_rows:
+        print("  No results to report.")
+        return
+
+    # Step 2: Performance report + Discord
+    performance_report()
 
 
 # ══════════════════════════════════════════════════════
@@ -392,9 +393,5 @@ def _print_check_summary(all_rows: list[dict]):
 if __name__ == "__main__":
     if "--results" in sys.argv:
         enter_results()
-    elif "--report" in sys.argv:
-        performance_report()
-    elif "--check" in sys.argv:
-        check_results()
     else:
-        print("Usage: python slate_results.py [--results | --check | --report]")
+        run_results_pipeline()

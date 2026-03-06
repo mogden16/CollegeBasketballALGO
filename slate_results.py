@@ -32,14 +32,32 @@ RESULTS_HEADERS = [
     "spread_vs_vegas_error", "model_beat_vegas"
 ]
 
+# Old results format (before bt_* columns were added)
+_LEGACY_RESULTS_HEADERS = [
+    "date", "home_team", "away_team",
+    "actual_home_score", "actual_away_score", "actual_total", "actual_spread",
+    "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
+    "vegas_spread", "vegas_total",
+    "spread_error", "total_error",
+    "spread_vs_vegas_error", "model_beat_vegas"
+]
 
-def _read_csv(path: str, known_headers: list[str]) -> list[dict]:
-    """Read a CSV, auto-detecting missing header rows by checking if the first field is a date."""
+
+def _read_csv(path: str, known_headers: list[str], legacy_headers: list[str] = None) -> list[dict]:
+    """Read a CSV, auto-detecting missing header rows and legacy column layouts."""
     with open(path, newline="", encoding="utf-8-sig") as f:
         first_line = f.readline()
         f.seek(0)
+        # Headerless CSV: first field looks like a date (YYYY-MM-DD)
         if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
-            reader = csv.DictReader(f, fieldnames=known_headers)
+            num_fields = len(first_line.strip().split(","))
+            if num_fields == len(known_headers):
+                headers = known_headers
+            elif legacy_headers and num_fields == len(legacy_headers):
+                headers = legacy_headers
+            else:
+                headers = known_headers
+            reader = csv.DictReader(f, fieldnames=headers)
         else:
             reader = csv.DictReader(f)
         return [{k.strip(): (v.strip() if v else "") for k, v in row.items() if k} for row in reader]
@@ -62,7 +80,7 @@ def enter_results():
 
     resolved = set()
     if Path(RESULTS_LOG).exists():
-        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS):
+        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS):
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 
     pending = [
@@ -272,7 +290,7 @@ def performance_report():
         print("No results log found. Enter some actual scores first with --results.")
         return
 
-    rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS)
+    rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
 
     if not rows:
         print("Results log is empty.")
@@ -292,14 +310,16 @@ def performance_report():
     report_parts.append(edge_text)
 
     # Best and worst predictions
-    sorted_by_error = sorted(rows, key=lambda r: abs(float(r["spread_error"])) if r["spread_error"] else 999)
+    scored_rows = [r for r in rows if r.get("spread_error")]
+    sorted_by_error = sorted(scored_rows, key=lambda r: abs(float(r["spread_error"])))
     best_worst = []
-    best_worst.append(f"\n  BEST PREDICTIONS (smallest spread error):")
-    for r in sorted_by_error[:3]:
-        best_worst.append(f"    {r['date']}  {r['away_team']} @ {r['home_team']}  error: {float(r['spread_error']):+.1f} pts")
-    best_worst.append(f"\n  WORST PREDICTIONS (largest spread error):")
-    for r in sorted_by_error[-3:]:
-        best_worst.append(f"    {r['date']}  {r['away_team']} @ {r['home_team']}  error: {float(r['spread_error']):+.1f} pts")
+    if sorted_by_error:
+        best_worst.append(f"\n  BEST PREDICTIONS (smallest spread error):")
+        for r in sorted_by_error[:3]:
+            best_worst.append(f"    {r['date']}  {r['away_team']} @ {r['home_team']}  error: {float(r['spread_error']):+.1f} pts")
+        best_worst.append(f"\n  WORST PREDICTIONS (largest spread error):")
+        for r in sorted_by_error[-3:]:
+            best_worst.append(f"    {r['date']}  {r['away_team']} @ {r['home_team']}  error: {float(r['spread_error']):+.1f} pts")
     report_parts.append("\n".join(best_worst))
 
     footer = f"\n{'═'*60}\n"
@@ -333,7 +353,7 @@ def check_results():
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
-        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS)
+        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
         for row in existing_rows:
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 

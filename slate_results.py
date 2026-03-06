@@ -259,7 +259,13 @@ def check_results():
         return []
 
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
-        predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
+        reader = csv.DictReader(f)
+        if reader.fieldnames and "date" not in [fn.strip() for fn in reader.fieldnames]:
+            print(f"  ERROR: {PREDICTIONS_LOG} is missing expected headers.")
+            print(f"  Found columns: {reader.fieldnames}")
+            print(f"  Delete the file and re-run the predictor to regenerate it.")
+            return []
+        predictions = [{k.strip(): v for k, v in row.items() if k} for row in reader]
 
     if not predictions:
         print("  No predictions found in log.")

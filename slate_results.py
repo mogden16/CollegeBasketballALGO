@@ -15,7 +15,7 @@ from pathlib import Path
 from thefuzz import process
 
 from kenpom_predictor import (
-    PREDICTIONS_LOG, RESULTS_LOG, FUZZY_THRESHOLD,
+    PREDICTIONS_LOG, PREDICTIONS_HEADERS, RESULTS_LOG, FUZZY_THRESHOLD,
     DISCORD_WEBHOOK_URL, fetch_scores_for_date,
 )
 
@@ -44,8 +44,14 @@ def enter_results():
         print("No predictions log found. Run the predictor first.")
         return
 
-    with open(PREDICTIONS_LOG, newline="") as f:
-        predictions = list(csv.DictReader(f))
+    with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
+        first_line = f.readline()
+        f.seek(0)
+        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
+            reader = csv.DictReader(f, fieldnames=PREDICTIONS_HEADERS)
+        else:
+            reader = csv.DictReader(f)
+        predictions = list(reader)
 
     resolved = set()
     if Path(RESULTS_LOG).exists():
@@ -259,13 +265,14 @@ def check_results():
         return []
 
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        if reader.fieldnames and "date" not in [fn.strip() for fn in reader.fieldnames]:
-            print(f"  ERROR: {PREDICTIONS_LOG} is missing expected headers.")
-            print(f"  Found columns: {reader.fieldnames}")
-            print(f"  Delete the file and re-run the predictor to regenerate it.")
-            return []
-        predictions = [{k.strip(): v for k, v in row.items() if k} for row in reader]
+        first_line = f.readline()
+        f.seek(0)
+        # Detect headerless CSV: if the first field looks like a date, supply headers
+        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
+            reader = csv.DictReader(f, fieldnames=PREDICTIONS_HEADERS)
+        else:
+            reader = csv.DictReader(f)
+        predictions = [{k.strip(): v.strip() for k, v in row.items() if k} for row in reader]
 
     if not predictions:
         print("  No predictions found in log.")

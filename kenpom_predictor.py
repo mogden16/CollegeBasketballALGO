@@ -565,7 +565,7 @@ PREDICTIONS_HEADERS = [
 def log_predictions(entries: list[dict]):
     """Append today's predictions to predictions_log.csv."""
     log_path = Path(PREDICTIONS_LOG)
-    write_header = not log_path.exists()
+    write_header = not log_path.exists() or log_path.stat().st_size == 0
 
     today = datetime.now().strftime("%Y-%m-%d")
 

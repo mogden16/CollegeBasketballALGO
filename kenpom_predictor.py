@@ -922,12 +922,15 @@ def check_results():
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
         predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
 
-    # Debug: print actual column names from first prediction to diagnose key issues
-    if predictions:
-        print(f"  DEBUG: CSV columns = {list(predictions[0].keys())}")
-    else:
+    if not predictions:
         print("  No predictions found in log.")
         return
+
+    # Support both old (model_*) and new (kp_*) column names
+    sample_keys = set(predictions[0].keys())
+    def _col(p, kp_name, model_name):
+        """Resolve column name: try kp_ prefix first, fall back to model_ prefix."""
+        return p.get(kp_name, p.get(model_name, ""))
 
     resolved = set()
     existing_rows = []
@@ -1000,12 +1003,18 @@ def check_results():
             _, _, actual_home, actual_away = best_match
             actual_total  = actual_home + actual_away
             actual_spread = -(actual_home - actual_away)
-            spread_error  = round(float(p["kp_spread"]) - actual_spread, 1)
-            total_error   = round(float(p["kp_total"]) - actual_total, 1)
+
+            pred_spread = _col(p, "kp_spread", "model_spread")
+            pred_total  = _col(p, "kp_total", "model_total")
+            pred_home   = _col(p, "kp_home_score", "model_home_score")
+            pred_away   = _col(p, "kp_away_score", "model_away_score")
+
+            spread_error  = round(float(pred_spread) - actual_spread, 1)
+            total_error   = round(float(pred_total) - actual_total, 1)
 
             spread_vs_vegas = ""
             model_beat_vegas = ""
-            if p["vegas_spread"]:
+            if p.get("vegas_spread"):
                 vegas_spread_error = round(float(p["vegas_spread"]) - actual_spread, 1)
                 spread_vs_vegas    = round(abs(spread_error) - abs(vegas_spread_error), 1)
                 model_beat_vegas   = "YES" if spread_vs_vegas < 0 else "NO"
@@ -1018,12 +1027,12 @@ def check_results():
                 "actual_away_score":    actual_away,
                 "actual_total":         actual_total,
                 "actual_spread":        actual_spread,
-                "kp_home_score":        p["kp_home_score"],
-                "kp_away_score":        p["kp_away_score"],
-                "kp_total":             p["kp_total"],
-                "kp_spread":            p["kp_spread"],
-                "vegas_spread":         p["vegas_spread"],
-                "vegas_total":          p["vegas_total"],
+                "kp_home_score":        pred_home,
+                "kp_away_score":        pred_away,
+                "kp_total":             pred_total,
+                "kp_spread":            pred_spread,
+                "vegas_spread":         p.get("vegas_spread", ""),
+                "vegas_total":          p.get("vegas_total", ""),
                 "spread_error":         spread_error,
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,

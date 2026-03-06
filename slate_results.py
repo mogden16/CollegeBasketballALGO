@@ -42,7 +42,7 @@ def _read_csv(path: str, known_headers: list[str]) -> list[dict]:
             reader = csv.DictReader(f, fieldnames=known_headers)
         else:
             reader = csv.DictReader(f)
-        return [{k.strip(): v.strip() for k, v in row.items() if k} for row in reader]
+        return [{k.strip(): (v.strip() if v else "") for k, v in row.items() if k} for row in reader]
 
 
 # ══════════════════════════════════════════════════════

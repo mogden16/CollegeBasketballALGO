@@ -922,6 +922,13 @@ def check_results():
     with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
         predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
 
+    # Debug: print actual column names from first prediction to diagnose key issues
+    if predictions:
+        print(f"  DEBUG: CSV columns = {list(predictions[0].keys())}")
+    else:
+        print("  No predictions found in log.")
+        return
+
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():

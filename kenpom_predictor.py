@@ -919,14 +919,14 @@ def check_results():
         print("No predictions log found. Run the predictor first.")
         return
 
-    with open(PREDICTIONS_LOG, newline="") as f:
-        predictions = list(csv.DictReader(f))
+    with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
+        predictions = [{k.strip(): v for k, v in row.items()} for row in csv.DictReader(f)]
 
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
-        with open(RESULTS_LOG, newline="") as f:
-            existing_rows = list(csv.DictReader(f))
+        with open(RESULTS_LOG, newline="", encoding="utf-8-sig") as f:
+            existing_rows = [{k.strip(): v for k, v in row.items()} for row in csv.DictReader(f)]
             for row in existing_rows:
                 resolved.add((row["date"], row["home_team"], row["away_team"]))
 

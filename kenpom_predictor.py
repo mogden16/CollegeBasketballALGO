@@ -29,7 +29,7 @@ import math
 import json
 import requests
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from thefuzz import process
 from pathlib import Path
 from dotenv import load_dotenv
@@ -236,6 +236,52 @@ def get_todays_matchups() -> list[Matchup]:
             matchups.append(Matchup(home=home, away=away, neutral=neutral_venue))
 
     return matchups
+
+
+def fetch_scores_for_date(date_str: str) -> dict[tuple[str, str], tuple[float, float]]:
+    """
+    Fetch final scores from ESPN for a given date (YYYY-MM-DD).
+    Returns dict: (home_name, away_name) -> (home_score, away_score)
+    Only includes games with status 'STATUS_FINAL'.
+    """
+    espn_date = date_str.replace("-", "")
+    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={espn_date}&groups=50"
+
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"  ESPN fetch failed for {date_str}: {e}")
+        return {}
+
+    scores = {}
+    for event in data.get("events", []):
+        comp = event.get("competitions", [{}])[0]
+        status = comp.get("status", {}).get("type", {}).get("name", "")
+        if status != "STATUS_FINAL":
+            continue
+
+        competitors = comp.get("competitors", [])
+        if len(competitors) < 2:
+            continue
+
+        home_name = away_name = None
+        home_score = away_score = 0
+        for c in competitors:
+            team = c.get("team", {})
+            name = team.get("shortDisplayName") or team.get("displayName", "")
+            score = float(c.get("score", 0))
+            if c.get("homeAway") == "home":
+                home_name, home_score = name, score
+            else:
+                away_name, away_score = name, score
+
+        if home_name and away_name:
+            scores[(home_name, away_name)] = (home_score, away_score)
+
+    return scores
+
 
 # ══════════════════════════════════════════════════════
 # STEP 3: PULL LINES FROM THE ODDS API
@@ -795,6 +841,38 @@ def enter_results():
 # ══════════════════════════════════════════════════════
 # STEP 8: PERFORMANCE REPORT
 # ══════════════════════════════════════════════════════
+def performance_summary(rows: list[dict], label: str):
+    """Print core performance stats for a set of result rows."""
+    if not rows:
+        print(f"\n  {label}: No data.")
+        return
+
+    n = len(rows)
+    spread_errors = [abs(float(r["spread_error"])) for r in rows if r["spread_error"]]
+    total_errors  = [abs(float(r["total_error"]))  for r in rows if r["total_error"]]
+    beat_vegas    = [r for r in rows if r.get("model_beat_vegas") == "YES"]
+    vs_vegas_rows = [r for r in rows if r.get("model_beat_vegas") in ("YES", "NO")]
+
+    mae_spread = sum(spread_errors) / len(spread_errors) if spread_errors else None
+    mae_total  = sum(total_errors)  / len(total_errors)  if total_errors  else None
+
+    correct_direction = sum(
+        1 for r in rows
+        if r["spread_error"] and
+        (float(r["kp_spread"]) < 0) == (float(r["actual_spread"]) < 0)
+    )
+
+    print(f"\n{'═'*60}")
+    print(f"  {label}  |  {n} games")
+    print(f"{'═'*60}")
+    print(f"  Spread MAE         : {mae_spread:.2f} pts" if mae_spread else "  Spread MAE: N/A")
+    print(f"  Total MAE          : {mae_total:.2f} pts"  if mae_total  else "  Total MAE : N/A")
+    print(f"  Direction accuracy : {correct_direction}/{n} ({100*correct_direction/n:.1f}%)")
+    if vs_vegas_rows:
+        pct = 100 * len(beat_vegas) / len(vs_vegas_rows)
+        print(f"  Model beat Vegas   : {len(beat_vegas)}/{len(vs_vegas_rows)} ({pct:.1f}%)")
+
+
 def performance_report():
     """Print model accuracy summary from results_log.csv."""
     if not Path(RESULTS_LOG).exists():
@@ -808,31 +886,7 @@ def performance_report():
         print("Results log is empty.")
         return
 
-    spread_errors = [abs(float(r["spread_error"])) for r in rows if r["spread_error"]]
-    total_errors  = [abs(float(r["total_error"]))  for r in rows if r["total_error"]]
-    beat_vegas    = [r for r in rows if r.get("model_beat_vegas") == "YES"]
-    vs_vegas_rows = [r for r in rows if r.get("model_beat_vegas") in ("YES", "NO")]
-
-    n = len(rows)
-    mae_spread = sum(spread_errors) / len(spread_errors) if spread_errors else None
-    mae_total  = sum(total_errors)  / len(total_errors)  if total_errors  else None
-
-    # Direction accuracy (did model pick right winner against the spread direction)
-    correct_direction = sum(
-        1 for r in rows
-        if r["spread_error"] and
-        (float(r["kp_spread"]) < 0) == (float(r["actual_spread"]) < 0)
-    )
-
-    print(f"\n{'═'*60}")
-    print(f"  MODEL PERFORMANCE REPORT  |  {n} games resolved")
-    print(f"{'═'*60}")
-    print(f"  Spread MAE         : {mae_spread:.2f} pts" if mae_spread else "  Spread MAE: N/A")
-    print(f"  Total MAE          : {mae_total:.2f} pts"  if mae_total  else "  Total MAE : N/A")
-    print(f"  Direction accuracy : {correct_direction}/{n} ({100*correct_direction/n:.1f}%)")
-    if vs_vegas_rows:
-        pct = 100 * len(beat_vegas) / len(vs_vegas_rows)
-        print(f"  Model beat Vegas   : {len(beat_vegas)}/{len(vs_vegas_rows)} ({pct:.1f}%)")
+    performance_summary(rows, "MODEL PERFORMANCE REPORT")
 
     # Edge game performance
     edge_rows = [r for r in rows if r.get("is_edge", "").lower() == "true"]
@@ -854,6 +908,159 @@ def performance_report():
     print(f"\n{'═'*60}\n")
 
 # ══════════════════════════════════════════════════════
+# STEP 9: AUTO-CHECK RESULTS VIA ESPN
+# ══════════════════════════════════════════════════════
+def check_results():
+    """
+    Automatically fetch actual scores from ESPN, compare to predictions,
+    log results, and print overall + last-day performance.
+    """
+    if not Path(PREDICTIONS_LOG).exists():
+        print("No predictions log found. Run the predictor first.")
+        return
+
+    with open(PREDICTIONS_LOG, newline="", encoding="utf-8-sig") as f:
+        predictions = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
+
+    if not predictions:
+        print("  No predictions found in log.")
+        return
+
+    # Support both old (model_*) and new (kp_*) column names
+    sample_keys = set(predictions[0].keys())
+    def _col(p, kp_name, model_name):
+        """Resolve column name: try kp_ prefix first, fall back to model_ prefix."""
+        return p.get(kp_name, p.get(model_name, ""))
+
+    resolved = set()
+    existing_rows = []
+    if Path(RESULTS_LOG).exists():
+        with open(RESULTS_LOG, newline="", encoding="utf-8-sig") as f:
+            existing_rows = [{k.strip(): v for k, v in row.items() if k} for row in csv.DictReader(f)]
+            for row in existing_rows:
+                resolved.add((row["date"], row["home_team"], row["away_team"]))
+
+    pending = [
+        p for p in predictions
+        if (p["date"], p["home_team"], p["away_team"]) not in resolved
+    ]
+
+    if not pending:
+        print("No pending predictions to resolve. All caught up.")
+        if existing_rows:
+            _print_check_summary(existing_rows)
+        return
+
+    # Group pending predictions by date
+    dates = sorted(set(p["date"] for p in pending))
+    print(f"\n  Fetching scores for {len(dates)} date(s): {', '.join(dates)}")
+
+    # Build ESPN scores cache per date
+    espn_scores = {}
+    for d in dates:
+        espn_scores[d] = fetch_scores_for_date(d)
+        game_count = len(espn_scores[d])
+        print(f"  {d}: {game_count} final game(s) found on ESPN")
+
+    # Match predictions to actual scores
+    results_path = Path(RESULTS_LOG)
+    write_header = not results_path.exists()
+    new_rows = []
+
+    with open(results_path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=RESULTS_HEADERS)
+        if write_header:
+            writer.writeheader()
+
+        for p in pending:
+            scores = espn_scores.get(p["date"], {})
+            if not scores:
+                continue
+
+            # Build fuzzy lookup from ESPN names for this date
+            espn_team_map = {}
+            for (h, a), (hs, as_) in scores.items():
+                espn_team_map[h] = h
+                espn_team_map[a] = a
+
+            # Try to find matching game via fuzzy match on home team
+            best_match = None
+            best_score = 0
+            for (espn_home, espn_away), (home_sc, away_sc) in scores.items():
+                home_result = process.extractOne(p["home_team"], [espn_home, espn_away])
+                away_result = process.extractOne(p["away_team"], [espn_home, espn_away])
+                if not home_result or not away_result:
+                    continue
+                combined = home_result[1] + away_result[1]
+                # Ensure home matched to espn_home and away matched to espn_away
+                if home_result[0] == espn_home and away_result[0] == espn_away and combined > best_score:
+                    best_score = combined
+                    best_match = (espn_home, espn_away, home_sc, away_sc)
+
+            if not best_match or best_score < FUZZY_THRESHOLD * 2:
+                continue
+
+            _, _, actual_home, actual_away = best_match
+            actual_total  = actual_home + actual_away
+            actual_spread = -(actual_home - actual_away)
+
+            pred_spread = _col(p, "kp_spread", "model_spread")
+            pred_total  = _col(p, "kp_total", "model_total")
+            pred_home   = _col(p, "kp_home_score", "model_home_score")
+            pred_away   = _col(p, "kp_away_score", "model_away_score")
+
+            spread_error  = round(float(pred_spread) - actual_spread, 1)
+            total_error   = round(float(pred_total) - actual_total, 1)
+
+            spread_vs_vegas = ""
+            model_beat_vegas = ""
+            if p.get("vegas_spread"):
+                vegas_spread_error = round(float(p["vegas_spread"]) - actual_spread, 1)
+                spread_vs_vegas    = round(abs(spread_error) - abs(vegas_spread_error), 1)
+                model_beat_vegas   = "YES" if spread_vs_vegas < 0 else "NO"
+
+            row = {
+                "date":                 p["date"],
+                "home_team":            p["home_team"],
+                "away_team":            p["away_team"],
+                "actual_home_score":    actual_home,
+                "actual_away_score":    actual_away,
+                "actual_total":         actual_total,
+                "actual_spread":        actual_spread,
+                "kp_home_score":        pred_home,
+                "kp_away_score":        pred_away,
+                "kp_total":             pred_total,
+                "kp_spread":            pred_spread,
+                "vegas_spread":         p.get("vegas_spread", ""),
+                "vegas_total":          p.get("vegas_total", ""),
+                "spread_error":         spread_error,
+                "total_error":          total_error,
+                "spread_vs_vegas_error": spread_vs_vegas,
+                "model_beat_vegas":     model_beat_vegas,
+            }
+            writer.writerow(row)
+            new_rows.append(row)
+
+    print(f"\n  Resolved {len(new_rows)} game(s). Results saved to {RESULTS_LOG}")
+
+    # Print performance summary
+    all_rows = existing_rows + new_rows
+    _print_check_summary(all_rows)
+
+
+def _print_check_summary(all_rows: list[dict]):
+    """Print overall and last-day performance after check_results."""
+    performance_summary(all_rows, "OVERALL PERFORMANCE")
+
+    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    recent_rows = [r for r in all_rows if r["date"] in (today, yesterday)]
+    if recent_rows:
+        performance_summary(recent_rows, "LAST 24 HOURS")
+    print()
+
+
+# ══════════════════════════════════════════════════════
 # ENTRY POINT
 # ══════════════════════════════════════════════════════
 if __name__ == "__main__":
@@ -861,5 +1068,7 @@ if __name__ == "__main__":
         enter_results()
     elif "--report" in sys.argv:
         performance_report()
+    elif "--check" in sys.argv:
+        check_results()
     else:
         run_slate("kenpom_raw.txt")

@@ -121,15 +121,21 @@ def parse_barttorvik(filepath: str) -> dict[str, Team]:
     Parse raw Barttorvik T-Rank copy-paste from barttorvik.com/trank.php.
 
     The site produces a staggered multi-line format when copy-pasted, where
-    each stat and its rank appear on interleaved lines. Each team block:
-      Line +0:  {Rk}\\t{Team}\\t{Conf}\\t{G}\\t{Rec}
-      Line +1:  {AdjOE}                      (standalone value)
-      Line +2:  {AdjOE_rank}\\t{AdjDE}
-      Line +3:  {AdjDE_rank}\\t{Barthag}
+    each stat and its rank appear on interleaved lines.
+
+    Handles two copy-paste variants:
+      Standard:  {Rk}\\t{Team}\\t{Conf}\\t{G}\\t{Rec}   (5+ tab fields)
+      Annotated: {Rk}\\t{Team}                            (2 tab fields)
+                 {annotation}\\t{Conf}\\t{G}\\t{Rec}      (next line has game info)
+
+    In both cases, AdjOE appears on the line after the record line,
+    and subsequent stats follow the same staggered pattern:
+      data+0:   {AdjOE}
+      data+1:   {AdjOE_rank}\\t{AdjDE}
       ...
-      Line +18: {3PRD_rank}\\t{AdjT}
-      Line +19: {AdjT_rank}\\t{WAB}
-      Line +20: {WAB_rank}
+      data+17:  {3PRD_rank}\\t{AdjT}
+      data+18:  {AdjT_rank}\\t{WAB}
+      data+19:  {WAB_rank}
 
     Select-all the table on barttorvik.com/trank.php and paste into
     barttorvik_raw.txt. No editing needed.
@@ -138,22 +144,44 @@ def parse_barttorvik(filepath: str) -> dict[str, Team]:
     with open(filepath, "r") as f:
         lines = [line.rstrip("\n") for line in f]
 
-    for i, line in enumerate(lines):
-        parts = line.strip().split("\t")
-        # Team header: integer rank, letter-starting team name, record with dash
-        if (len(parts) >= 5
-                and parts[0].strip().isdigit()
-                and parts[1].strip()
-                and parts[1].strip()[0].isalpha()
-                and "-" in parts[4].strip()):
-            team_name = parts[1].strip()
-            try:
-                adj_o = float(lines[i + 1].strip())
-                adj_d = float(lines[i + 2].strip().split("\t")[1])
-                adj_t = float(lines[i + 18].strip().split("\t")[1])
-                teams[team_name] = Team(name=team_name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
-            except (ValueError, IndexError):
+    i = 0
+    while i < len(lines):
+        parts = lines[i].strip().split("\t")
+
+        # Detect team header: first field is a rank, second is a team name
+        if (len(parts) < 2
+                or not parts[0].strip().isdigit()
+                or not parts[1].strip()
+                or not parts[1].strip()[0].isalpha()):
+            i += 1
+            continue
+
+        team_name = parts[1].strip()
+
+        # Standard format: 5+ fields with record containing "-"
+        if len(parts) >= 5 and "-" in parts[4].strip():
+            data_start = i + 1
+        # Annotated format: short line, next line has annotation + conf + G + rec
+        elif len(parts) < 5 and i + 1 < len(lines):
+            next_parts = lines[i + 1].strip().split("\t")
+            if len(next_parts) >= 4 and "-" in next_parts[-1].strip():
+                data_start = i + 2
+            else:
+                i += 1
                 continue
+        else:
+            i += 1
+            continue
+
+        try:
+            adj_o = float(lines[data_start].strip())
+            adj_d = float(lines[data_start + 1].strip().split("\t")[1])
+            adj_t = float(lines[data_start + 17].strip().split("\t")[1])
+            teams[team_name] = Team(name=team_name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
+        except (ValueError, IndexError):
+            pass
+
+        i += 1
     return teams
 
 
@@ -466,7 +494,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             "vegas_spread": m.vegas_spread, "vegas_total": m.vegas_total,
             "spread_edge": kp_spread_edge, "total_edge": kp_total_edge,
             "bt_spread_edge": bt_spread_edge, "bt_total_edge": bt_total_edge,
-            "is_edge": is_spread_edge or is_total_edge,
+            "is_edge": is_spread_edge,  # Only spread edges trigger edge flag (not totals)
             "is_spread_edge": is_spread_edge,
             "is_total_edge": is_total_edge,
             "confidence": confidence,

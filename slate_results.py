@@ -10,7 +10,7 @@ Usage:
 import csv
 import sys
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from thefuzz import process
 
@@ -290,14 +290,21 @@ def performance_report():
         print("No results log found. Enter some actual scores first with --results.")
         return
 
-    rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
+    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
 
-    if not rows:
+    if not all_rows:
         print("Results log is empty.")
         return
 
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    rows = [r for r in all_rows if r.get("date") == yesterday]
+
+    if not rows:
+        print(f"No results found for {yesterday}.")
+        return
+
     report_parts = []
-    report_parts.append(performance_summary(rows, "MODEL PERFORMANCE REPORT"))
+    report_parts.append(performance_summary(rows, f"SLATE RESULTS — {yesterday}"))
 
     # Edge game performance
     edge_rows = [r for r in rows if r.get("is_edge", "").lower() == "true"]

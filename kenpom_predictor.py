@@ -734,7 +734,73 @@ def send_discord_message(entries: list[dict]):
 
 
 # ══════════════════════════════════════════════════════
+# QUICK SCORE PREDICTION (two-team lookup)
+# ══════════════════════════════════════════════════════
+def quick_predict(kenpom_file: str = "kenpom_raw.txt"):
+    """Prompt for two teams and a neutral-court flag, then display the prediction."""
+    kp_teams = parse_kenpom(kenpom_file)
+    bt_teams = load_barttorvik()
+
+    home_name = input("Home team: ").strip()
+    away_name = input("Away team: ").strip()
+    neutral_input = input("Neutral court? (Y/N): ").strip().upper()
+    neutral = neutral_input == "Y"
+
+    kp_home = fuzzy_lookup(home_name, kp_teams)
+    kp_away = fuzzy_lookup(away_name, kp_teams)
+
+    if not kp_home:
+        print(f"  Could not find '{home_name}' in KenPom data.")
+        return
+    if not kp_away:
+        print(f"  Could not find '{away_name}' in KenPom data.")
+        return
+
+    kp_result = predict_game(kp_home, kp_away, neutral=neutral)
+
+    bt_result = None
+    if bt_teams:
+        bt_home = fuzzy_lookup(home_name, bt_teams)
+        bt_away = fuzzy_lookup(away_name, bt_teams)
+        if bt_home and bt_away:
+            bt_result = predict_game(bt_home, bt_away, neutral=neutral)
+
+    model_fav = kp_home.name if kp_result["spread"] < 0 else kp_away.name
+    model_line = abs(kp_result["spread"])
+
+    entry = {
+        "home": kp_home.name, "away": kp_away.name,
+        "neutral": neutral,
+        "result": kp_result,
+        "bt_result": bt_result,
+        "model_fav": model_fav, "model_line": model_line,
+    }
+
+    # ── Display ──
+    venue = " [N]" if neutral else ""
+    print(f"\n{'═'*50}")
+    print(f"  {kp_away.name} @ {kp_home.name}{venue}")
+    print(f"{'═'*50}")
+    print(f"  KenPom  →  {kp_home.name} {kp_result['home_score']}  -  {kp_away.name} {kp_result['away_score']}")
+    print(f"  Spread: {model_fav} -{model_line}")
+    print(f"  Total:  {kp_result['total']}")
+    if bt_result:
+        bt_fav = kp_home.name if bt_result["spread"] < 0 else kp_away.name
+        bt_line = abs(bt_result["spread"])
+        print(f"\n  T-Rank  →  {kp_home.name} {bt_result['home_score']}  -  {kp_away.name} {bt_result['away_score']}")
+        print(f"  Spread: {bt_fav} -{bt_line}")
+        print(f"  Total:  {bt_result['total']}")
+    print(f"{'═'*50}\n")
+
+    return entry
+
+
+# ══════════════════════════════════════════════════════
 # ENTRY POINT
 # ══════════════════════════════════════════════════════
 if __name__ == "__main__":
-    run_slate("kenpom_raw.txt")
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "predict":
+        quick_predict()
+    else:
+        run_slate("kenpom_raw.txt")

@@ -44,6 +44,7 @@ BARTTORVIK_FILE = "barttorvik_raw.txt"
 AVG_EFFICIENCY     = 100.0
 AVG_TEMPO_2026     = 68.4
 LAMBDA             = 0.88
+TEMPO_SCALE        = 1.0
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
 HCA                = 3.5
@@ -390,7 +391,7 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
 # ══════════════════════════════════════════════════════
 def predict_game(home: Team, away: Team, neutral: bool = False) -> dict:
     hca = 0.0 if neutral else HCA
-    tempo    = (home.adj_t * away.adj_t) ** TEMPO_EXP * (AVG_TEMPO_2026 ** TEMPO_LEAGUE_EXP)
+    tempo    = TEMPO_SCALE * (home.adj_t + away.adj_t) / 2
     eff_home = home.adj_o + LAMBDA * (away.adj_d - AVG_EFFICIENCY)
     eff_away = away.adj_o + LAMBDA * (home.adj_d - AVG_EFFICIENCY)
     pts_home = tempo * eff_home / 100

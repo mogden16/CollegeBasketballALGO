@@ -168,7 +168,7 @@ def optimize_hca(games: list[dict], lam: float, tempo_scale: float) -> tuple[flo
 # ══════════════════════════════════════════════════════
 def update_constant(name: str, new_value: float) -> bool:
     """Update a numeric constant in kenpom_predictor.py using regex replacement."""
-    source = PREDICTOR_PATH.read_text()
+    source = PREDICTOR_PATH.read_text(encoding="utf-8")
     pattern = rf"^({name}\s*=\s*)[\d.]+(.*)$"
     formatted = f"{new_value:.4f}" if abs(new_value) < 10 else f"{new_value:.2f}"
     replacement = rf"\g<1>{formatted}\2"
@@ -176,7 +176,7 @@ def update_constant(name: str, new_value: float) -> bool:
     if count == 0:
         print(f"  WARNING: Could not find {name} in {PREDICTOR_PATH}")
         return False
-    PREDICTOR_PATH.write_text(new_source)
+    PREDICTOR_PATH.write_text(new_source, encoding="utf-8")
     return True
 
 

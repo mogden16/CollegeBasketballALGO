@@ -1,0 +1,28 @@
+game_id,round,game_date,arena_name,city,state,arena_lat,arena_lon
+MM2026_R1_G01,First Round,2026-03-20,CHI Health Center,Omaha,NE,41.2565,-95.9345
+MM2026_R1_G02,First Round,2026-03-20,Gainbridge Fieldhouse,Indianapolis,IN,39.7640,-86.1555
+MM2026_R1_G03,First Round,2026-03-20,PPG Paints Arena,Pittsburgh,PA,40.4396,-79.9893
+MM2026_R1_G04,First Round,2026-03-20,Bon Secours Wellness Arena,Greenville,SC,34.8526,-82.3940
+MM2026_R1_G05,First Round,2026-03-21,Lenovo Center,Raleigh,NC,35.8033,-78.7220
+MM2026_R1_G06,First Round,2026-03-21,Delta Center,Salt Lake City,UT,40.7683,-111.9011
+MM2026_R1_G07,First Round,2026-03-21,Nationwide Arena,Columbus,OH,39.9692,-83.0061
+MM2026_R1_G08,First Round,2026-03-21,American Airlines Center,Dallas,TX,32.7905,-96.8103
+MM2026_R2_G01,Second Round,2026-03-22,CHI Health Center,Omaha,NE,41.2565,-95.9345
+MM2026_R2_G02,Second Round,2026-03-22,Gainbridge Fieldhouse,Indianapolis,IN,39.7640,-86.1555
+MM2026_R2_G03,Second Round,2026-03-22,PPG Paints Arena,Pittsburgh,PA,40.4396,-79.9893
+MM2026_R2_G04,Second Round,2026-03-22,Bon Secours Wellness Arena,Greenville,SC,34.8526,-82.3940
+MM2026_R2_G05,Second Round,2026-03-23,Lenovo Center,Raleigh,NC,35.8033,-78.7220
+MM2026_R2_G06,Second Round,2026-03-23,Delta Center,Salt Lake City,UT,40.7683,-111.9011
+MM2026_R2_G07,Second Round,2026-03-23,Nationwide Arena,Columbus,OH,39.9692,-83.0061
+MM2026_R2_G08,Second Round,2026-03-23,American Airlines Center,Dallas,TX,32.7905,-96.8103
+MM2026_S16_G01,Sweet 16,2026-03-27,Chase Center,San Francisco,CA,37.7680,-122.3878
+MM2026_S16_G02,Sweet 16,2026-03-27,State Farm Arena,Atlanta,GA,33.7573,-84.3963
+MM2026_S16_G03,Sweet 16,2026-03-28,Prudential Center,Newark,NJ,40.7335,-74.1712
+MM2026_S16_G04,Sweet 16,2026-03-28,T-Mobile Center,Kansas City,MO,39.0974,-94.5834
+MM2026_E8_G01,Elite 8,2026-03-29,Chase Center,San Francisco,CA,37.7680,-122.3878
+MM2026_E8_G02,Elite 8,2026-03-29,State Farm Arena,Atlanta,GA,33.7573,-84.3963
+MM2026_E8_G03,Elite 8,2026-03-30,Prudential Center,Newark,NJ,40.7335,-74.1712
+MM2026_E8_G04,Elite 8,2026-03-30,T-Mobile Center,Kansas City,MO,39.0974,-94.5834
+MM2026_F4_G01,Final Four,2026-04-04,Lucas Oil Stadium,Indianapolis,IN,39.7601,-86.1639
+MM2026_F4_G02,Final Four,2026-04-04,Lucas Oil Stadium,Indianapolis,IN,39.7601,-86.1639
+MM2026_NC_G01,Championship,2026-04-06,Lucas Oil Stadium,Indianapolis,IN,39.7601,-86.1639

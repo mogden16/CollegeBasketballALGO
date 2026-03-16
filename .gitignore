@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 *.env
+home_court_log.csv
+home_court_scorer.log

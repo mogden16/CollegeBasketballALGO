@@ -719,15 +719,13 @@ if __name__ == "__main__":
     main()
 
 
-# --- HOME COURT INTEGRATION (paste into kenpom_predictor.py run_slate()) ---
-# try:
-#     from home_court_scorer import get_home_court_adjustment
-#     hc = get_home_court_adjustment(home_team, away_team, game_date, game_id)
-#     hc_adj = hc["net_adjustment"]  # positive = home team benefits
-#     kp_spread_adjusted = kp_spread + hc_adj
-#     bt_spread_adjusted = bt_spread + hc_adj
-#     # Log hc["confidence"] and hc["detail"] to predictions_log if desired
-# except Exception as e:
-#     hc_adj = 0.0
-#     print(f"[home_court_scorer] skipped: {e}")
+# --- HOME COURT INTEGRATION ---
+# This module is automatically imported and called by kenpom_predictor.py
+# for neutral-site games. The integration is live in run_slate().
+# If the module or its dependencies are missing, it degrades gracefully.
+#
+# Manual usage example:
+#   from home_court_scorer import get_home_court_adjustment
+#   hc = get_home_court_adjustment("Duke", "Kentucky", "2026-03-20", "MM2026_R1_G01")
+#   hc_adj = hc["net_adjustment"]  # positive = team_a benefits
 # --- END HOME COURT INTEGRATION ---

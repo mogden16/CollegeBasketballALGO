@@ -10,6 +10,7 @@ Workflow:
 
 Dependencies:
   pip install requests thefuzz python-Levenshtein python-dotenv
+  pip install geopy python-dotenv  (for home_court_scorer)
 """
 
 import os
@@ -22,6 +23,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Optional: home court advantage scorer for neutral-site (March Madness) games
+try:
+    from home_court_scorer import get_home_court_adjustment
+    _HAS_HOME_COURT = True
+except ImportError:
+    _HAS_HOME_COURT = False
 
 
 # ══════════════════════════════════════════════════════
@@ -471,6 +479,26 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
                 if m.vegas_total is not None:
                     bt_total_edge = round(bt_result["total"] - m.vegas_total, 1)
 
+        # ── Home court adjustment for neutral-site games ──
+        hc_adj = 0.0
+        hc_detail = None
+        if m.neutral and _HAS_HOME_COURT:
+            try:
+                today_str = datetime.now().strftime("%Y-%m-%d")
+                game_id = f"AUTO_{kp_home.name}_{kp_away.name}".replace(" ", "_")
+                hc = get_home_court_adjustment(kp_home.name, kp_away.name,
+                                               today_str, game_id)
+                hc_adj = hc["net_adjustment"]
+                hc_detail = hc
+            except Exception as e:
+                print(f"  [home_court_scorer] skipped: {e}")
+
+        # Apply home court adjustment to spread edges
+        if hc_adj != 0.0 and kp_spread_edge is not None:
+            kp_spread_edge = round(kp_spread_edge + hc_adj, 1)
+        if hc_adj != 0.0 and bt_spread_edge is not None:
+            bt_spread_edge = round(bt_spread_edge + hc_adj, 1)
+
         # Determine favorites (KenPom is primary)
         model_fav  = kp_home.name if kp_result["spread"] < 0 else kp_away.name
         model_line = abs(kp_result["spread"])
@@ -503,6 +531,8 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             "is_spread_edge": is_spread_edge,
             "is_total_edge": is_total_edge,
             "confidence": confidence,
+            "hc_adj": hc_adj,
+            "hc_detail": hc_detail,
         }
 
         entries.append(entry)
@@ -570,6 +600,10 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
             if e["is_total_edge"]:
                 direction = "OVER" if e["total_edge"] > 0 else "UNDER"
                 print(f"  TOTAL EDGE    : model says {direction} by {abs(e['total_edge']):.1f} pts")
+            if e.get("hc_adj", 0) != 0:
+                hc = e["hc_detail"]
+                hc_conf = hc["confidence"] if hc else "?"
+                print(f"  HOME COURT ADJ: {e['hc_adj']:+.1f} pts (favors {hc['favored_team']}, conf={hc_conf})")
 
     if no_data:
         print(f"\n  SKIPPED (not in KenPom data):")
@@ -592,7 +626,7 @@ PREDICTIONS_HEADERS = [
     "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
     "vegas_spread", "vegas_total",
     "kp_spread_edge", "kp_total_edge", "bt_spread_edge", "bt_total_edge",
-    "is_edge", "confidence"
+    "is_edge", "confidence", "hc_adj"
 ]
 
 def log_predictions(entries: list[dict]):
@@ -630,6 +664,7 @@ def log_predictions(entries: list[dict]):
                 "bt_total_edge":    e["bt_total_edge"]  if e["bt_total_edge"]  is not None else "",
                 "is_edge":          e["is_edge"],
                 "confidence":       e["confidence"],
+                "hc_adj":           e.get("hc_adj", 0.0),
             })
 
     print(f"  Logged {len(entries)} predictions to {PREDICTIONS_LOG}")

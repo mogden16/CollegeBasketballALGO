@@ -201,6 +201,10 @@ def load_barttorvik() -> dict[str, Team]:
 
 def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:
     """Fuzzy match a team name string to the KenPom dataset."""
+    # Exact match (case-insensitive) takes priority
+    for key in team_dict:
+        if key.lower() == query.lower():
+            return team_dict[key]
     keys = list(team_dict.keys())
     match, score = process.extractOne(query, keys)
     if score >= threshold:

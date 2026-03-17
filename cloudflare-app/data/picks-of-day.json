@@ -1,0 +1,140 @@
+{
+  "asOf": "2026-03-07",
+  "picks": [
+    {
+      "date": "2026-03-07",
+      "matchup": "Arizona @ Idaho St.",
+      "recommendedBet": "Away 27.0",
+      "modelSpread": "27.0",
+      "vegasSpread": "-4.5",
+      "edge": 31.3,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Wisconsin @ Purdue",
+      "recommendedBet": "Home -10.0",
+      "modelSpread": "-10.0",
+      "vegasSpread": "-8.5",
+      "edge": 13.2,
+      "confidence": "MEDIUM"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Indiana @ Ohio",
+      "recommendedBet": "Away 11.3",
+      "modelSpread": "11.3",
+      "vegasSpread": "-4.5",
+      "edge": 11.75,
+      "confidence": "MEDIUM"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "South Carolina @ Southern Miss",
+      "recommendedBet": "Away 5.1",
+      "modelSpread": "5.1",
+      "vegasSpread": "-6.5",
+      "edge": 11.4,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "New Mexico @ Utah",
+      "recommendedBet": "Away 3.8",
+      "modelSpread": "3.8",
+      "vegasSpread": "-7.5",
+      "edge": 10.4,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Florida @ Kentucky",
+      "recommendedBet": "Away 4.7",
+      "modelSpread": "4.7",
+      "vegasSpread": "-1.5",
+      "edge": 6.65,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Arizona St. @ Iowa",
+      "recommendedBet": "Home -9.5",
+      "modelSpread": "-9.5",
+      "vegasSpread": "-15.5",
+      "edge": 6.1,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "UCLA @ USC",
+      "recommendedBet": "Away 0.8",
+      "modelSpread": "0.8",
+      "vegasSpread": "6.5",
+      "edge": 5.6,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Arkansas @ Missouri",
+      "recommendedBet": "Away 2.7",
+      "modelSpread": "2.7",
+      "vegasSpread": "-2.5",
+      "edge": 4.6,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Fresno St. @ Grand Canyon",
+      "recommendedBet": "Home -9.1",
+      "modelSpread": "-9.1",
+      "vegasSpread": "-13.5",
+      "edge": 4.25,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Louisiana Tech @ Delaware",
+      "recommendedBet": "Home -2.2",
+      "modelSpread": "-2.2",
+      "vegasSpread": "1.5",
+      "edge": 3.95,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Maine @ NJIT",
+      "recommendedBet": "Home -6.6",
+      "modelSpread": "-6.6",
+      "vegasSpread": "-3.5",
+      "edge": 3.65,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "UC Davis @ UC Irvine",
+      "recommendedBet": "Home -5.7",
+      "modelSpread": "-5.7",
+      "vegasSpread": "-9.5",
+      "edge": 3.6,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "Utah Valley @ Utah Tech",
+      "recommendedBet": "Away 3.4",
+      "modelSpread": "3.4",
+      "vegasSpread": "6.5",
+      "edge": 3.4,
+      "confidence": "HIGH"
+    },
+    {
+      "date": "2026-03-07",
+      "matchup": "SMU @ Florida St.",
+      "recommendedBet": "Away 1.5",
+      "modelSpread": "1.5",
+      "vegasSpread": "-1.5",
+      "edge": 3.0,
+      "confidence": "HIGH"
+    }
+  ]
+}

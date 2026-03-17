@@ -66,3 +66,31 @@ python3 cloudflare-app/scripts/regenerate_games_by_date.py
   "neutral": "false"
 }
 ```
+
+
+## Environment variables
+
+Set secrets with Wrangler (do **not** hardcode):
+
+```bash
+cd cloudflare-app
+npx wrangler secret put ODDS_API_KEY
+```
+
+- `ODDS_API_KEY`: The Odds API key used to fetch **FanDuel-only** pregame spreads/totals for `basketball_ncaab`.
+
+## Dashboard data contract
+
+Each game returned by `GET /api/picks` now includes fields used by the compact dashboard:
+
+- `selectedDate`
+- `gameTimeUtc`
+- `gameTimeEtDisplay`
+- `awayTeam`, `homeTeam`
+- `awayLogo`, `homeLogo`
+- `projectedSpread`, `projectedTotal`
+- `fanduelSpread`, `fanduelTotal`
+- `edge`, `edgeSummary`
+- `neutralSite`, `travelDistanceMiles`
+
+Missing values are rendered gracefully (e.g. `Time TBD`, `FanDuel line unavailable`).

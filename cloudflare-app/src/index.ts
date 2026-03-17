@@ -92,7 +92,22 @@ const renderHomePage = () => {
           const data = await response.json();
           const homeTeam = String(body.homeTeam || 'Home');
           const awayTeam = String(body.awayTeam || 'Away');
-          result.textContent = awayTeam + ' vs ' + homeTeam + ' — Projected team totals: ' + awayTeam + ' ' + data.awayScore + ', ' + homeTeam + ' ' + data.homeScore + '. Overall total: ' + data.projectedTotal;
+          const summary = [
+            awayTeam,
+            ' vs ',
+            homeTeam,
+            ' - Projected team totals: ',
+            awayTeam,
+            ' ',
+            String(data.awayScore),
+            ', ',
+            homeTeam,
+            ' ',
+            String(data.homeScore),
+            '. Overall total: ',
+            String(data.projectedTotal),
+          ].join('');
+          result.textContent = summary;
         });
       </script>
     </body>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloudflare Picks App Preview</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+      main { max-width: 980px; margin: 0 auto; padding: 1.5rem; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .75rem; }
+      .pick-card { background:#1e293b; border-radius:10px; padding:.8rem; border:1px solid #334155; }
+      .tag { display:inline-block; margin-top:.4rem; border-radius: 99px; padding: .15rem .55rem; font-size:.75rem; font-weight:bold; }
+      .high{ background:#166534; } .medium{ background:#854d0e; } .low{ background:#1d4ed8; }
+      form { display:grid; grid-template-columns: repeat(2,minmax(120px,1fr)); gap:.65rem; background:#1e293b; padding:1rem; border-radius:10px; border:1px solid #334155; margin-top:16px; }
+      label { display:flex; flex-direction:column; gap:.3rem; font-size:.8rem; }
+      input { padding:.45rem; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#e2e8f0; }
+      button { grid-column:1/-1; padding:.6rem; border:none; border-radius:8px; background:#22c55e; color:#052e16; font-weight:700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Picks of the Day</h1>
+      <p>Cloudflare Worker UI preview.</p>
+      <section class="grid">
+        <article class="pick-card"><h3>Team A @ Team B</h3><p><strong>Recommended:</strong> Home -4.5</p><p><strong>Edge:</strong> 6.2</p><span class="tag high">HIGH</span></article>
+        <article class="pick-card"><h3>Team C @ Team D</h3><p><strong>Recommended:</strong> Away 2.5</p><p><strong>Edge:</strong> 4.1</p><span class="tag medium">MEDIUM</span></article>
+      </section>
+      <h2>Quick Predict</h2>
+      <form>
+        <label>Home Off. Rating<input value="114.5" /></label>
+        <label>Home Def. Rating<input value="98.2" /></label>
+        <label>Away Off. Rating<input value="109.7" /></label>
+        <label>Away Def. Rating<input value="101.3" /></label>
+        <label>Expected Pace<input value="69" /></label>
+        <button type="button">Run quick predict</button>
+      </form>
+    </main>
+  </body>
+</html>

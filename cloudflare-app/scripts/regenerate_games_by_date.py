@@ -38,15 +38,29 @@ def main():
 
     for row in rows:
         game = {
+            "selectedDate": row["date"],
             "homeTeam": row["home_team"],
             "awayTeam": row["away_team"],
             "neutral": to_bool(row.get("neutral")),
+            "neutralSite": to_bool(row.get("neutral")),
+            "gameTimeUtc": None,
+            "gameTimeEtDisplay": "Time TBD",
+            "awayLogo": None,
+            "homeLogo": None,
             "kenpom": projection(row, "kp"),
             "trank": projection(row, "bt"),
             "vegas": {
                 "spread": to_float(row.get("vegas_spread")),
                 "total": to_float(row.get("vegas_total")),
             },
+            "projectedSpread": to_float(row.get("kp_spread")) or to_float(row.get("bt_spread")),
+            "projectedTotal": to_float(row.get("kp_total")) or to_float(row.get("bt_total")),
+            "fanduelSpread": to_float(row.get("vegas_spread")),
+            "fanduelTotal": to_float(row.get("vegas_total")),
+            "edge": None,
+            "edgeSummary": [],
+            "travelDistanceMiles": None,
+            "source": "cache",
             "isEdge": to_bool(row.get("is_edge")),
             "confidence": row.get("confidence") or None,
         }

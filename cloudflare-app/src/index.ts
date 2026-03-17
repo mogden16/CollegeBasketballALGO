@@ -44,12 +44,19 @@ const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
 
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" };
-const today = new Date().toISOString().slice(0, 10);
+const todayDate = new Date();
+const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+const today = toIsoDate(todayDate);
+
+const minDate = new Date(todayDate);
+minDate.setFullYear(minDate.getFullYear() - 2);
+const maxDate = new Date(todayDate);
+maxDate.setFullYear(maxDate.getFullYear() + 1);
 
 const TEAM_ALIASES: Record<string, string> = {
-  "uconn": "Connecticut",
+  uconn: "Connecticut",
   "u conn": "Connecticut",
-  "unc": "North Carolina",
+  unc: "North Carolina",
   "st johns": "St. John's",
   "st john": "St. John's",
   "saint johns": "St. John's",
@@ -85,8 +92,7 @@ const kenpomLookup = buildNormalizedLookup(Object.keys(teamModels.kenpom));
 const trankLookup = buildNormalizedLookup(Object.keys(teamModels.trank));
 
 const deterministicFallback = (query: string, lookup: Map<string, string>): string | null => {
-  const tokens = query.split(" ");
-  if (tokens.length < 2) {
+  if (query.split(" ").length < 2) {
     return null;
   }
   const candidates = [...lookup.keys()].filter((name) => name.startsWith(query) || query.startsWith(name));
@@ -141,16 +147,21 @@ const renderHomePage = () => `<!doctype html>
       :root { color-scheme: dark; }
       * { box-sizing: border-box; }
       body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#020617; color:#e2e8f0; }
-      main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; }
+      main { max-width: 1260px; margin: 0 auto; padding: 1.25rem; }
       .hero { display:flex; flex-wrap: wrap; gap: 1rem; justify-content:space-between; align-items:flex-end; margin-bottom: 1.25rem; }
       h1 { margin: 0; font-size: clamp(1.5rem, 3.8vw, 2.2rem); letter-spacing:.01em; }
       .subtitle { margin:.4rem 0 0; color:#94a3b8; font-size:.95rem; }
-      .date-wrap { display:flex; flex-direction:column; gap:.35rem; min-width:220px; }
-      .date-wrap label { color:#cbd5e1; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
+      .layout { display:grid; gap:1rem; grid-template-columns: minmax(0, 1fr) 280px; align-items:start; }
+      .content { min-width: 0; }
+      .controls { position: sticky; top: 1rem; background:#0b1220; border:1px solid #1f314d; border-radius:14px; padding:1rem; }
+      .controls h3 { margin:.1rem 0 .8rem; font-size:.95rem; }
+      .control-group { margin-bottom:.7rem; }
+      .control-group label { display:block; color:#cbd5e1; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.25rem; }
       input, select, button { width:100%; padding:.6rem .7rem; border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }
       input:focus, select:focus { outline: none; border-color:#38bdf8; }
       .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1rem; }
       .card { background:linear-gradient(180deg, #0f172a, #0b1220); border:1px solid #1f314d; border-radius:14px; box-shadow: 0 12px 28px rgba(2,6,23,.4); padding:1rem; }
+      .card.highlight { border-color:#f59e0b; box-shadow: 0 0 0 1px rgba(245,158,11,.45), 0 12px 28px rgba(2,6,23,.4); }
       .matchup { margin:0 0 .85rem; font-size:1rem; font-weight:700; }
       .section { border-top:1px solid #1e293b; padding-top:.6rem; margin-top:.6rem; }
       .section h3 { margin:0 0 .45rem; font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#93c5fd; }
@@ -166,6 +177,11 @@ const renderHomePage = () => `<!doctype html>
       #empty-state { display:none; margin-top:1rem; color:#94a3b8; }
       #quick-result { margin-top:.85rem; }
       .result-card { border:1px solid #334155; border-radius:12px; padding:.8rem; background:#0f172a; }
+      .small-note { color:#94a3b8; font-size:.82rem; margin-top: .5rem; }
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .controls { position: static; }
+      }
     </style>
   </head>
   <body>
@@ -173,46 +189,74 @@ const renderHomePage = () => `<!doctype html>
       <header class="hero">
         <div>
           <h1>Picks of the Day</h1>
-          <p class="subtitle">Model dashboard for KenPom, T-Rank, and market lines.</p>
-        </div>
-        <div class="date-wrap">
-          <label for="pick-date">Selected Date</label>
-          <input id="pick-date" type="date" value="${today}" />
+          <p class="subtitle">All available games for the selected date. Highlight = spread and total discrepancies exceed your thresholds.</p>
         </div>
       </header>
 
-      <section id="cards" class="grid"></section>
-      <p id="empty-state">No games found for this date. Try another date from the calendar.</p>
+      <div class="layout">
+        <section class="content">
+          <section id="cards" class="grid"></section>
+          <p id="empty-state">No games found for this date. Try another date from the controls.</p>
 
-      <section class="panel">
-        <h2 style="margin:0 0 .75rem;">Quick Predict</h2>
-        <form id="quick-form">
-          <div class="quick-grid">
-            <label>Home Team<input list="team-list" type="text" name="homeTeam" placeholder="Duke" required /></label>
-            <label>Away Team<input list="team-list" type="text" name="awayTeam" placeholder="North Carolina" required /></label>
-            <label>Neutral Court?
-              <select name="neutral"><option value="false">No</option><option value="true">Yes</option></select>
-            </label>
-            <div class="actions"><button type="submit">Run Quick Predict</button></div>
+          <section class="panel">
+            <h2 style="margin:0 0 .75rem;">Quick Predict</h2>
+            <form id="quick-form">
+              <div class="quick-grid">
+                <label>Home Team<input list="team-list" type="text" name="homeTeam" placeholder="Duke" required /></label>
+                <label>Away Team<input list="team-list" type="text" name="awayTeam" placeholder="North Carolina" required /></label>
+                <label>Neutral Court?
+                  <select name="neutral"><option value="false">No</option><option value="true">Yes</option></select>
+                </label>
+                <div class="actions"><button type="submit">Run Quick Predict</button></div>
+              </div>
+              <datalist id="team-list"></datalist>
+            </form>
+            <div id="quick-result"></div>
+          </section>
+        </section>
+
+        <aside class="controls">
+          <h3>Filters</h3>
+          <div class="control-group">
+            <label for="pick-date">Selected Date</label>
+            <input id="pick-date" type="date" value="${today}" min="${toIsoDate(minDate)}" max="${toIsoDate(maxDate)}" />
           </div>
-          <datalist id="team-list"></datalist>
-        </form>
-        <div id="quick-result"></div>
-      </section>
+          <div class="control-group">
+            <label for="spread-threshold">Spread discrepancy X (pts)</label>
+            <input id="spread-threshold" type="number" value="3" step="0.5" min="0" />
+          </div>
+          <div class="control-group">
+            <label for="total-threshold">Total discrepancy X (pts)</label>
+            <input id="total-threshold" type="number" value="5" step="0.5" min="0" />
+          </div>
+          <p class="small-note" id="status-line">Date: ${today}</p>
+        </aside>
+      </div>
     </main>
     <script>
       const cardsContainer = document.getElementById('cards');
       const dateInput = document.getElementById('pick-date');
+      const spreadThresholdInput = document.getElementById('spread-threshold');
+      const totalThresholdInput = document.getElementById('total-threshold');
+      const statusLine = document.getElementById('status-line');
       const emptyState = document.getElementById('empty-state');
       const teamList = document.getElementById('team-list');
       const quickForm = document.getElementById('quick-form');
       const quickResult = document.getElementById('quick-result');
+      let currentGames = [];
 
-      const asLine = (label, value) => value == null ? '' : '<span>' + label + ': ' + value + '</span>';
+      const asLine = (label, value) => '<span>' + label + ': ' + value + '</span>';
       const formatSpread = (spread) => {
         if (spread == null) return 'N/A';
         return spread < 0 ? 'Home ' + spread : 'Away +' + spread;
       };
+
+      const modelHasDiscrepancy = (model, spreadThreshold, totalThreshold) =>
+        model &&
+        model.spreadEdge != null &&
+        model.totalEdge != null &&
+        Math.abs(model.spreadEdge) >= spreadThreshold &&
+        Math.abs(model.totalEdge) >= totalThreshold;
 
       const renderEdge = (game) => {
         const parts = [];
@@ -234,19 +278,18 @@ const renderHomePage = () => `<!doctype html>
           '</div>' +
         '</div>';
 
-      async function loadTeams() {
-        const response = await fetch('/api/teams');
-        const data = await response.json();
-        teamList.innerHTML = data.teams.map(team => '<option value="' + team + '"></option>').join('');
-      }
+      function renderCards(games) {
+        const spreadThreshold = Number(spreadThresholdInput.value) || 0;
+        const totalThreshold = Number(totalThresholdInput.value) || 0;
+        let highlighted = 0;
 
-      async function loadPicks() {
-        const selectedDate = dateInput.value;
-        const response = await fetch('/api/picks?date=' + selectedDate);
-        const data = await response.json();
+        cardsContainer.innerHTML = games.map((game) => {
+          const shouldHighlight =
+            modelHasDiscrepancy(game.kenpom, spreadThreshold, totalThreshold) ||
+            modelHasDiscrepancy(game.trank, spreadThreshold, totalThreshold);
+          if (shouldHighlight) highlighted += 1;
 
-        cardsContainer.innerHTML = data.picks.map((game) =>
-          '<article class="card">' +
+          return '<article class="card' + (shouldHighlight ? ' highlight' : '') + '">' +
             '<h2 class="matchup">' + game.awayTeam + ' @ ' + game.homeTeam + ' ' + (game.confidence ? '<span class="pill">' + game.confidence + '</span>' : '') + '</h2>' +
             modelBlock('KenPom', game.kenpom, game.awayTeam, game.homeTeam) +
             modelBlock('T-Rank', game.trank, game.awayTeam, game.homeTeam) +
@@ -261,13 +304,36 @@ const renderHomePage = () => `<!doctype html>
               '<h3>Edge Summary</h3>' +
               renderEdge(game) +
             '</div>' +
-          '</article>'
-        ).join('');
+          '</article>';
+        }).join('');
 
-        emptyState.style.display = data.picks.length ? 'none' : 'block';
+        statusLine.textContent =
+          'Date: ' + dateInput.value +
+          ' • Games: ' + games.length +
+          ' • Highlighted: ' + highlighted +
+          ' (Spread ≥ ' + spreadThreshold + ', Total ≥ ' + totalThreshold + ')';
+
+        emptyState.style.display = games.length ? 'none' : 'block';
+      }
+
+      async function loadTeams() {
+        const response = await fetch('/api/teams');
+        const data = await response.json();
+        teamList.innerHTML = data.teams.map((team) => '<option value="' + team + '"></option>').join('');
+      }
+
+      async function loadPicks() {
+        const selectedDate = dateInput.value;
+        const response = await fetch('/api/picks?date=' + encodeURIComponent(selectedDate));
+        const data = await response.json();
+        currentGames = data.picks;
+        renderCards(currentGames);
       }
 
       dateInput.addEventListener('change', loadPicks);
+      dateInput.addEventListener('input', loadPicks);
+      spreadThresholdInput.addEventListener('input', () => renderCards(currentGames));
+      totalThresholdInput.addEventListener('input', () => renderCards(currentGames));
 
       quickForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -351,10 +417,6 @@ export default {
       const selectedDate = url.searchParams.get("date") || today;
       const picks = getGamesForDate(selectedDate);
       return new Response(JSON.stringify({ selectedDate, picks }), { headers: jsonHeaders });
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/dates") {
-      return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
     }
 
     if (request.method === "GET" && url.pathname === "/api/teams") {

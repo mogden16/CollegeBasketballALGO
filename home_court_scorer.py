@@ -1,467 +1,409 @@
-"""
-home_court_scorer.py — March Madness Home Court Advantage Scorer
+"""Home court advantage scorer for March Madness matchups."""
 
-Estimates crowd-based home court advantage for March Madness games by scoring
-each team's proximity to the game site, flagging travel support signals from
-Reddit and Google Trends, and outputting an adjusted spread delta.
-
-Usage (standalone):
-    python home_court_scorer.py --team_a "Duke" --team_b "Kentucky" --date 2026-03-20 --game_id TEST_001
-
-Integration (import into kenpom_predictor.py):
-    from home_court_scorer import get_home_court_adjustment
-    result = get_home_court_adjustment("Duke", "Kentucky", "2026-03-20", "MM2026_R1_G01")
-"""
+from __future__ import annotations
 
 import argparse
 import csv
 import logging
 import os
-import sys
 import time
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+from dotenv import load_dotenv
+from geopy.distance import geodesic
+from geopy.geocoders import Nominatim
 
-# Absolute cap on spread adjustment from home-court signals.
-# This limit is NON-NEGOTIABLE — no combination of inputs can exceed +/- 2.0.
+try:
+    import praw
+except Exception:  # pragma: no cover - guarded runtime dependency
+    praw = None
+
+try:
+    from pytrends.request import TrendReq
+except Exception:  # pragma: no cover - guarded runtime dependency
+    TrendReq = None
+
+try:
+    from googlesearch import search as google_search
+except Exception:  # pragma: no cover - guarded runtime dependency
+    google_search = None
+
+try:
+    import requests
+except Exception:  # pragma: no cover - guarded runtime dependency
+    requests = None
+
+load_dotenv()
+
+DATA_DIR = Path("data")
+BRACKET_PATH = DATA_DIR / "bracket_locations.csv"
+TEAM_MASTER_PATH = DATA_DIR / "team_master.csv"
+HOME_COURT_LOG_PATH = Path("home_court_log.csv")
+HOME_COURT_SCORER_LOG = Path("home_court_scorer.log")
+
+# Required cap: do not allow home-court proximity-driven movement beyond +/- 2.0 points.
 MAX_PROXIMITY_ADJUSTMENT = 2.0
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_DIR = SCRIPT_DIR / "data"
-BRACKET_FILE = DATA_DIR / "bracket_locations.csv"
-TEAM_FILE = DATA_DIR / "team_master.csv"
-LOG_FILE = SCRIPT_DIR / "home_court_log.csv"
-SCORER_LOG = SCRIPT_DIR / "home_court_scorer.log"
+REDDIT_KEYWORDS = ["road trip", "tickets", "going to", "traveling", "bus", "drive"]
+TRANSPORT_KEYWORDS = ["official", "athletic", "university", "student government"]
 
-KM_TO_MILES = 0.621371
-
-# Proximity scoring rubric: (max_miles, score)
-PROXIMITY_RUBRIC = [
-    (50, 10),
-    (150, 8),
-    (300, 6),
-    (500, 4),
-]
-PROXIMITY_DEFAULT_SCORE = 1  # > 500 miles
-
-# Proximity delta -> spread adjustment mapping
-DELTA_ADJUSTMENTS = [
-    (6, 1.5),   # delta >= 6  -> +1.5 pts
-    (3, 0.75),  # delta 3-5   -> +0.75 pts
-    (1, 0.25),  # delta 1-2   -> +0.25 pts
-]
-
-# Known team subreddits for top 40 programs
 TEAM_SUBREDDITS = {
     "Duke": "duke",
     "Kentucky": "uky",
     "Kansas": "KansasJayhawks",
-    "North Carolina": "tarheels",
-    "Gonzaga": "gonzaga",
+    "North Carolina": "UNC",
+    "UConn": "UConn",
+    "Connecticut": "UConn",
+    "Gonzaga": "zag",
+    "Arizona": "UofArizona",
+    "Baylor": "baylor",
     "Houston": "UniversityOfHouston",
-    "Alabama": "rolltide",
     "Purdue": "Purdue",
     "Tennessee": "ockytop",
-    "Arizona": "UofArizona",
+    "Alabama": "rolltide",
     "Auburn": "wde",
-    "Iowa State": "iastate",
-    "Marquette": "Marquette",
-    "Baylor": "baylor",
-    "Connecticut": "UConn",
-    "Creighton": "creighton",
-    "St. John's": "StJohns",
-    "Michigan State": "msu",
     "UCLA": "ucla",
-    "Wisconsin": "UWMadison",
-    "Florida": "FloridaGators",
-    "Texas Tech": "TexasTech",
-    "Clemson": "clemson",
-    "Illinois": "UIUC",
-    "Oregon": "UofO",
+    "Marquette": "MUBB",
+    "Wisconsin": "wisconsin",
+    "Illinois": "fightingillini",
+    "Michigan State": "MSUSpartans",
+    "Michigan": "MichiganWolverines",
+    "Indiana": "HoosiersBasketball",
+    "Ohio State": "OhioStateBasketball",
+    "Texas": "LonghornNation",
     "Texas A&M": "aggies",
-    "Memphis": "memphis",
     "BYU": "byu",
-    "Mississippi State": "msstate",
-    "Missouri": "Mizzou",
-    "Louisville": "AllHail",
-    "Pittsburgh": "Pitt",
-    "Maryland": "UMD",
-    "Michigan": "uofm",
-    "Villanova": "villanova",
-    "Virginia": "UVA",
-    "Ohio State": "OhioStateUniversity",
-    "Indiana": "IndianaUniversity",
-    "Syracuse": "SyracuseU",
+    "Saint Mary's": "Gaels",
+    "San Diego State": "AztecNation",
+    "Creighton": "Creighton",
+    "Iowa State": "cyclONEnation",
+    "Florida": "FloridaGators",
     "Arkansas": "razorbacks",
+    "Memphis": "memphis",
+    "Villanova": "wildcats",
+    "Virginia": "Virginia",
+    "Miami": "miamihurricanes",
+    "Xavier": "xavieruniversity",
+    "Seton Hall": "SetonHall",
+    "Syracuse": "SyracuseOrange",
+    "Nebraska": "Huskers",
+    "Oregon": "ducks",
+    "USC": "USC",
 }
 
-# Reddit search keywords for travel signals
-TRAVEL_KEYWORDS = ["road trip", "tickets", "going to", "traveling", "bus", "drive"]
-
-# ---------------------------------------------------------------------------
-# Logging setup
-# ---------------------------------------------------------------------------
-
-logger = logging.getLogger("home_court_scorer")
-logger.setLevel(logging.DEBUG)
-
-# File handler — all skipped layers and warnings
-_fh = logging.FileHandler(SCORER_LOG, encoding="utf-8")
-_fh.setLevel(logging.DEBUG)
-_fh.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-logger.addHandler(_fh)
-
-# Console handler — warnings and above
-_ch = logging.StreamHandler()
-_ch.setLevel(logging.WARNING)
-_ch.setFormatter(logging.Formatter("[home_court_scorer] %(message)s"))
-logger.addHandler(_ch)
+logging.basicConfig(
+    filename=HOME_COURT_SCORER_LOG,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Data loading helpers
-# ---------------------------------------------------------------------------
-
-def _load_bracket_locations():
-    """Load bracket_locations.csv into a list of dicts."""
-    if not BRACKET_FILE.exists():
-        msg = (
-            f"bracket_locations.csv not found at {BRACKET_FILE}.\n"
-            "Please create it with columns: game_id,round,game_date,arena_name,"
-            "city,state,arena_lat,arena_lon\n"
-            "Or run this module to attempt fetching from NCAA.com."
-        )
-        logger.error(msg)
-        print(msg)
-        return []
-    with open(BRACKET_FILE, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        return [row for row in reader]
+@dataclass
+class LayerResult:
+    score: float
+    ran: bool
 
 
-def _load_team_master():
-    """Load team_master.csv into a dict keyed by team_name."""
-    if not TEAM_FILE.exists():
-        msg = (
-            f"team_master.csv not found at {TEAM_FILE}.\n"
-            "Please create it with columns: team_name,campus_city,campus_state,"
-            "campus_lat,campus_lon,enrollment\n"
-            "Seed with the 68 tournament teams once the bracket is set."
-        )
-        logger.error(msg)
-        print(msg)
-        return {}
-    teams = {}
-    with open(TEAM_FILE, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            teams[row["team_name"].strip()] = row
-    return teams
+def _warn(msg: str) -> None:
+    print(f"[home_court_scorer] WARNING: {msg}")
+    logger.warning(msg)
 
 
-def _find_game(game_id, locations):
-    """Find a game row in bracket_locations by game_id."""
-    for row in locations:
-        if row["game_id"].strip() == game_id.strip():
+def _parse_date(game_date: str) -> datetime:
+    return datetime.strptime(game_date, "%Y-%m-%d")
+
+
+def _read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open("r", newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+def _confirm_write(prompt: str) -> bool:
+    if not os.isatty(0):
+        print(f"{prompt} [y/N]: non-interactive session detected, skipping write.")
+        return False
+    answer = input(f"{prompt} [y/N]: ").strip().lower()
+    return answer in {"y", "yes"}
+
+
+def _ensure_bracket_locations() -> bool:
+    if BRACKET_PATH.exists():
+        return True
+
+    message = (
+        f"{BRACKET_PATH} is missing. Populate with schema: "
+        "game_id,round,game_date,arena_name,city,state,arena_lat,arena_lon. "
+        "Optional fetch source: https://www.ncaa.com/news/basketball-men/article/2025-11-18/2026-ncaa-tournament-sites"
+    )
+    _warn(message)
+    if _confirm_write("Attempt fetch + write bracket_locations.csv now?"):
+        _warn("Automatic NCAA bracket scraping is not implemented in this environment; please add the CSV manually.")
+    return False
+
+
+def _ensure_team_master() -> bool:
+    if TEAM_MASTER_PATH.exists():
+        return True
+    _warn(
+        f"{TEAM_MASTER_PATH} is missing. Please create with schema: "
+        "team_name,campus_city,campus_state,campus_lat,campus_lon,enrollment"
+    )
+    return False
+
+
+def _lookup_game_location(game_id: str, game_date: str) -> dict[str, str] | None:
+    if not _ensure_bracket_locations():
+        return None
+    rows = _read_csv(BRACKET_PATH)
+    for row in rows:
+        if row.get("game_id") == game_id:
             return row
+    for row in rows:
+        if row.get("game_date") == game_date:
+            return row
+    _warn(f"No game site found for game_id={game_id} or date={game_date}.")
     return None
 
 
-def _geocode_team(team_name):
-    """Attempt to geocode a team campus using geopy Nominatim."""
+def _get_team_row(team_name: str) -> dict[str, str] | None:
+    if not _ensure_team_master():
+        return None
+    rows = _read_csv(TEAM_MASTER_PATH)
+    for row in rows:
+        if row.get("team_name", "").strip().lower() == team_name.strip().lower():
+            return row
+
+    _warn(f"Team '{team_name}' missing from {TEAM_MASTER_PATH}.")
     try:
-        from geopy.geocoders import Nominatim
-        geolocator = Nominatim(user_agent="home_court_scorer")
-        location = geolocator.geocode(f"{team_name} university campus")
-        if location:
-            logger.info(f"Geocoded {team_name}: {location.latitude}, {location.longitude}")
-            return location.latitude, location.longitude
-    except Exception as e:
-        logger.warning(f"Geocoding failed for {team_name}: {e}")
-    return None, None
-
-
-# ---------------------------------------------------------------------------
-# Step 1: Distance Scoring
-# ---------------------------------------------------------------------------
-
-def compute_distance_miles(lat1, lon1, lat2, lon2):
-    """Compute geodesic distance in miles between two lat/lon points."""
-    try:
-        from geopy.distance import geodesic
-        dist_km = geodesic((lat1, lon1), (lat2, lon2)).km
-        return dist_km * KM_TO_MILES
-    except Exception as e:
-        logger.warning(f"Distance calculation failed: {e}")
+        geocoder = Nominatim(user_agent="home_court_scorer")
+        loc = geocoder.geocode(f"{team_name} university campus", timeout=10)
+    except Exception as exc:
+        _warn(f"Geocoding failed for {team_name}: {exc}")
         return None
 
-
-def proximity_score(distance_miles):
-    """Convert distance in miles to a proximity score (1-10)."""
-    if distance_miles is None:
-        return PROXIMITY_DEFAULT_SCORE
-    for max_miles, score in PROXIMITY_RUBRIC:
-        if distance_miles < max_miles:
-            return score
-    return PROXIMITY_DEFAULT_SCORE
-
-
-def proximity_spread_adjustment(delta):
-    """Convert proximity delta to a spread adjustment in points."""
-    abs_delta = abs(delta)
-    adjustment = 0.0
-    for threshold, adj in DELTA_ADJUSTMENTS:
-        if abs_delta >= threshold:
-            adjustment = adj
-            break
-    # Preserve sign: positive delta means team_a is closer
-    if delta < 0:
-        adjustment = -adjustment
-    return adjustment
-
-
-# ---------------------------------------------------------------------------
-# Step 2: Reddit Signal (PRAW)
-# ---------------------------------------------------------------------------
-
-def _reddit_signal(team_name, game_date_str):
-    """
-    Search r/CollegeBasketball for travel-related posts about a team
-    in the 7 days before game_date. Returns reddit_boost (float).
-    """
-    client_id = os.environ.get("REDDIT_CLIENT_ID")
-    client_secret = os.environ.get("REDDIT_CLIENT_SECRET")
-    user_agent = os.environ.get("REDDIT_USER_AGENT")
-
-    if not all([client_id, client_secret, user_agent]):
-        logger.warning("Reddit credentials missing (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, "
-                        "REDDIT_USER_AGENT). Skipping Reddit signal.")
+    if not loc:
+        _warn(f"Geocoding returned no result for {team_name}.")
         return None
 
-    try:
-        import praw
-
-        reddit = praw.Reddit(
-            client_id=client_id,
-            client_secret=client_secret,
-            user_agent=user_agent,
-        )
-
-        game_date = datetime.strptime(game_date_str, "%Y-%m-%d")
-        after_ts = int((game_date - timedelta(days=7)).timestamp())
-
-        subreddit = reddit.subreddit("CollegeBasketball")
-        total_posts = 0
-        total_upvotes = 0
-
-        for keyword in TRAVEL_KEYWORDS:
-            query = f"{team_name} {keyword}"
-            try:
-                results = subreddit.search(query, sort="new", time_filter="week", limit=25)
-                for post in results:
-                    if post.created_utc >= after_ts:
-                        total_posts += 1
-                        total_upvotes += post.score
-            except Exception as e:
-                logger.warning(f"Reddit search error for query '{query}': {e}")
-            time.sleep(1)  # Rate limit between PRAW requests
-
-        # Check team-specific subreddit for pinned travel/ticket threads
-        team_sub = TEAM_SUBREDDITS.get(team_name)
-        if team_sub:
-            try:
-                sub = reddit.subreddit(team_sub)
-                for post in sub.hot(limit=5):
-                    if post.stickied:
-                        title_lower = post.title.lower()
-                        if any(kw in title_lower for kw in ["travel", "ticket", "road trip",
-                                                             "march madness", "tournament"]):
-                            total_posts += 3  # Weighted boost for pinned threads
-                            total_upvotes += post.score
-                time.sleep(1)
-            except Exception as e:
-                logger.warning(f"Error checking team subreddit r/{team_sub}: {e}")
-
-        # Score
-        avg_upvotes = total_upvotes / total_posts if total_posts > 0 else 0
-        if total_posts >= 10 and avg_upvotes >= 50:
-            return 0.5
-        elif total_posts >= 5:
-            return 0.25
-        else:
-            return 0.0
-
-    except Exception as e:
-        logger.warning(f"Reddit signal failed for {team_name}: {e}")
+    if not _confirm_write(
+        f"Append guessed campus for {team_name}: lat={loc.latitude:.4f}, lon={loc.longitude:.4f}?"
+    ):
         return None
 
-
-# ---------------------------------------------------------------------------
-# Step 3: Google Trends Signal
-# ---------------------------------------------------------------------------
-
-def _trends_signal(team_name, game_date_str):
-    """
-    Pull Google Trends interest for "[Team] tickets" and "[Team] March Madness"
-    in the 7 days before game_date. Returns trends_boost (float).
-    """
-    try:
-        from pytrends.request import TrendReq
-
-        game_date = datetime.strptime(game_date_str, "%Y-%m-%d")
-        start_date = game_date - timedelta(days=7)
-        timeframe = f"{start_date.strftime('%Y-%m-%d')} {game_date.strftime('%Y-%m-%d')}"
-
-        pytrends = TrendReq(hl="en-US", tz=360)
-        keywords = [f"{team_name} tickets", f"{team_name} March Madness"]
-
-        peak_interest = 0
-        for kw in keywords:
-            try:
-                pytrends.build_payload([kw], cat=0, timeframe=timeframe, geo="US")
-                df = pytrends.interest_over_time()
-                if not df.empty and kw in df.columns:
-                    peak_interest = max(peak_interest, df[kw].max())
-            except Exception as e:
-                logger.warning(f"Trends query failed for '{kw}': {e}")
-            time.sleep(5)  # Rate limit between Trends requests to avoid 429s
-
-        if peak_interest >= 75:
-            return 0.25
-        elif peak_interest >= 40:
-            return 0.10
-        else:
-            return 0.0
-
-    except Exception as e:
-        logger.warning(f"Google Trends signal failed for {team_name}: {e}")
-        return None
+    with TEAM_MASTER_PATH.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([team_name, "UNKNOWN", "UNKNOWN", f"{loc.latitude:.6f}", f"{loc.longitude:.6f}", ""])
+    return {
+        "team_name": team_name,
+        "campus_city": "UNKNOWN",
+        "campus_state": "UNKNOWN",
+        "campus_lat": str(loc.latitude),
+        "campus_lon": str(loc.longitude),
+        "enrollment": "",
+    }
 
 
-# ---------------------------------------------------------------------------
-# Step 4: University Transportation Signal
-# ---------------------------------------------------------------------------
-
-def _transport_signal(team_name):
-    """
-    Search for university-organized transportation to March Madness.
-    Returns transport_boost (float).
-    """
-    query = f'"{team_name}" "bus" OR "charter" OR "transportation" "March Madness" site:*.edu'
-
-    # Try SerpAPI if key is available
-    serpapi_key = os.environ.get("SERPAPI_KEY")
-    if serpapi_key:
-        return _transport_via_serpapi(query, serpapi_key)
-
-    # Fall back to googlesearch-python
-    return _transport_via_googlesearch(query)
+def _distance_miles(team_row: dict[str, str], site_row: dict[str, str]) -> float:
+    team_coords = (float(team_row["campus_lat"]), float(team_row["campus_lon"]))
+    site_coords = (float(site_row["arena_lat"]), float(site_row["arena_lon"]))
+    km = geodesic(team_coords, site_coords).km
+    return km * 0.621371
 
 
-def _transport_via_serpapi(query, api_key):
-    """Use SerpAPI for the transport search."""
-    try:
-        import requests as req
-        params = {
-            "q": query,
-            "api_key": api_key,
-            "engine": "google",
-            "num": 5,
-        }
-        resp = req.get("https://serpapi.com/search", params=params, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        results = data.get("organic_results", [])
-        for r in results:
-            title = r.get("title", "").lower()
-            if any(kw in title for kw in ["official", "athletic", "university",
-                                           "student government"]):
-                return 0.5
-        return 0.0
-    except Exception as e:
-        logger.warning(f"SerpAPI transport search failed: {e}")
-        return None
+def _proximity_score(distance_mi: float) -> int:
+    if distance_mi < 50:
+        return 10
+    if distance_mi < 150:
+        return 8
+    if distance_mi < 300:
+        return 6
+    if distance_mi < 500:
+        return 4
+    return 1
 
 
-def _transport_via_googlesearch(query):
-    """Use googlesearch-python for the transport search."""
-    try:
-        from googlesearch import search as gsearch
-        results = list(gsearch(query, num_results=5))
-        # googlesearch-python returns URLs; check for .edu domains with keywords
-        for url in results:
-            url_lower = url.lower()
-            if ".edu" in url_lower and any(kw in url_lower for kw in
-                                            ["official", "athletic", "university",
-                                             "student"]):
-                return 0.5
-        return 0.0
-    except Exception as e:
-        logger.warning(f"Google search transport signal failed: {e}")
-        return None
-
-
-# ---------------------------------------------------------------------------
-# Step 5: Final Score Assembly & Output
-# ---------------------------------------------------------------------------
-
-def _compute_confidence(layers_ran):
-    """
-    Determine confidence based on how many signal layers produced scores.
-    layers_ran: dict with keys 'proximity', 'reddit', 'trends', 'transport'
-                and bool values indicating if they produced a score.
-    """
-    prox = layers_ran.get("proximity", False)
-    reddit = layers_ran.get("reddit", False)
-    trends = layers_ran.get("trends", False)
-    transport = layers_ran.get("transport", False)
-
-    if not prox:
-        return "NONE"
-    signal_count = sum([reddit, trends, transport])
-    if signal_count == 3:
-        return "HIGH"
-    elif signal_count >= 1:
-        return "MEDIUM"
+def _delta_to_spread(delta: int) -> float:
+    if delta >= 6:
+        adj = 1.5
+    elif delta >= 3:
+        adj = 0.75
+    elif delta >= 1:
+        adj = 0.25
+    elif delta <= -6:
+        adj = -1.5
+    elif delta <= -3:
+        adj = -0.75
+    elif delta <= -1:
+        adj = -0.25
     else:
-        return "LOW"
+        adj = 0.0
+    return max(-MAX_PROXIMITY_ADJUSTMENT, min(MAX_PROXIMITY_ADJUSTMENT, adj))
 
 
-def _append_log(row_dict):
-    """Append a row to home_court_log.csv, creating the file if needed."""
-    fieldnames = [
-        "game_id", "game_date", "round", "team_a", "team_b",
-        "arena_name", "city", "state",
-        "team_a_distance_mi", "team_b_distance_mi",
-        "team_a_proximity_score", "team_b_proximity_score",
-        "proximity_delta", "proximity_spread_adjustment",
-        "team_a_reddit_boost", "team_b_reddit_boost",
-        "team_a_trends_boost", "team_b_trends_boost",
-        "team_a_transport_boost", "team_b_transport_boost",
-        "net_home_court_adjustment", "favored_team", "adjustment_direction",
+def _init_reddit() -> Any | None:
+    if praw is None:
+        _warn("praw is not importable; skipping Reddit layer.")
+        return None
+
+    cid = os.getenv("REDDIT_CLIENT_ID")
+    sec = os.getenv("REDDIT_CLIENT_SECRET")
+    ua = os.getenv("REDDIT_USER_AGENT")
+    if not all([cid, sec, ua]):
+        _warn("Missing Reddit env vars; skipping Reddit layer.")
+        return None
+
+    try:
+        return praw.Reddit(client_id=cid, client_secret=sec, user_agent=ua)
+    except Exception as exc:
+        _warn(f"Failed to initialize Reddit client: {exc}")
+        return None
+
+
+def _score_reddit_for_team(reddit: Any, team_name: str, game_date: str) -> LayerResult:
+    if reddit is None:
+        return LayerResult(0.0, False)
+
+    end_dt = _parse_date(game_date)
+    start_dt = end_dt - timedelta(days=7)
+    query = f'"{team_name}" (' + " OR ".join(f'"{k}"' for k in REDDIT_KEYWORDS) + ")"
+
+    posts = 0
+    upvotes = 0
+    try:
+        subreddit = reddit.subreddit("CollegeBasketball")
+        for submission in subreddit.search(query, sort="new", time_filter="month", limit=60):
+            created = datetime.utcfromtimestamp(submission.created_utc)
+            if start_dt <= created <= end_dt:
+                posts += 1
+                upvotes += int(getattr(submission, "score", 0) or 0)
+        time.sleep(1)
+
+        dedicated = TEAM_SUBREDDITS.get(team_name)
+        if dedicated:
+            for submission in reddit.subreddit(dedicated).hot(limit=15):
+                if getattr(submission, "stickied", False):
+                    title = (submission.title or "").lower()
+                    if "travel" in title or "ticket" in title:
+                        posts += 2
+                        upvotes += int(getattr(submission, "score", 0) or 0)
+                        break
+            time.sleep(1)
+    except Exception as exc:
+        _warn(f"Reddit search failed for {team_name}: {exc}")
+        return LayerResult(0.0, False)
+
+    avg_upvotes = (upvotes / posts) if posts else 0
+    if posts >= 10 and avg_upvotes >= 50:
+        return LayerResult(0.5, True)
+    if posts >= 5:
+        return LayerResult(0.25, True)
+    return LayerResult(0.0, True)
+
+
+def _score_trends_for_team(team_name: str, game_date: str) -> LayerResult:
+    if TrendReq is None:
+        _warn("pytrends is not importable; skipping Trends layer.")
+        return LayerResult(0.0, False)
+
+    try:
+        pytrends = TrendReq(hl="en-US", tz=360)
+        end_dt = _parse_date(game_date)
+        start_dt = end_dt - timedelta(days=7)
+        timeframe = f"{start_dt.strftime('%Y-%m-%d')} {end_dt.strftime('%Y-%m-%d')}"
+        kw = [f"{team_name} tickets", f"{team_name} March Madness"]
+        pytrends.build_payload(kw, cat=0, timeframe=timeframe, geo="US", gprop="")
+        data = pytrends.interest_over_time()
+        time.sleep(5)
+        if data is None or data.empty:
+            return LayerResult(0.0, True)
+        peak_interest = max(int(data[k].max()) for k in kw if k in data.columns)
+    except Exception as exc:
+        _warn(f"Google Trends failed for {team_name}: {exc}")
+        return LayerResult(0.0, False)
+
+    if peak_interest >= 75:
+        return LayerResult(0.25, True)
+    if peak_interest >= 40:
+        return LayerResult(0.10, True)
+    return LayerResult(0.0, True)
+
+
+def _score_transport_for_team(team_name: str) -> LayerResult:
+    query = f'"{team_name}" (bus OR charter OR transportation) "March Madness" site:*.edu'
+
+    titles: list[str] = []
+    serp_key = os.getenv("SERPAPI_KEY")
+    try:
+        if serp_key and requests is not None:
+            resp = requests.get(
+                "https://serpapi.com/search.json",
+                params={"q": query, "api_key": serp_key, "num": 10},
+                timeout=20,
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+            for item in payload.get("organic_results", [])[:10]:
+                titles.append((item.get("title") or "").lower())
+        elif google_search is not None:
+            for result in google_search(query, num_results=10):
+                titles.append(str(result).lower())
+        else:
+            _warn("No transport search client available (googlesearch/requests).")
+            return LayerResult(0.0, False)
+    except Exception as exc:
+        _warn(f"Transport search failed for {team_name}: {exc}")
+        return LayerResult(0.0, False)
+
+    found = any(any(k in t for k in TRANSPORT_KEYWORDS) for t in titles)
+    return LayerResult(0.5 if found else 0.0, True)
+
+
+def _ensure_output_log() -> None:
+    if HOME_COURT_LOG_PATH.exists():
+        return
+    headers = [
+        "game_id",
+        "game_date",
+        "round",
+        "team_a",
+        "team_b",
+        "arena_name",
+        "city",
+        "state",
+        "team_a_distance_mi",
+        "team_b_distance_mi",
+        "team_a_proximity_score",
+        "team_b_proximity_score",
+        "proximity_delta",
+        "proximity_spread_adjustment",
+        "team_a_reddit_boost",
+        "team_b_reddit_boost",
+        "team_a_trends_boost",
+        "team_b_trends_boost",
+        "team_a_transport_boost",
+        "team_b_transport_boost",
+        "net_home_court_adjustment",
+        "favored_team",
+        "adjustment_direction",
         "run_timestamp",
     ]
-    write_header = not LOG_FILE.exists()
-    try:
-        with open(LOG_FILE, "a", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            if write_header:
-                writer.writeheader()
-            writer.writerow(row_dict)
-    except Exception as e:
-        logger.warning(f"Failed to write to log: {e}")
+    with HOME_COURT_LOG_PATH.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
+def _append_output(row: list[Any]) -> None:
+    _ensure_output_log()
+    with HOME_COURT_LOG_PATH.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(row)
 
-def get_home_court_adjustment(team_a: str, team_b: str, game_date: str,
-                               game_id: str) -> dict:
+
+def get_home_court_adjustment(team_a: str, team_b: str, game_date: str, game_id: str) -> dict:
     """
     Returns a dict with keys:
       - net_adjustment: float (positive favors team_a, negative favors team_b)
@@ -470,246 +412,159 @@ def get_home_court_adjustment(team_a: str, team_b: str, game_date: str,
       - detail: dict with per-layer scores
     Returns net_adjustment=0.0 and confidence="NONE" if scoring fails entirely.
     """
-    fail_result = {
-        "net_adjustment": 0.0,
-        "favored_team": "NEUTRAL",
-        "confidence": "NONE",
-        "detail": {},
-    }
-
-    layers_ran = {"proximity": False, "reddit": False, "trends": False, "transport": False}
-
-    # --- Load data ---
-    locations = _load_bracket_locations()
-    teams = _load_team_master()
-
-    game = _find_game(game_id, locations) if locations else None
-
-    team_a_data = teams.get(team_a)
-    team_b_data = teams.get(team_b)
-
-    # --- Step 1: Distance scoring ---
-    team_a_dist = None
-    team_b_dist = None
-    team_a_prox = PROXIMITY_DEFAULT_SCORE
-    team_b_prox = PROXIMITY_DEFAULT_SCORE
-
-    if game and team_a_data and team_b_data:
-        try:
-            arena_lat = float(game["arena_lat"])
-            arena_lon = float(game["arena_lon"])
-            a_lat = float(team_a_data["campus_lat"])
-            a_lon = float(team_a_data["campus_lon"])
-            b_lat = float(team_b_data["campus_lat"])
-            b_lon = float(team_b_data["campus_lon"])
-
-            team_a_dist = compute_distance_miles(a_lat, a_lon, arena_lat, arena_lon)
-            team_b_dist = compute_distance_miles(b_lat, b_lon, arena_lat, arena_lon)
-            team_a_prox = proximity_score(team_a_dist)
-            team_b_prox = proximity_score(team_b_dist)
-            layers_ran["proximity"] = True
-        except Exception as e:
-            logger.warning(f"Distance scoring failed: {e}")
-    elif not game:
-        logger.warning(f"Game {game_id} not found in bracket_locations.csv. "
-                        "Using default proximity scores.")
-        # Still allow other layers to run
-        if team_a_data and team_b_data:
-            layers_ran["proximity"] = True  # defaults, but layer "ran"
-    else:
-        missing = []
-        if not team_a_data:
-            missing.append(team_a)
-        if not team_b_data:
-            missing.append(team_b)
-        logger.warning(f"Team(s) not found in team_master.csv: {missing}. "
-                        "Add them to data/team_master.csv.")
-
-    prox_delta = team_a_prox - team_b_prox
-    prox_adj = proximity_spread_adjustment(prox_delta)
-
-    if not layers_ran["proximity"]:
-        return fail_result
-
-    # --- Step 2: Reddit signal ---
-    a_reddit = _reddit_signal(team_a, game_date)
-    b_reddit = _reddit_signal(team_b, game_date)
-
-    a_reddit_boost = a_reddit if a_reddit is not None else 0.0
-    b_reddit_boost = b_reddit if b_reddit is not None else 0.0
-    if a_reddit is not None or b_reddit is not None:
-        layers_ran["reddit"] = True
-
-    # --- Step 3: Google Trends signal ---
-    a_trends = _trends_signal(team_a, game_date)
-    b_trends = _trends_signal(team_b, game_date)
-
-    a_trends_boost = a_trends if a_trends is not None else 0.0
-    b_trends_boost = b_trends if b_trends is not None else 0.0
-    if a_trends is not None or b_trends is not None:
-        layers_ran["trends"] = True
-
-    # --- Step 4: University transport signal ---
-    a_transport = _transport_signal(team_a)
-    b_transport = _transport_signal(team_b)
-
-    a_transport_boost = a_transport if a_transport is not None else 0.0
-    b_transport_boost = b_transport if b_transport is not None else 0.0
-    if a_transport is not None or b_transport is not None:
-        layers_ran["transport"] = True
-
-    # --- Step 5: Final assembly ---
-    # Net boosts: positive values for team_a signals, negative for team_b
-    net_reddit = a_reddit_boost - b_reddit_boost
-    net_trends = a_trends_boost - b_trends_boost
-    net_transport = a_transport_boost - b_transport_boost
-
-    total_adjustment = prox_adj + net_reddit + net_trends + net_transport
-
-    # Enforce the non-negotiable cap of +/- MAX_PROXIMITY_ADJUSTMENT (2.0 pts)
-    total_adjustment = max(-MAX_PROXIMITY_ADJUSTMENT,
-                           min(MAX_PROXIMITY_ADJUSTMENT, total_adjustment))
-
-    # Determine favored team
-    if total_adjustment > 0:
-        favored = team_a
-        direction = "TEAM_A"
-    elif total_adjustment < 0:
-        favored = team_b
-        direction = "TEAM_B"
-    else:
-        favored = "NEUTRAL"
-        direction = "NEUTRAL"
-
-    confidence = _compute_confidence(layers_ran)
-
-    detail = {
-        "team_a_distance_mi": round(team_a_dist, 1) if team_a_dist else None,
-        "team_b_distance_mi": round(team_b_dist, 1) if team_b_dist else None,
-        "team_a_proximity_score": team_a_prox,
-        "team_b_proximity_score": team_b_prox,
-        "proximity_delta": prox_delta,
-        "proximity_spread_adjustment": prox_adj,
-        "team_a_reddit_boost": a_reddit_boost,
-        "team_b_reddit_boost": b_reddit_boost,
-        "team_a_trends_boost": a_trends_boost,
-        "team_b_trends_boost": b_trends_boost,
-        "team_a_transport_boost": a_transport_boost,
-        "team_b_transport_boost": b_transport_boost,
-        "layers_ran": layers_ran,
-    }
-
-    # --- Log to CSV ---
-    arena_name = game["arena_name"] if game else "UNKNOWN"
-    city = game["city"] if game else "UNKNOWN"
-    state = game["state"] if game else "UNKNOWN"
-    game_round = game["round"] if game else "UNKNOWN"
-
-    _append_log({
-        "game_id": game_id,
-        "game_date": game_date,
-        "round": game_round,
-        "team_a": team_a,
-        "team_b": team_b,
-        "arena_name": arena_name,
-        "city": city,
-        "state": state,
-        "team_a_distance_mi": detail["team_a_distance_mi"],
-        "team_b_distance_mi": detail["team_b_distance_mi"],
-        "team_a_proximity_score": team_a_prox,
-        "team_b_proximity_score": team_b_prox,
-        "proximity_delta": prox_delta,
-        "proximity_spread_adjustment": prox_adj,
-        "team_a_reddit_boost": a_reddit_boost,
-        "team_b_reddit_boost": b_reddit_boost,
-        "team_a_trends_boost": a_trends_boost,
-        "team_b_trends_boost": b_trends_boost,
-        "team_a_transport_boost": a_transport_boost,
-        "team_b_transport_boost": b_transport_boost,
-        "net_home_court_adjustment": total_adjustment,
-        "favored_team": favored,
-        "adjustment_direction": direction,
-        "run_timestamp": datetime.now().isoformat(),
-    })
-
-    return {
-        "net_adjustment": round(total_adjustment, 2),
-        "favored_team": favored,
-        "confidence": confidence,
-        "detail": detail,
-    }
-
-
-# ---------------------------------------------------------------------------
-# CLI entry point
-# ---------------------------------------------------------------------------
-
-def _print_summary(result, team_a, team_b):
-    """Print a formatted summary of the home court analysis."""
-    d = result["detail"]
-    print("\n" + "=" * 60)
-    print("  MARCH MADNESS HOME COURT ADVANTAGE REPORT")
-    print("=" * 60)
-    print(f"  {team_a}  vs  {team_b}")
-    print("-" * 60)
-
-    # Proximity
-    a_dist = d.get("team_a_distance_mi")
-    b_dist = d.get("team_b_distance_mi")
-    print(f"\n  PROXIMITY TO ARENA:")
-    print(f"    {team_a:20s}  {a_dist or '???':>8} mi  (score: {d['team_a_proximity_score']})")
-    print(f"    {team_b:20s}  {b_dist or '???':>8} mi  (score: {d['team_b_proximity_score']})")
-    print(f"    Delta: {d['proximity_delta']:+d}  ->  Spread adj: {d['proximity_spread_adjustment']:+.2f} pts")
-
-    # Reddit
-    print(f"\n  REDDIT SIGNAL:")
-    print(f"    {team_a:20s}  boost: {d['team_a_reddit_boost']:+.2f}")
-    print(f"    {team_b:20s}  boost: {d['team_b_reddit_boost']:+.2f}")
-
-    # Trends
-    print(f"\n  GOOGLE TRENDS SIGNAL:")
-    print(f"    {team_a:20s}  boost: {d['team_a_trends_boost']:+.2f}")
-    print(f"    {team_b:20s}  boost: {d['team_b_trends_boost']:+.2f}")
-
-    # Transport
-    print(f"\n  UNIVERSITY TRANSPORT SIGNAL:")
-    print(f"    {team_a:20s}  boost: {d['team_a_transport_boost']:+.2f}")
-    print(f"    {team_b:20s}  boost: {d['team_b_transport_boost']:+.2f}")
-
-    # Final
-    print("\n" + "-" * 60)
-    print(f"  NET ADJUSTMENT:  {result['net_adjustment']:+.2f} pts")
-    print(f"  FAVORED TEAM:    {result['favored_team']}")
-    print(f"  CONFIDENCE:      {result['confidence']}")
-
-    layers = d.get("layers_ran", {})
-    ran = [k for k, v in layers.items() if v]
-    skipped = [k for k, v in layers.items() if not v]
-    print(f"  LAYERS RAN:      {', '.join(ran) if ran else 'none'}")
-    if skipped:
-        print(f"  LAYERS SKIPPED:  {', '.join(skipped)}")
-    print("=" * 60 + "\n")
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="March Madness Home Court Advantage Scorer"
-    )
-    parser.add_argument("--team_a", required=True, help="Team A name")
-    parser.add_argument("--team_b", required=True, help="Team B name")
-    parser.add_argument("--date", required=True, help="Game date (YYYY-MM-DD)")
-    parser.add_argument("--game_id", required=True, help="Game ID (e.g. MM2026_R1_G01)")
-    args = parser.parse_args()
-
-    # Load dotenv if available
     try:
-        from dotenv import load_dotenv
-        load_dotenv()
-    except ImportError:
-        pass
+        site = _lookup_game_location(game_id, game_date)
+        team_a_row = _get_team_row(team_a)
+        team_b_row = _get_team_row(team_b)
+        if not site or not team_a_row or not team_b_row:
+            return {
+                "net_adjustment": 0.0,
+                "favored_team": "NEUTRAL",
+                "confidence": "NONE",
+                "detail": {"reason": "missing location/team data"},
+            }
 
-    print(f"Scoring home court advantage: {args.team_a} vs {args.team_b}")
-    print(f"Game: {args.game_id} on {args.date}")
+        team_a_dist = _distance_miles(team_a_row, site)
+        team_b_dist = _distance_miles(team_b_row, site)
+        team_a_prox = _proximity_score(team_a_dist)
+        team_b_prox = _proximity_score(team_b_dist)
+        prox_delta = team_a_prox - team_b_prox
+        prox_adj = _delta_to_spread(prox_delta)
+        proximity_ran = True
+
+        reddit_client = _init_reddit()
+        team_a_reddit = _score_reddit_for_team(reddit_client, team_a, game_date)
+        team_b_reddit = _score_reddit_for_team(reddit_client, team_b, game_date)
+
+        team_a_trends = _score_trends_for_team(team_a, game_date)
+        team_b_trends = _score_trends_for_team(team_b, game_date)
+
+        team_a_transport = _score_transport_for_team(team_a)
+        team_b_transport = _score_transport_for_team(team_b)
+
+        net_adjustment = (
+            prox_adj
+            + team_a_reddit.score - team_b_reddit.score
+            + team_a_trends.score - team_b_trends.score
+            + team_a_transport.score - team_b_transport.score
+        )
+        net_adjustment = max(-MAX_PROXIMITY_ADJUSTMENT, min(MAX_PROXIMITY_ADJUSTMENT, net_adjustment))
+
+        direction = "NEUTRAL"
+        favored_team = "NEUTRAL"
+        if net_adjustment > 0:
+            direction = "TEAM_A"
+            favored_team = team_a
+        elif net_adjustment < 0:
+            direction = "TEAM_B"
+            favored_team = team_b
+
+        signal_layers_ran = [
+            team_a_reddit.ran and team_b_reddit.ran,
+            team_a_trends.ran and team_b_trends.ran,
+            team_a_transport.ran and team_b_transport.ran,
+        ]
+        ran_count = 1 + sum(1 for x in signal_layers_ran if x)
+        if not proximity_ran:
+            confidence = "NONE"
+        elif ran_count == 4:
+            confidence = "HIGH"
+        elif ran_count >= 2:
+            confidence = "MEDIUM"
+        else:
+            confidence = "LOW"
+
+        detail = {
+            "proximity": {
+                "team_a_distance_mi": round(team_a_dist, 2),
+                "team_b_distance_mi": round(team_b_dist, 2),
+                "team_a_score": team_a_prox,
+                "team_b_score": team_b_prox,
+                "delta": prox_delta,
+                "spread_adjustment": prox_adj,
+            },
+            "reddit": {"team_a": team_a_reddit.score, "team_b": team_b_reddit.score, "ran": signal_layers_ran[0]},
+            "trends": {"team_a": team_a_trends.score, "team_b": team_b_trends.score, "ran": signal_layers_ran[1]},
+            "transport": {
+                "team_a": team_a_transport.score,
+                "team_b": team_b_transport.score,
+                "ran": signal_layers_ran[2],
+            },
+        }
+
+        _append_output(
+            [
+                game_id,
+                game_date,
+                site.get("round", ""),
+                team_a,
+                team_b,
+                site.get("arena_name", ""),
+                site.get("city", ""),
+                site.get("state", ""),
+                f"{team_a_dist:.2f}",
+                f"{team_b_dist:.2f}",
+                team_a_prox,
+                team_b_prox,
+                prox_delta,
+                prox_adj,
+                team_a_reddit.score,
+                team_b_reddit.score,
+                team_a_trends.score,
+                team_b_trends.score,
+                team_a_transport.score,
+                team_b_transport.score,
+                net_adjustment,
+                favored_team,
+                direction,
+                datetime.now(timezone.utc).isoformat(),
+            ]
+        )
+
+        return {
+            "net_adjustment": round(net_adjustment, 3),
+            "favored_team": favored_team,
+            "confidence": confidence,
+            "detail": detail,
+        }
+    except Exception as exc:
+        _warn(f"Uncaught scoring error for {team_a} vs {team_b}: {exc}")
+        return {
+            "net_adjustment": 0.0,
+            "favored_team": "NEUTRAL",
+            "confidence": "NONE",
+            "detail": {"reason": str(exc)},
+        }
+
+
+def _print_summary(result: dict, team_a: str, team_b: str) -> None:
+    detail = result.get("detail", {})
+    print("\n=== Home Court Scorer Summary ===")
+    print(f"Matchup: {team_a} vs {team_b}")
+    print(f"Net Adjustment: {result.get('net_adjustment', 0.0):+.2f}")
+    print(f"Favored Team: {result.get('favored_team')}")
+    print(f"Confidence: {result.get('confidence')}")
+    if isinstance(detail, dict):
+        prox = detail.get("proximity", {})
+        print(
+            f"Proximity: {prox.get('team_a_score')} - {prox.get('team_b_score')} "
+            f"(spread {prox.get('spread_adjustment', 0.0):+})"
+        )
+        for layer in ("reddit", "trends", "transport"):
+            layer_d = detail.get(layer, {})
+            print(
+                f"{layer.title()}: team_a={layer_d.get('team_a', 0):+} "
+                f"team_b={layer_d.get('team_b', 0):+} ran={layer_d.get('ran', False)}"
+            )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="March Madness home-court scorer")
+    parser.add_argument("--team_a", required=True)
+    parser.add_argument("--team_b", required=True)
+    parser.add_argument("--date", required=True, help="YYYY-MM-DD")
+    parser.add_argument("--game_id", required=True)
+    args = parser.parse_args()
 
     result = get_home_court_adjustment(args.team_a, args.team_b, args.date, args.game_id)
     _print_summary(result, args.team_a, args.team_b)

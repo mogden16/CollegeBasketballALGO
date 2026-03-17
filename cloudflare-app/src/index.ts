@@ -64,6 +64,8 @@ const renderHomePage = () => {
 
         <h2 style="margin-top:1.25rem;">Quick Predict</h2>
         <form id="quick-form">
+          <label>Home Team<input type="text" name="homeTeam" placeholder="Duke" required /></label>
+          <label>Away Team<input type="text" name="awayTeam" placeholder="UNC" required /></label>
           <label>Home Off. Rating<input type="number" step="0.1" name="homeOff" required /></label>
           <label>Home Def. Rating<input type="number" step="0.1" name="homeDef" required /></label>
           <label>Away Off. Rating<input type="number" step="0.1" name="awayOff" required /></label>
@@ -88,7 +90,9 @@ const renderHomePage = () => {
           });
 
           const data = await response.json();
-          result.textContent = `Projected score: Home ${data.homeScore} - Away ${data.awayScore} (Spread ${data.projectedSpread}, Total ${data.projectedTotal})`;
+          const homeTeam = String(body.homeTeam || 'Home');
+          const awayTeam = String(body.awayTeam || 'Away');
+          result.textContent = awayTeam + ' vs ' + homeTeam + ' — Projected team totals: ' + awayTeam + ' ' + data.awayScore + ', ' + homeTeam + ' ' + data.homeScore + '. Overall total: ' + data.projectedTotal;
         });
       </script>
     </body>

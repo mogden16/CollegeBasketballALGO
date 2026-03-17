@@ -88,7 +88,7 @@ const renderHomePage = () => {
           });
 
           const data = await response.json();
-          result.textContent = `Projected score: Home ${data.homeScore} - Away ${data.awayScore} (Spread ${data.projectedSpread}, Total ${data.projectedTotal})`;
+          result.textContent = 'Projected score: Home ' + data.homeScore + ' - Away ' + data.awayScore + ' (Spread ' + data.projectedSpread + ', Total ' + data.projectedTotal + ')';
         });
       </script>
     </body>

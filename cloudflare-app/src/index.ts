@@ -23,6 +23,13 @@ type ModelProjection = {
 
 type LineProjection = { spread: number | null; total: number | null };
 
+type PicksResponse = {
+  selectedDate: string;
+  picks: GamePrediction[];
+  source: "cache" | "live";
+  reason?: "no_games_scheduled" | "no_cached_data" | "upstream_unavailable";
+};
+
 type GamesByDatePayload = {
   dates: Record<string, GamePrediction[]>;
 };
@@ -39,6 +46,8 @@ type TeamModelsPayload = {
   trank: Record<string, TeamRatings>;
   teams: string[];
 };
+
+type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean };
 
 const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
@@ -136,6 +145,149 @@ const predictGame = (home: TeamRatings, away: TeamRatings, neutral = false) => {
 };
 
 const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.dates[selectedDate] ?? [];
+
+const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
+  const yyyymmdd = selectedDate.replaceAll("-", "");
+  const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${yyyymmdd}&groups=50`;
+
+  try {
+    const response = await fetch(url, { cf: { cacheTtl: 120, cacheEverything: false } });
+    if (!response.ok) {
+      return null;
+    }
+    const data = (await response.json()) as Record<string, unknown>;
+    const events = (data.events as Record<string, unknown>[] | undefined) ?? [];
+
+    const matchups: EspnMatchup[] = [];
+    for (const event of events) {
+      const competitions = (event.competitions as Record<string, unknown>[] | undefined) ?? [];
+      const comp = competitions[0] ?? {};
+      const competitors = (comp.competitors as Record<string, unknown>[] | undefined) ?? [];
+      if (competitors.length < 2) {
+        continue;
+      }
+
+      let homeTeam = "";
+      let awayTeam = "";
+      for (const c of competitors) {
+        const team = (c.team as Record<string, unknown> | undefined) ?? {};
+        const teamName = String(team.shortDisplayName ?? team.displayName ?? "").trim();
+        if (String(c.homeAway ?? "") === "home") {
+          homeTeam = teamName;
+        } else {
+          awayTeam = teamName;
+        }
+      }
+
+      if (homeTeam && awayTeam) {
+        matchups.push({
+          homeTeam,
+          awayTeam,
+          neutral: Boolean(comp.neutralSite),
+        });
+      }
+    }
+
+    return matchups;
+  } catch {
+    return null;
+  }
+};
+
+const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksResponse> => {
+  const schedule = await fetchEspnSchedule(selectedDate);
+  if (schedule === null) {
+    return {
+      selectedDate,
+      picks: [],
+      source: "live",
+      reason: "upstream_unavailable",
+    };
+  }
+
+  const picks: GamePrediction[] = [];
+  for (const game of schedule) {
+    const resolvedHomeKenpom = resolveTeamName(game.homeTeam, kenpomLookup);
+    const resolvedAwayKenpom = resolveTeamName(game.awayTeam, kenpomLookup);
+    const resolvedHomeTrank = resolveTeamName(game.homeTeam, trankLookup);
+    const resolvedAwayTrank = resolveTeamName(game.awayTeam, trankLookup);
+
+    const kenpomProjection: ModelProjection = {
+      homeScore: null,
+      awayScore: null,
+      total: null,
+      spread: null,
+      spreadEdge: null,
+      totalEdge: null,
+    };
+
+    const trankProjection: ModelProjection = {
+      homeScore: null,
+      awayScore: null,
+      total: null,
+      spread: null,
+      spreadEdge: null,
+      totalEdge: null,
+    };
+
+    if (resolvedHomeKenpom && resolvedAwayKenpom) {
+      const calc = predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], game.neutral);
+      kenpomProjection.homeScore = calc.homeScore;
+      kenpomProjection.awayScore = calc.awayScore;
+      kenpomProjection.total = calc.total;
+      kenpomProjection.spread = calc.spread;
+    }
+
+    if (resolvedHomeTrank && resolvedAwayTrank) {
+      const calc = predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], game.neutral);
+      trankProjection.homeScore = calc.homeScore;
+      trankProjection.awayScore = calc.awayScore;
+      trankProjection.total = calc.total;
+      trankProjection.spread = calc.spread;
+    }
+
+    picks.push({
+      homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? game.homeTeam,
+      awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? game.awayTeam,
+      neutral: game.neutral,
+      kenpom: kenpomProjection,
+      trank: trankProjection,
+      vegas: { spread: null, total: null },
+      isEdge: false,
+      confidence: null,
+    });
+  }
+
+  return {
+    selectedDate,
+    picks,
+    source: "live",
+    reason: picks.length ? undefined : "no_games_scheduled",
+  };
+};
+
+const getPicksResponse = async (selectedDate: string): Promise<PicksResponse> => {
+  const cached = getGamesForDate(selectedDate);
+  if (cached.length > 0) {
+    return {
+      selectedDate,
+      picks: cached,
+      source: "cache",
+    };
+  }
+
+  const liveResult = await buildLiveGamesForDate(selectedDate);
+  if (liveResult.picks.length > 0 || liveResult.reason === "upstream_unavailable") {
+    return liveResult;
+  }
+
+  return {
+    selectedDate,
+    picks: [],
+    source: "cache",
+    reason: "no_cached_data",
+  };
+};
 
 const renderHomePage = () => `<!doctype html>
 <html lang="en">
@@ -244,6 +396,8 @@ const renderHomePage = () => `<!doctype html>
       const quickForm = document.getElementById('quick-form');
       const quickResult = document.getElementById('quick-result');
       let currentGames = [];
+      let currentSource = 'cache';
+      let currentReason = '';
 
       const asLine = (label, value) => '<span>' + label + ': ' + value + '</span>';
       const formatSpread = (spread) => {
@@ -278,6 +432,21 @@ const renderHomePage = () => `<!doctype html>
           '</div>' +
         '</div>';
 
+      function renderEmptyState() {
+        if (!currentGames.length) {
+          if (currentReason === 'upstream_unavailable') {
+            emptyState.textContent = 'No games shown because live schedule fetch is currently unavailable.';
+          } else if (currentReason === 'no_cached_data') {
+            emptyState.textContent = 'No cached data for this date and no live games were returned.';
+          } else {
+            emptyState.textContent = 'No games scheduled for this date.';
+          }
+          emptyState.style.display = 'block';
+          return;
+        }
+        emptyState.style.display = 'none';
+      }
+
       function renderCards(games) {
         const spreadThreshold = Number(spreadThresholdInput.value) || 0;
         const totalThreshold = Number(totalThresholdInput.value) || 0;
@@ -307,13 +476,16 @@ const renderHomePage = () => `<!doctype html>
           '</article>';
         }).join('');
 
+        const reasonText = currentReason ? ' • Reason: ' + currentReason : '';
         statusLine.textContent =
           'Date: ' + dateInput.value +
+          ' • Source: ' + currentSource +
           ' • Games: ' + games.length +
           ' • Highlighted: ' + highlighted +
-          ' (Spread ≥ ' + spreadThreshold + ', Total ≥ ' + totalThreshold + ')';
+          ' (Spread ≥ ' + spreadThreshold + ', Total ≥ ' + totalThreshold + ')' +
+          reasonText;
 
-        emptyState.style.display = games.length ? 'none' : 'block';
+        renderEmptyState();
       }
 
       async function loadTeams() {
@@ -327,6 +499,8 @@ const renderHomePage = () => `<!doctype html>
         const response = await fetch('/api/picks?date=' + encodeURIComponent(selectedDate));
         const data = await response.json();
         currentGames = data.picks;
+        currentSource = data.source || 'cache';
+        currentReason = data.reason || '';
         renderCards(currentGames);
       }
 
@@ -415,8 +589,12 @@ export default {
 
     if (request.method === "GET" && url.pathname === "/api/picks") {
       const selectedDate = url.searchParams.get("date") || today;
-      const picks = getGamesForDate(selectedDate);
-      return new Response(JSON.stringify({ selectedDate, picks }), { headers: jsonHeaders });
+      const result = await getPicksResponse(selectedDate);
+      return new Response(JSON.stringify(result), { headers: jsonHeaders });
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/dates") {
+      return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
     }
 
     if (request.method === "GET" && url.pathname === "/api/teams") {

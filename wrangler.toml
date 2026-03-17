@@ -1,0 +1,6 @@
+name = "college-basketball-picks"
+main = "cloudflare-app/src/index.ts"
+compatibility_date = "2026-03-17"
+
+[vars]
+APP_TITLE = "College Basketball Picks"

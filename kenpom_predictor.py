@@ -14,6 +14,7 @@ Dependencies:
 
 import os
 import csv
+import re
 import requests
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -31,6 +32,16 @@ ODDS_API_KEY    = os.getenv("ODDS_API_KEY")   # Free at the-odds-api.com
 ODDS_BOOK       = "draftkings"          # draftkings, fanduel, betmgm, etc.
 EDGE_THRESHOLD  = 3.0                   # Flag if model vs line differs >= this
 FUZZY_THRESHOLD = 75                    # Min fuzzy match score (0-100)
+
+TEAM_ALIASES = {
+    "uconn": "Connecticut",
+    "u conn": "Connecticut",
+    "unc": "North Carolina",
+    "st johns": "St. John's",
+    "saint johns": "St. John's",
+    "iowa state": "Iowa St.",
+    "michigan state": "Michigan St.",
+}
 
 # Discord webhook (set via environment variable)
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
@@ -105,7 +116,9 @@ def parse_kenpom(filepath: str) -> dict[str, Team]:
             if len(parts) < 10:
                 continue
             try:
-                name  = parts[1].strip()
+                # KenPom copy-pastes can include numeric annotations next to team names.
+                # Strip leading/trailing ranking numbers before matching.
+                name  = re.sub(r"\s+", " ", re.sub(r"\s*\d+$", "", re.sub(r"^\d+\s*", "", parts[1].strip()))).strip()
                 adj_o = float(parts[5].strip())
                 adj_d = float(parts[7].strip())
                 adj_t = float(parts[9].strip())
@@ -200,11 +213,22 @@ def load_barttorvik() -> dict[str, Team]:
 
 
 def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:
-    """Fuzzy match a team name string to the KenPom dataset."""
-    # Exact match (case-insensitive) takes priority
-    for key in team_dict:
-        if key.lower() == query.lower():
-            return team_dict[key]
+    """Exact-match first lookup with conservative alias/fuzzy fallback."""
+    normalize = lambda s: re.sub(r"\s+", " ", re.sub(r"[’']", "", re.sub(r"[.&]", " ", re.sub(r"\s*\d+$", "", re.sub(r"^\d+\s*", "", s.strip()))))).lower().strip()
+
+    query_norm = normalize(query)
+    lookup = {normalize(name): team for name, team in team_dict.items()}
+
+    # 1) exact normalized match first
+    if query_norm in lookup:
+        return lookup[query_norm]
+
+    # 2) alias map fallback
+    alias = TEAM_ALIASES.get(query_norm)
+    if alias and normalize(alias) in lookup:
+        return lookup[normalize(alias)]
+
+    # 3) conservative fuzzy fallback
     keys = list(team_dict.keys())
     match, score = process.extractOne(query, keys)
     if score >= threshold:
@@ -214,13 +238,14 @@ def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_
 # ══════════════════════════════════════════════════════
 # STEP 2: PULL TODAY'S MATCHUPS FROM ESPN
 # ══════════════════════════════════════════════════════
-def get_todays_matchups() -> list[Matchup]:
+def get_matchups_for_date(date_str: str | None = None) -> list[Matchup]:
     """
-    Pull today's NCAAB schedule from ESPN's unofficial API.
+    Pull NCAAB schedule for a date (YYYY-MM-DD) from ESPN's unofficial API.
     No API key required.
     """
-    today = datetime.now(timezone.utc).strftime("%Y%m%d")
-    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={today}&groups=50"
+    selected = date_str or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    yyyymmdd = selected.replace("-", "")
+    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={yyyymmdd}&groups=50"
     
     try:
         resp = requests.get(url, timeout=10)
@@ -413,7 +438,7 @@ def predict_game(home: Team, away: Team, neutral: bool = False) -> dict:
 # ══════════════════════════════════════════════════════
 # STEP 5: RUN FULL SLATE + FLAG EDGES
 # ══════════════════════════════════════════════════════
-def run_slate(kenpom_file: str = "kenpom_raw.txt"):
+def run_slate(kenpom_file: str = "kenpom_raw.txt", run_date: str | None = None):
     print(f"\n{'═'*70}")
     print(f"  KenPom + T-Rank NCAA Predictor  |  {datetime.now().strftime('%A %b %d, %Y')}")
     print(f"{'═'*70}")
@@ -428,7 +453,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt"):
     print()
 
     # Today's games
-    matchups = get_todays_matchups()
+    matchups = get_matchups_for_date(run_date)
     if not matchups:
         print("  No games found for today.")
         return

@@ -2,8 +2,8 @@
 
 This Worker app hosts:
 
-- **Picks of the day** (from `cloudflare-app/data/picks-of-day.json`).
-- A **Quick Predict** form that calculates a projected score, spread, and total via `/api/quick-predict`.
+- **Date-based picks dashboard** (cached from `cloudflare-app/data/games-by-date.json`, with live ESPN fallback for missing dates).
+- A **Quick Predict** form that calculates projected spread and total via `/api/quick-predict`.
 
 ## Run locally
 
@@ -20,17 +20,49 @@ cd cloudflare-app
 npm run deploy
 ```
 
+## Safe pre-deploy checks
+
+Run this before deploying to catch bundle/parsing/API regressions:
+
+```bash
+cd cloudflare-app
+npm run check:deploy
+```
+
+If it passes, deploy in one command:
+
+```bash
+npm run deploy:safe
+```
+
+Optional env for date smoke check:
+
+```bash
+DATE_CHECK=2026-03-17 npm run check:deploy
+```
+
+## Data regeneration
+
+Rebuild date-indexed cached game data from `predictions_log.csv`:
+
+```bash
+python3 cloudflare-app/scripts/regenerate_games_by_date.py
+```
+
 ## API endpoints
 
-- `GET /api/picks` – returns the picks payload.
+- `GET /api/picks?date=YYYY-MM-DD`
+  - Returns `{ selectedDate, picks, source, reason? }`
+  - `source` is `cache` or `live`
+  - optional `reason` values: `no_games_scheduled`, `no_cached_data`, `upstream_unavailable`
+- `GET /api/dates` – returns available cached dates.
+- `GET /api/teams` – returns team options for Quick Predict.
 - `POST /api/quick-predict` – accepts JSON:
 
 ```json
 {
-  "homeOff": 114.5,
-  "homeDef": 98.2,
-  "awayOff": 109.7,
-  "awayDef": 101.3,
-  "pace": 69
+  "homeTeam": "Duke",
+  "awayTeam": "North Carolina",
+  "neutral": "false"
 }
 ```

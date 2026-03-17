@@ -1,0 +1,3248 @@
+{
+  "dates": {
+    "2026-03-06": [
+      {
+        "homeTeam": "High Point",
+        "awayTeam": "Gardner Webb",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 96.5,
+          "awayScore": 72.8,
+          "total": 169.3,
+          "spread": -23.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 96.2,
+          "awayScore": 72.4,
+          "total": 168.6,
+          "spread": -23.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Arkansas",
+        "awayTeam": "Bellarmine",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 102.0,
+          "awayScore": 80.2,
+          "total": 182.2,
+          "spread": -21.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 103.2,
+          "awayScore": 79.4,
+          "total": 182.6,
+          "spread": -23.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Belmont",
+        "awayTeam": "Drake",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 90.6,
+          "awayScore": 79.3,
+          "total": 169.9,
+          "spread": -11.4,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Texas A&M",
+        "awayTeam": "Northeastern",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 94.8,
+          "awayScore": 75.0,
+          "total": 169.7,
+          "spread": -19.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 96.1,
+          "awayScore": 75.8,
+          "total": 171.9,
+          "spread": -20.3,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Winthrop",
+        "awayTeam": "Charleston",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 81.6,
+          "awayScore": 80.5,
+          "total": 162.1,
+          "spread": -1.1,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 86.0,
+          "awayScore": 81.0,
+          "total": 167.1,
+          "spread": -5.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Chattanooga",
+        "awayTeam": "The Citadel",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 80.3,
+          "awayScore": 74.6,
+          "total": 154.9,
+          "spread": -5.8,
+          "spreadEdge": -2.7,
+          "totalEdge": 9.4
+        },
+        "trank": {
+          "homeScore": 80.0,
+          "awayScore": 74.5,
+          "total": 154.5,
+          "spread": -5.4,
+          "spreadEdge": -3.1,
+          "totalEdge": 9.0
+        },
+        "vegas": {
+          "spread": -8.5,
+          "total": 145.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Austin Peay",
+        "awayTeam": "Stetson",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 84.9,
+          "awayScore": 76.2,
+          "total": 161.1,
+          "spread": -8.7,
+          "spreadEdge": -2.8,
+          "totalEdge": 7.6
+        },
+        "trank": {
+          "homeScore": 85.7,
+          "awayScore": 76.2,
+          "total": 161.9,
+          "spread": -9.6,
+          "spreadEdge": -1.9,
+          "totalEdge": 8.4
+        },
+        "vegas": {
+          "spread": -11.5,
+          "total": 153.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Texas St.",
+        "awayTeam": "Southern Miss",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 75.5,
+          "awayScore": 76.2,
+          "total": 151.7,
+          "spread": 0.8,
+          "spreadEdge": -2.3,
+          "totalEdge": 11.2
+        },
+        "trank": {
+          "homeScore": 75.5,
+          "awayScore": 75.1,
+          "total": 150.6,
+          "spread": -0.4,
+          "spreadEdge": -1.1,
+          "totalEdge": 10.1
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 140.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Merrimack",
+        "awayTeam": "Sacred Heart",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 81.8,
+          "awayScore": 75.6,
+          "total": 157.4,
+          "spread": -6.1,
+          "spreadEdge": -0.4,
+          "totalEdge": 13.9
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 143.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UNC Asheville",
+        "awayTeam": "Longwood",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 77.0,
+          "awayScore": 75.7,
+          "total": 152.7,
+          "spread": -1.2,
+          "spreadEdge": 2.7,
+          "totalEdge": 12.2
+        },
+        "trank": {
+          "homeScore": 76.0,
+          "awayScore": 75.7,
+          "total": 151.6,
+          "spread": -0.3,
+          "spreadEdge": 1.8,
+          "totalEdge": 11.1
+        },
+        "vegas": {
+          "spread": 1.5,
+          "total": 140.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Akron",
+        "awayTeam": "Illinois",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 81.6,
+          "awayScore": 94.5,
+          "total": 176.1,
+          "spread": 9.4,
+          "spreadEdge": -32.9,
+          "totalEdge": 20.6
+        },
+        "trank": {
+          "homeScore": 80.4,
+          "awayScore": 94.8,
+          "total": 175.2,
+          "spread": 10.9,
+          "spreadEdge": -34.4,
+          "totalEdge": 19.7
+        },
+        "vegas": {
+          "spread": -23.5,
+          "total": 155.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Michigan",
+        "awayTeam": "Bowling Green",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 93.1,
+          "awayScore": 68.0,
+          "total": 161.2,
+          "spread": -28.6,
+          "spreadEdge": 34.1,
+          "totalEdge": 18.7
+        },
+        "trank": {
+          "homeScore": 93.6,
+          "awayScore": 68.9,
+          "total": 162.4,
+          "spread": -28.2,
+          "spreadEdge": 33.7,
+          "totalEdge": 19.9
+        },
+        "vegas": {
+          "spread": 5.5,
+          "total": 142.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "South Dakota",
+        "awayTeam": "Nebraska Omaha",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 80.7,
+          "awayScore": 82.0,
+          "total": 162.7,
+          "spread": 1.2,
+          "spreadEdge": 1.3,
+          "totalEdge": 13.2
+        },
+        "trank": {
+          "homeScore": 80.0,
+          "awayScore": 82.2,
+          "total": 162.2,
+          "spread": 2.1,
+          "spreadEdge": 0.4,
+          "totalEdge": 12.7
+        },
+        "vegas": {
+          "spread": 2.5,
+          "total": 149.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Bradley",
+        "awayTeam": "Valparaiso",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.3,
+          "awayScore": 76.7,
+          "total": 155.0,
+          "spread": -1.6,
+          "spreadEdge": -3.9,
+          "totalEdge": 18.5
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": -5.5,
+          "total": 136.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Dayton",
+        "awayTeam": "VCU",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 78.6,
+          "awayScore": 82.9,
+          "total": 161.5,
+          "spread": 0.8,
+          "spreadEdge": -2.3,
+          "totalEdge": 15.0
+        },
+        "trank": {
+          "homeScore": 79.3,
+          "awayScore": 82.7,
+          "total": 162.0,
+          "spread": -0.1,
+          "spreadEdge": -1.4,
+          "totalEdge": 15.5
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Brown",
+        "awayTeam": "Penn",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 71.4,
+          "awayScore": 77.8,
+          "total": 149.1,
+          "spread": 2.9,
+          "spreadEdge": -4.4,
+          "totalEdge": 2.6
+        },
+        "trank": {
+          "homeScore": 71.2,
+          "awayScore": 77.0,
+          "total": 148.2,
+          "spread": 2.4,
+          "spreadEdge": -3.9,
+          "totalEdge": 1.7
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Kent St.",
+        "awayTeam": "Michigan",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 71.9,
+          "awayScore": 97.5,
+          "total": 169.4,
+          "spread": 22.1,
+          "spreadEdge": -34.6,
+          "totalEdge": 9.9
+        },
+        "trank": {
+          "homeScore": 72.9,
+          "awayScore": 98.4,
+          "total": 171.3,
+          "spread": 22.0,
+          "spreadEdge": -34.5,
+          "totalEdge": 11.8
+        },
+        "vegas": {
+          "spread": -12.5,
+          "total": 159.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Ball St.",
+        "awayTeam": "Michigan",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 59.6,
+          "awayScore": 92.9,
+          "total": 152.4,
+          "spread": 29.8,
+          "spreadEdge": -31.3,
+          "totalEdge": 17.9
+        },
+        "trank": {
+          "homeScore": 61.6,
+          "awayScore": 92.9,
+          "total": 154.5,
+          "spread": 27.8,
+          "spreadEdge": -29.3,
+          "totalEdge": 20.0
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 134.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Toledo",
+        "awayTeam": "Buffalo",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 86.1,
+          "awayScore": 83.5,
+          "total": 169.6,
+          "spread": -6.1,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 86.6,
+          "awayScore": 82.7,
+          "total": 169.3,
+          "spread": -7.4,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Harvard",
+        "awayTeam": "Columbia",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.2,
+          "awayScore": 73.8,
+          "total": 149.0,
+          "spread": -4.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 75.3,
+          "awayScore": 73.6,
+          "total": 148.9,
+          "spread": -5.3,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UNC Greensboro",
+        "awayTeam": "VMI",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 87.3,
+          "awayScore": 78.8,
+          "total": 166.1,
+          "spread": -8.6,
+          "spreadEdge": 1.1,
+          "totalEdge": 11.6
+        },
+        "trank": {
+          "homeScore": 87.3,
+          "awayScore": 78.9,
+          "total": 166.2,
+          "spread": -8.4,
+          "spreadEdge": 0.9,
+          "totalEdge": 11.7
+        },
+        "vegas": {
+          "spread": -7.5,
+          "total": 154.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Queens",
+        "awayTeam": "West Georgia",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 89.7,
+          "awayScore": 82.1,
+          "total": 171.8,
+          "spread": -7.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 7.3
+        },
+        "trank": {
+          "homeScore": 88.2,
+          "awayScore": 82.5,
+          "total": 170.7,
+          "spread": -5.8,
+          "spreadEdge": -1.7,
+          "totalEdge": 6.2
+        },
+        "vegas": {
+          "spread": -7.5,
+          "total": 164.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Tennessee St.",
+        "awayTeam": "UT Rio Grande Valley",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.5,
+          "awayScore": 83.1,
+          "total": 161.6,
+          "spread": 4.5,
+          "spreadEdge": -7.0,
+          "totalEdge": 24.1
+        },
+        "trank": {
+          "homeScore": 78.0,
+          "awayScore": 84.2,
+          "total": 162.3,
+          "spread": 6.2,
+          "spreadEdge": -8.7,
+          "totalEdge": 24.8
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 137.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "West Virginia",
+        "awayTeam": "UCF",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 76.8,
+          "awayScore": 79.4,
+          "total": 156.2,
+          "spread": -1.0,
+          "spreadEdge": -2.5,
+          "totalEdge": 16.7
+        },
+        "trank": {
+          "homeScore": 76.2,
+          "awayScore": 79.5,
+          "total": 155.7,
+          "spread": -0.2,
+          "spreadEdge": -3.3,
+          "totalEdge": 16.2
+        },
+        "vegas": {
+          "spread": -3.5,
+          "total": 139.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "South Alabama",
+        "awayTeam": "Southern",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 80.2,
+          "awayScore": 75.5,
+          "total": 155.7,
+          "spread": -4.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 9.2
+        },
+        "trank": {
+          "homeScore": 79.6,
+          "awayScore": 76.2,
+          "total": 155.7,
+          "spread": -3.4,
+          "spreadEdge": -1.1,
+          "totalEdge": 9.2
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Saint Peter's",
+        "awayTeam": "Fairfield",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 77.6,
+          "awayScore": 77.9,
+          "total": 155.5,
+          "spread": 0.3,
+          "spreadEdge": -2.8,
+          "totalEdge": 21.0
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 134.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Radford",
+        "awayTeam": "Presbyterian",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.8,
+          "awayScore": 77.2,
+          "total": 156.0,
+          "spread": -1.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 9.5
+        },
+        "trank": {
+          "homeScore": 79.6,
+          "awayScore": 77.2,
+          "total": 156.7,
+          "spread": -2.4,
+          "spreadEdge": 0.9,
+          "totalEdge": 10.2
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Seton Hall",
+        "awayTeam": "St. John's",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 70.7,
+          "awayScore": 77.3,
+          "total": 148.0,
+          "spread": 3.1,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 69.8,
+          "awayScore": 78.0,
+          "total": 147.7,
+          "spread": 4.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Ohio",
+        "awayTeam": "Miami OH",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 78.4,
+          "awayScore": 88.1,
+          "total": 166.5,
+          "spread": 6.2,
+          "spreadEdge": -1.7,
+          "totalEdge": 7.0
+        },
+        "trank": {
+          "homeScore": 78.5,
+          "awayScore": 88.5,
+          "total": 166.9,
+          "spread": 6.5,
+          "spreadEdge": -2.0,
+          "totalEdge": 7.4
+        },
+        "vegas": {
+          "spread": 4.5,
+          "total": 159.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Washington St.",
+        "awayTeam": "Portland",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 83.8,
+          "awayScore": 79.5,
+          "total": 163.3,
+          "spread": -4.3,
+          "spreadEdge": -2.2,
+          "totalEdge": 13.8
+        },
+        "trank": {
+          "homeScore": 83.9,
+          "awayScore": 79.2,
+          "total": 163.2,
+          "spread": -4.7,
+          "spreadEdge": -1.8,
+          "totalEdge": 13.7
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 149.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "North Dakota",
+        "awayTeam": "Denver",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 85.6,
+          "awayScore": 90.1,
+          "total": 175.7,
+          "spread": 4.5,
+          "spreadEdge": -1.0,
+          "totalEdge": 15.2
+        },
+        "trank": {
+          "homeScore": 85.7,
+          "awayScore": 89.0,
+          "total": 174.7,
+          "spread": 3.3,
+          "spreadEdge": 0.2,
+          "totalEdge": 14.2
+        },
+        "vegas": {
+          "spread": 3.5,
+          "total": 160.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Illinois St.",
+        "awayTeam": "Northern Iowa",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 70.6,
+          "awayScore": 71.7,
+          "total": 142.3,
+          "spread": 1.1,
+          "spreadEdge": 0.4,
+          "totalEdge": 14.8
+        },
+        "trank": {
+          "homeScore": 86.0,
+          "awayScore": 78.0,
+          "total": 164.0,
+          "spread": -8.0,
+          "spreadEdge": 9.5,
+          "totalEdge": 36.5
+        },
+        "vegas": {
+          "spread": 1.5,
+          "total": 127.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "San Diego St.",
+        "awayTeam": "UNLV",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.8,
+          "awayScore": 77.6,
+          "total": 163.3,
+          "spread": -11.7,
+          "spreadEdge": 2.2,
+          "totalEdge": 9.8
+        },
+        "trank": {
+          "homeScore": 85.0,
+          "awayScore": 77.1,
+          "total": 162.0,
+          "spread": -11.4,
+          "spreadEdge": 1.9,
+          "totalEdge": 8.5
+        },
+        "vegas": {
+          "spread": -9.5,
+          "total": 153.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Morehead St.",
+        "awayTeam": "Missouri",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 73.4,
+          "awayScore": 89.4,
+          "total": 162.8,
+          "spread": 16.1,
+          "spreadEdge": -13.6,
+          "totalEdge": 23.3
+        },
+        "trank": {
+          "homeScore": 73.0,
+          "awayScore": 90.4,
+          "total": 163.4,
+          "spread": 17.3,
+          "spreadEdge": -14.8,
+          "totalEdge": 23.9
+        },
+        "vegas": {
+          "spread": 2.5,
+          "total": 139.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Seattle",
+        "awayTeam": "San Diego",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.9,
+          "awayScore": 72.9,
+          "total": 151.8,
+          "spread": -6.1,
+          "spreadEdge": -3.4,
+          "totalEdge": 12.3
+        },
+        "trank": {
+          "homeScore": 78.7,
+          "awayScore": 72.4,
+          "total": 151.1,
+          "spread": -6.2,
+          "spreadEdge": -3.3,
+          "totalEdge": 11.6
+        },
+        "vegas": {
+          "spread": -9.5,
+          "total": 139.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      }
+    ],
+    "2026-03-07": [
+      {
+        "homeTeam": "Oklahoma St.",
+        "awayTeam": "Houston",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.0,
+          "awayScore": 88.4,
+          "total": 163.4,
+          "spread": 9.9,
+          "spreadEdge": 2.6,
+          "totalEdge": 15.9
+        },
+        "trank": {
+          "homeScore": 73.9,
+          "awayScore": 89.7,
+          "total": 163.5,
+          "spread": 12.3,
+          "spreadEdge": 0.2,
+          "totalEdge": 16.0
+        },
+        "vegas": {
+          "spread": 12.5,
+          "total": 147.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Virginia",
+        "awayTeam": "Virginia Tech",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.9,
+          "awayScore": 75.3,
+          "total": 158.3,
+          "spread": -11.1,
+          "spreadEdge": -0.4,
+          "totalEdge": 13.8
+        },
+        "trank": {
+          "homeScore": 82.6,
+          "awayScore": 75.7,
+          "total": 158.3,
+          "spread": -10.4,
+          "spreadEdge": -1.1,
+          "totalEdge": 13.8
+        },
+        "vegas": {
+          "spread": -11.5,
+          "total": 144.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Missouri",
+        "awayTeam": "Arkansas",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 84.0,
+          "awayScore": 90.2,
+          "total": 174.2,
+          "spread": 2.7,
+          "spreadEdge": -5.2,
+          "totalEdge": 14.7
+        },
+        "trank": {
+          "homeScore": 84.8,
+          "awayScore": 89.9,
+          "total": 174.7,
+          "spread": 1.5,
+          "spreadEdge": -4.0,
+          "totalEdge": 15.2
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 159.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Stony Brook",
+        "awayTeam": "Campbell",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.9,
+          "awayScore": 80.7,
+          "total": 159.6,
+          "spread": 1.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 79.1,
+          "awayScore": 80.5,
+          "total": 159.6,
+          "spread": 1.4,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Mercyhurst",
+        "awayTeam": "Stonehill",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 72.5,
+          "awayScore": 67.2,
+          "total": 139.7,
+          "spread": -8.8,
+          "spreadEdge": 3.3,
+          "totalEdge": 7.2
+        },
+        "trank": {
+          "homeScore": 72.1,
+          "awayScore": 67.4,
+          "total": 139.5,
+          "spread": -8.1,
+          "spreadEdge": 2.6,
+          "totalEdge": 7.0
+        },
+        "vegas": {
+          "spread": -5.5,
+          "total": 132.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "High Point",
+        "awayTeam": "UNC Asheville",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 86.5,
+          "awayScore": 76.2,
+          "total": 162.8,
+          "spread": -10.3,
+          "spreadEdge": -1.2,
+          "totalEdge": 14.3
+        },
+        "trank": {
+          "homeScore": 85.7,
+          "awayScore": 75.0,
+          "total": 160.8,
+          "spread": -10.7,
+          "spreadEdge": -0.8,
+          "totalEdge": 12.3
+        },
+        "vegas": {
+          "spread": -11.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "St. Bonaventure",
+        "awayTeam": "Davidson",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 77.8,
+          "awayScore": 80.4,
+          "total": 158.2,
+          "spread": -0.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "DePaul",
+        "awayTeam": "Butler",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 77.2,
+          "awayScore": 79.8,
+          "total": 157.0,
+          "spread": -1.0,
+          "spreadEdge": -1.5,
+          "totalEdge": 13.5
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 143.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Villanova",
+        "awayTeam": "Xavier",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.8,
+          "awayScore": 78.3,
+          "total": 164.2,
+          "spread": -11.0,
+          "spreadEdge": -0.5,
+          "totalEdge": 10.7
+        },
+        "trank": {
+          "homeScore": 85.2,
+          "awayScore": 78.6,
+          "total": 163.9,
+          "spread": -10.1,
+          "spreadEdge": -1.4,
+          "totalEdge": 10.4
+        },
+        "vegas": {
+          "spread": -11.5,
+          "total": 153.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Boston College",
+        "awayTeam": "Notre Dame",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 71.8,
+          "awayScore": 78.1,
+          "total": 149.9,
+          "spread": 2.7,
+          "spreadEdge": -1.2,
+          "totalEdge": 7.4
+        },
+        "trank": {
+          "homeScore": 72.9,
+          "awayScore": 77.0,
+          "total": 149.8,
+          "spread": 0.6,
+          "spreadEdge": 0.9,
+          "totalEdge": 7.3
+        },
+        "vegas": {
+          "spread": 1.5,
+          "total": 142.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Clemson",
+        "awayTeam": "Georgia Tech",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.9,
+          "awayScore": 70.7,
+          "total": 153.5,
+          "spread": -15.7,
+          "spreadEdge": -0.8,
+          "totalEdge": 9.0
+        },
+        "trank": {
+          "homeScore": 82.9,
+          "awayScore": 70.1,
+          "total": 153.0,
+          "spread": -16.3,
+          "spreadEdge": -0.2,
+          "totalEdge": 8.5
+        },
+        "vegas": {
+          "spread": -16.5,
+          "total": 144.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Delaware",
+        "awayTeam": "Louisiana Tech",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 71.1,
+          "awayScore": 72.4,
+          "total": 143.4,
+          "spread": -2.2,
+          "spreadEdge": 3.7,
+          "totalEdge": 9.9
+        },
+        "trank": {
+          "homeScore": 71.4,
+          "awayScore": 72.3,
+          "total": 143.7,
+          "spread": -2.7,
+          "spreadEdge": 4.2,
+          "totalEdge": 10.2
+        },
+        "vegas": {
+          "spread": 1.5,
+          "total": 133.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Marquette",
+        "awayTeam": "Connecticut",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 71.9,
+          "awayScore": 85.1,
+          "total": 157.0,
+          "spread": 9.8,
+          "spreadEdge": -0.3,
+          "totalEdge": 13.5
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": 9.5,
+          "total": 143.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UMass Lowell",
+        "awayTeam": "Albany",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.7,
+          "awayScore": 80.1,
+          "total": 159.7,
+          "spread": -3.1,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 79.9,
+          "awayScore": 80.2,
+          "total": 160.0,
+          "spread": -3.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UMBC",
+        "awayTeam": "New Hampshire",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.8,
+          "awayScore": 69.5,
+          "total": 149.3,
+          "spread": -13.8,
+          "spreadEdge": 1.3,
+          "totalEdge": 11.8
+        },
+        "trank": {
+          "homeScore": 79.3,
+          "awayScore": 69.7,
+          "total": 149.0,
+          "spread": -13.1,
+          "spreadEdge": 0.6,
+          "totalEdge": 11.5
+        },
+        "vegas": {
+          "spread": -12.5,
+          "total": 137.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Saint Joseph's",
+        "awayTeam": "La Salle",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.4,
+          "awayScore": 70.3,
+          "total": 145.7,
+          "spread": -8.7,
+          "spreadEdge": -1.8,
+          "totalEdge": 5.2
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": -10.5,
+          "total": 140.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Southern Miss",
+        "awayTeam": "South Carolina",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 73.3,
+          "awayScore": 81.9,
+          "total": 155.2,
+          "spread": 5.1,
+          "spreadEdge": -11.6,
+          "totalEdge": 7.7
+        },
+        "trank": {
+          "homeScore": 72.7,
+          "awayScore": 80.9,
+          "total": 153.6,
+          "spread": 4.7,
+          "spreadEdge": -11.2,
+          "totalEdge": 6.1
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 147.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Iowa",
+        "awayTeam": "Arizona St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 83.1,
+          "awayScore": 77.1,
+          "total": 160.2,
+          "spread": -9.5,
+          "spreadEdge": -6.0,
+          "totalEdge": 11.7
+        },
+        "trank": {
+          "homeScore": 83.5,
+          "awayScore": 77.7,
+          "total": 161.3,
+          "spread": -9.3,
+          "spreadEdge": -6.2,
+          "totalEdge": 12.8
+        },
+        "vegas": {
+          "spread": -15.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Kansas",
+        "awayTeam": "Kansas St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 87.3,
+          "awayScore": 74.8,
+          "total": 162.2,
+          "spread": -16.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 87.3,
+          "awayScore": 74.6,
+          "total": 161.9,
+          "spread": -16.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Miami FL",
+        "awayTeam": "Louisville",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.7,
+          "awayScore": 86.4,
+          "total": 169.1,
+          "spread": 0.1,
+          "spreadEdge": -1.6,
+          "totalEdge": 12.6
+        },
+        "trank": {
+          "homeScore": 82.4,
+          "awayScore": 87.2,
+          "total": 169.6,
+          "spread": 1.3,
+          "spreadEdge": -2.8,
+          "totalEdge": 13.1
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 156.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Tennessee",
+        "awayTeam": "Vanderbilt",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 80.4,
+          "awayScore": 81.1,
+          "total": 161.5,
+          "spread": -2.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 81.3,
+          "awayScore": 81.7,
+          "total": 163.0,
+          "spread": -3.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Elon",
+        "awayTeam": "Wagner",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 84.1,
+          "awayScore": 78.0,
+          "total": 162.0,
+          "spread": -9.6,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 83.2,
+          "awayScore": 78.7,
+          "total": 161.9,
+          "spread": -8.1,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Vermont",
+        "awayTeam": "Bryant",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 80.2,
+          "awayScore": 70.3,
+          "total": 150.5,
+          "spread": -13.4,
+          "spreadEdge": -0.1,
+          "totalEdge": 17.0
+        },
+        "trank": {
+          "homeScore": 79.6,
+          "awayScore": 70.3,
+          "total": 149.9,
+          "spread": -12.7,
+          "spreadEdge": -0.8,
+          "totalEdge": 16.4
+        },
+        "vegas": {
+          "spread": -13.5,
+          "total": 133.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Dartmouth",
+        "awayTeam": "Cornell",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.3,
+          "awayScore": 91.7,
+          "total": 177.0,
+          "spread": 2.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 85.7,
+          "awayScore": 91.7,
+          "total": 177.4,
+          "spread": 2.4,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Loyola Chicago",
+        "awayTeam": "Washington",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 69.4,
+          "awayScore": 86.6,
+          "total": 156.0,
+          "spread": 13.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 69.6,
+          "awayScore": 86.0,
+          "total": 155.5,
+          "spread": 12.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Fordham",
+        "awayTeam": "Rhode Island",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 70.3,
+          "awayScore": 72.2,
+          "total": 142.5,
+          "spread": -1.5,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 70.0,
+          "awayScore": 71.2,
+          "total": 141.2,
+          "spread": -2.3,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Duquesne",
+        "awayTeam": "Richmond",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.3,
+          "awayScore": 81.1,
+          "total": 163.4,
+          "spread": -4.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 13.9
+        },
+        "trank": {
+          "homeScore": 83.1,
+          "awayScore": 79.9,
+          "total": 163.0,
+          "spread": -6.7,
+          "spreadEdge": 2.2,
+          "totalEdge": 13.5
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 149.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "TCU",
+        "awayTeam": "Cincinnati",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 73.6,
+          "awayScore": 74.4,
+          "total": 148.0,
+          "spread": -2.7,
+          "spreadEdge": 0.2,
+          "totalEdge": 7.5
+        },
+        "trank": {
+          "homeScore": 73.2,
+          "awayScore": 76.7,
+          "total": 149.8,
+          "spread": 0.0,
+          "spreadEdge": -2.5,
+          "totalEdge": 9.3
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 140.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Florida St.",
+        "awayTeam": "SMU",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 84.8,
+          "awayScore": 89.8,
+          "total": 174.6,
+          "spread": 1.5,
+          "spreadEdge": -3.0,
+          "totalEdge": 14.1
+        },
+        "trank": {
+          "homeScore": 85.1,
+          "awayScore": 90.2,
+          "total": 175.3,
+          "spread": 1.5,
+          "spreadEdge": -3.0,
+          "totalEdge": 14.8
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 160.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Yale",
+        "awayTeam": "Princeton",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 84.7,
+          "awayScore": 73.8,
+          "total": 158.6,
+          "spread": -14.4,
+          "spreadEdge": 0.9,
+          "totalEdge": 23.1
+        },
+        "trank": {
+          "homeScore": 83.9,
+          "awayScore": 74.6,
+          "total": 158.5,
+          "spread": -12.9,
+          "spreadEdge": -0.6,
+          "totalEdge": 23.0
+        },
+        "vegas": {
+          "spread": -13.5,
+          "total": 135.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "FIU",
+        "awayTeam": "Western Kentucky",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.8,
+          "awayScore": 83.1,
+          "total": 162.9,
+          "spread": -0.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 80.1,
+          "awayScore": 82.3,
+          "total": 162.5,
+          "spread": -1.3,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Liberty",
+        "awayTeam": "Sam Houston St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 83.7,
+          "awayScore": 84.3,
+          "total": 168.0,
+          "spread": -3.0,
+          "spreadEdge": -1.5,
+          "totalEdge": 12.5
+        },
+        "trank": {
+          "homeScore": 83.4,
+          "awayScore": 84.2,
+          "total": 167.6,
+          "spread": -2.7,
+          "spreadEdge": -1.8,
+          "totalEdge": 12.1
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 155.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "N.C. State",
+        "awayTeam": "Stanford",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.6,
+          "awayScore": 80.2,
+          "total": 165.8,
+          "spread": -9.0,
+          "spreadEdge": 0.5,
+          "totalEdge": 13.3
+        },
+        "trank": {
+          "homeScore": 86.0,
+          "awayScore": 80.2,
+          "total": 166.2,
+          "spread": -9.3,
+          "spreadEdge": 0.8,
+          "totalEdge": 13.7
+        },
+        "vegas": {
+          "spread": -8.5,
+          "total": 152.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Drexel",
+        "awayTeam": "Northeastern",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 79.0,
+          "awayScore": 75.5,
+          "total": 154.5,
+          "spread": -3.5,
+          "spreadEdge": -1.0,
+          "totalEdge": 14.0
+        },
+        "trank": {
+          "homeScore": 79.6,
+          "awayScore": 74.7,
+          "total": 154.3,
+          "spread": -4.9,
+          "spreadEdge": 0.4,
+          "totalEdge": 13.8
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 140.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Wofford",
+        "awayTeam": "UNC Greensboro",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 86.7,
+          "awayScore": 83.1,
+          "total": 169.7,
+          "spread": -3.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 13.2
+        },
+        "trank": {
+          "homeScore": 86.3,
+          "awayScore": 83.8,
+          "total": 170.1,
+          "spread": -2.4,
+          "spreadEdge": -1.1,
+          "totalEdge": 13.6
+        },
+        "vegas": {
+          "spread": -3.5,
+          "total": 156.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Winthrop",
+        "awayTeam": "Presbyterian",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 82.6,
+          "awayScore": 75.0,
+          "total": 157.6,
+          "spread": -7.6,
+          "spreadEdge": 1.1,
+          "totalEdge": 11.1
+        },
+        "trank": {
+          "homeScore": 81.8,
+          "awayScore": 75.4,
+          "total": 157.2,
+          "spread": -6.4,
+          "spreadEdge": -0.1,
+          "totalEdge": 10.7
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Mississippi St.",
+        "awayTeam": "Georgia",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 81.8,
+          "awayScore": 90.6,
+          "total": 172.4,
+          "spread": 5.3,
+          "spreadEdge": 0.2,
+          "totalEdge": 9.9
+        },
+        "trank": {
+          "homeScore": 82.2,
+          "awayScore": 90.8,
+          "total": 173.0,
+          "spread": 5.1,
+          "spreadEdge": 0.4,
+          "totalEdge": 10.5
+        },
+        "vegas": {
+          "spread": 5.5,
+          "total": 162.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Kentucky",
+        "awayTeam": "Florida",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 78.1,
+          "awayScore": 86.4,
+          "total": 164.5,
+          "spread": 4.7,
+          "spreadEdge": -6.2,
+          "totalEdge": 4.0
+        },
+        "trank": {
+          "homeScore": 78.3,
+          "awayScore": 87.4,
+          "total": 165.7,
+          "spread": 5.6,
+          "spreadEdge": -7.1,
+          "totalEdge": 5.2
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 160.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Purdue",
+        "awayTeam": "Wisconsin",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 88.8,
+          "awayScore": 82.3,
+          "total": 171.0,
+          "spread": -10.0,
+          "spreadEdge": 1.5,
+          "totalEdge": 15.5
+        },
+        "trank": {
+          "homeScore": 74.2,
+          "awayScore": 94.1,
+          "total": 168.4,
+          "spread": 16.4,
+          "spreadEdge": -24.9,
+          "totalEdge": 12.9
+        },
+        "vegas": {
+          "spread": -8.5,
+          "total": 155.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "George Mason",
+        "awayTeam": "Saint Louis",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.5,
+          "awayScore": 85.6,
+          "total": 161.1,
+          "spread": 6.6,
+          "spreadEdge": 0.9,
+          "totalEdge": 12.6
+        },
+        "trank": {
+          "homeScore": 75.2,
+          "awayScore": 86.6,
+          "total": 161.9,
+          "spread": 7.9,
+          "spreadEdge": -0.4,
+          "totalEdge": 13.4
+        },
+        "vegas": {
+          "spread": 7.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "NJIT",
+        "awayTeam": "Maine",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 72.5,
+          "awayScore": 69.4,
+          "total": 141.9,
+          "spread": -6.6,
+          "spreadEdge": 3.1,
+          "totalEdge": 9.4
+        },
+        "trank": {
+          "homeScore": 73.7,
+          "awayScore": 69.5,
+          "total": 143.2,
+          "spread": -7.7,
+          "spreadEdge": 4.2,
+          "totalEdge": 10.7
+        },
+        "vegas": {
+          "spread": -3.5,
+          "total": 132.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Utah",
+        "awayTeam": "New Mexico",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 77.7,
+          "awayScore": 85.0,
+          "total": 162.7,
+          "spread": 3.8,
+          "spreadEdge": -11.3,
+          "totalEdge": 5.2
+        },
+        "trank": {
+          "homeScore": 78.4,
+          "awayScore": 83.9,
+          "total": 162.3,
+          "spread": 2.0,
+          "spreadEdge": -9.5,
+          "totalEdge": 4.8
+        },
+        "vegas": {
+          "spread": -7.5,
+          "total": 157.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Colorado St.",
+        "awayTeam": "Boise St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.1,
+          "awayScore": 81.0,
+          "total": 160.1,
+          "spread": -1.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 16.6
+        },
+        "trank": {
+          "homeScore": 78.9,
+          "awayScore": 81.4,
+          "total": 160.3,
+          "spread": -1.1,
+          "spreadEdge": -0.4,
+          "totalEdge": 16.8
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 143.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Wake Forest",
+        "awayTeam": "California",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 81.0,
+          "awayScore": 81.1,
+          "total": 162.1,
+          "spread": -3.4,
+          "spreadEdge": -3.1,
+          "totalEdge": 11.6
+        },
+        "trank": {
+          "homeScore": 81.5,
+          "awayScore": 81.2,
+          "total": 162.7,
+          "spread": -3.8,
+          "spreadEdge": -2.7,
+          "totalEdge": 12.2
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 150.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "New Mexico St.",
+        "awayTeam": "Kennesaw St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.9,
+          "awayScore": 83.3,
+          "total": 166.2,
+          "spread": -3.0,
+          "spreadEdge": 0.5,
+          "totalEdge": 11.7
+        },
+        "trank": {
+          "homeScore": 82.1,
+          "awayScore": 83.9,
+          "total": 166.0,
+          "spread": -1.8,
+          "spreadEdge": -0.7,
+          "totalEdge": 11.5
+        },
+        "vegas": {
+          "spread": -2.5,
+          "total": 154.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Syracuse",
+        "awayTeam": "Pittsburgh",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.7,
+          "awayScore": 77.4,
+          "total": 157.1,
+          "spread": -5.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 80.2,
+          "awayScore": 76.7,
+          "total": 156.8,
+          "spread": -7.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "San Jose St.",
+        "awayTeam": "Wyoming",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 76.8,
+          "awayScore": 84.5,
+          "total": 161.3,
+          "spread": 4.2,
+          "spreadEdge": 2.3,
+          "totalEdge": 12.8
+        },
+        "trank": {
+          "homeScore": 77.4,
+          "awayScore": 83.9,
+          "total": 161.3,
+          "spread": 3.0,
+          "spreadEdge": 3.5,
+          "totalEdge": 12.8
+        },
+        "vegas": {
+          "spread": 6.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Baylor",
+        "awayTeam": "Utah",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 87.4,
+          "awayScore": 80.4,
+          "total": 167.8,
+          "spread": -10.4,
+          "spreadEdge": -2.1,
+          "totalEdge": 18.3
+        },
+        "trank": {
+          "homeScore": 86.2,
+          "awayScore": 80.8,
+          "total": 167.1,
+          "spread": -8.9,
+          "spreadEdge": -3.6,
+          "totalEdge": 17.6
+        },
+        "vegas": {
+          "spread": -12.5,
+          "total": 149.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Ohio",
+        "awayTeam": "Indiana",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 73.9,
+          "awayScore": 88.6,
+          "total": 162.5,
+          "spread": 11.3,
+          "spreadEdge": -15.8,
+          "totalEdge": 14.0
+        },
+        "trank": {
+          "homeScore": 81.7,
+          "awayScore": 73.0,
+          "total": 154.7,
+          "spread": -12.2,
+          "spreadEdge": 7.7,
+          "totalEdge": 6.2
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Towson",
+        "awayTeam": "Hampton",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 73.5,
+          "awayScore": 68.8,
+          "total": 142.3,
+          "spread": -4.6,
+          "spreadEdge": -1.9,
+          "totalEdge": 11.8
+        },
+        "trank": {
+          "homeScore": 72.8,
+          "awayScore": 68.0,
+          "total": 140.8,
+          "spread": -4.8,
+          "spreadEdge": -1.7,
+          "totalEdge": 10.3
+        },
+        "vegas": {
+          "spread": -6.5,
+          "total": 130.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Samford",
+        "awayTeam": "Furman",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.3,
+          "awayScore": 78.3,
+          "total": 156.6,
+          "spread": 0.0,
+          "spreadEdge": -1.5,
+          "totalEdge": 10.1
+        },
+        "trank": {
+          "homeScore": 76.8,
+          "awayScore": 78.7,
+          "total": 155.4,
+          "spread": 1.9,
+          "spreadEdge": -3.4,
+          "totalEdge": 8.9
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Bradley",
+        "awayTeam": "Northern Iowa",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 71.3,
+          "awayScore": 74.4,
+          "total": 145.7,
+          "spread": 3.1,
+          "spreadEdge": 1.4,
+          "totalEdge": 18.2
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": 4.5,
+          "total": 127.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Quinnipiac",
+        "awayTeam": "Marist",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 72.1,
+          "awayScore": 72.7,
+          "total": 144.8,
+          "spread": 0.6,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "LSU",
+        "awayTeam": "Texas A&M",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 82.9,
+          "awayScore": 86.4,
+          "total": 169.2,
+          "spread": -0.0,
+          "spreadEdge": 3.5,
+          "totalEdge": 9.7
+        },
+        "trank": {
+          "homeScore": 82.7,
+          "awayScore": 87.5,
+          "total": 170.2,
+          "spread": 1.4,
+          "spreadEdge": 2.1,
+          "totalEdge": 10.7
+        },
+        "vegas": {
+          "spread": 3.5,
+          "total": 159.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Duke",
+        "awayTeam": "North Carolina",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.6,
+          "awayScore": 74.4,
+          "total": 160.1,
+          "spread": -14.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 85.8,
+          "awayScore": 76.6,
+          "total": 162.5,
+          "spread": -12.7,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Cal Poly",
+        "awayTeam": "Cal St. Bakersfield",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 88.8,
+          "awayScore": 81.0,
+          "total": 169.8,
+          "spread": -11.3,
+          "spreadEdge": 1.8,
+          "totalEdge": -2.7
+        },
+        "trank": {
+          "homeScore": 88.9,
+          "awayScore": 81.6,
+          "total": 170.6,
+          "spread": -10.8,
+          "spreadEdge": 1.3,
+          "totalEdge": -1.9
+        },
+        "vegas": {
+          "spread": -9.5,
+          "total": 172.5
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Abilene Christian",
+        "awayTeam": "UT Arlington",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 69.2,
+          "awayScore": 72.4,
+          "total": 141.6,
+          "spread": -0.3,
+          "spreadEdge": -1.2,
+          "totalEdge": 6.1
+        },
+        "trank": {
+          "homeScore": 69.0,
+          "awayScore": 71.7,
+          "total": 140.7,
+          "spread": -0.8,
+          "spreadEdge": -0.7,
+          "totalEdge": 5.2
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 135.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Idaho St.",
+        "awayTeam": "Arizona",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 68.6,
+          "awayScore": 95.6,
+          "total": 164.2,
+          "spread": 27.0,
+          "spreadEdge": -31.5,
+          "totalEdge": 22.7
+        },
+        "trank": {
+          "homeScore": 69.1,
+          "awayScore": 95.8,
+          "total": 164.9,
+          "spread": 26.6,
+          "spreadEdge": -31.1,
+          "totalEdge": 23.4
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 141.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Austin Peay",
+        "awayTeam": "Queens",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 86.6,
+          "awayScore": 85.7,
+          "total": 172.3,
+          "spread": -0.9,
+          "spreadEdge": -0.6,
+          "totalEdge": 9.8
+        },
+        "trank": {
+          "homeScore": 87.1,
+          "awayScore": 84.5,
+          "total": 171.6,
+          "spread": -2.6,
+          "spreadEdge": 1.1,
+          "totalEdge": 9.1
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 162.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Iowa St.",
+        "awayTeam": "Nebraska Omaha",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 91.7,
+          "awayScore": 67.8,
+          "total": 159.4,
+          "spread": -23.9,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 91.2,
+          "awayScore": 69.2,
+          "total": 160.4,
+          "spread": -22.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Grand Canyon",
+        "awayTeam": "Fresno St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 77.6,
+          "awayScore": 72.0,
+          "total": 149.7,
+          "spread": -9.1,
+          "spreadEdge": -4.4,
+          "totalEdge": 3.2
+        },
+        "trank": {
+          "homeScore": 77.5,
+          "awayScore": 71.5,
+          "total": 149.0,
+          "spread": -9.4,
+          "spreadEdge": -4.1,
+          "totalEdge": 2.5
+        },
+        "vegas": {
+          "spread": -13.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "CSUN",
+        "awayTeam": "Cal St. Fullerton",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 86.5,
+          "awayScore": 86.0,
+          "total": 172.6,
+          "spread": -4.0,
+          "spreadEdge": -1.5,
+          "totalEdge": 2.1
+        },
+        "trank": {
+          "homeScore": 87.1,
+          "awayScore": 84.4,
+          "total": 171.5,
+          "spread": -6.2,
+          "spreadEdge": 0.7,
+          "totalEdge": 1.0
+        },
+        "vegas": {
+          "spread": -5.5,
+          "total": 170.5
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Georgetown",
+        "awayTeam": "Providence",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 84.9,
+          "awayScore": 87.7,
+          "total": 172.7,
+          "spread": -0.7,
+          "spreadEdge": -0.8,
+          "totalEdge": 16.2
+        },
+        "trank": {
+          "homeScore": 84.8,
+          "awayScore": 88.0,
+          "total": 172.7,
+          "spread": -0.3,
+          "spreadEdge": -1.2,
+          "totalEdge": 16.2
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 156.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UC Irvine",
+        "awayTeam": "UC Davis",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.9,
+          "awayScore": 73.8,
+          "total": 149.7,
+          "spread": -5.7,
+          "spreadEdge": -3.8,
+          "totalEdge": 3.2
+        },
+        "trank": {
+          "homeScore": 75.8,
+          "awayScore": 73.2,
+          "total": 149.1,
+          "spread": -6.1,
+          "spreadEdge": -3.4,
+          "totalEdge": 2.6
+        },
+        "vegas": {
+          "spread": -9.5,
+          "total": 146.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Alabama",
+        "awayTeam": "Auburn",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 94.9,
+          "awayScore": 89.7,
+          "total": 184.5,
+          "spread": -8.7,
+          "spreadEdge": 0.2,
+          "totalEdge": 8.0
+        },
+        "trank": {
+          "homeScore": 95.2,
+          "awayScore": 89.4,
+          "total": 184.6,
+          "spread": -9.3,
+          "spreadEdge": 0.8,
+          "totalEdge": 8.1
+        },
+        "vegas": {
+          "spread": -8.5,
+          "total": 176.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "William & Mary",
+        "awayTeam": "Elon",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 88.1,
+          "awayScore": 83.5,
+          "total": 171.6,
+          "spread": -4.6,
+          "spreadEdge": 0.1,
+          "totalEdge": 7.1
+        },
+        "trank": {
+          "homeScore": 88.2,
+          "awayScore": 82.8,
+          "total": 171.0,
+          "spread": -5.4,
+          "spreadEdge": 0.9,
+          "totalEdge": 6.5
+        },
+        "vegas": {
+          "spread": -4.5,
+          "total": 164.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Mercer",
+        "awayTeam": "Coastal Carolina",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 81.2,
+          "awayScore": 77.7,
+          "total": 158.9,
+          "spread": -3.5,
+          "spreadEdge": 2.0,
+          "totalEdge": 3.4
+        },
+        "trank": {
+          "homeScore": 80.4,
+          "awayScore": 78.5,
+          "total": 158.8,
+          "spread": -1.9,
+          "spreadEdge": 0.4,
+          "totalEdge": 3.3
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 155.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Siena",
+        "awayTeam": "Mount St. Mary's",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 77.3,
+          "awayScore": 72.1,
+          "total": 149.4,
+          "spread": -5.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": null,
+          "awayScore": null,
+          "total": null,
+          "spread": null,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Texas",
+        "awayTeam": "Oklahoma",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 89.0,
+          "awayScore": 85.5,
+          "total": 174.5,
+          "spread": -7.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 89.0,
+          "awayScore": 86.3,
+          "total": 175.4,
+          "spread": -6.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Southern Utah",
+        "awayTeam": "Cal Baptist",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 73.6,
+          "awayScore": 80.8,
+          "total": 154.4,
+          "spread": 3.7,
+          "spreadEdge": 2.8,
+          "totalEdge": 6.9
+        },
+        "trank": {
+          "homeScore": 73.4,
+          "awayScore": 81.0,
+          "total": 154.3,
+          "spread": 4.1,
+          "spreadEdge": 2.4,
+          "totalEdge": 6.8
+        },
+        "vegas": {
+          "spread": 6.5,
+          "total": 147.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "San Francisco",
+        "awayTeam": "Portland",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 81.8,
+          "awayScore": 76.9,
+          "total": 158.7,
+          "spread": -4.8,
+          "spreadEdge": -0.7,
+          "totalEdge": 14.2
+        },
+        "trank": {
+          "homeScore": 81.3,
+          "awayScore": 77.1,
+          "total": 158.4,
+          "spread": -4.2,
+          "spreadEdge": -1.3,
+          "totalEdge": 13.9
+        },
+        "vegas": {
+          "spread": -5.5,
+          "total": 144.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Coastal Carolina",
+        "awayTeam": "Southern",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 78.5,
+          "awayScore": 76.0,
+          "total": 154.6,
+          "spread": -2.5,
+          "spreadEdge": 1.0,
+          "totalEdge": 3.1
+        },
+        "trank": {
+          "homeScore": 78.2,
+          "awayScore": 76.7,
+          "total": 155.0,
+          "spread": -1.5,
+          "spreadEdge": 0.0,
+          "totalEdge": 3.5
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 151.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Tennessee St.",
+        "awayTeam": "Morehead St.",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 83.9,
+          "awayScore": 80.2,
+          "total": 164.1,
+          "spread": -3.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 83.6,
+          "awayScore": 81.2,
+          "total": 164.8,
+          "spread": -2.4,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "USC",
+        "awayTeam": "UCLA",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 79.4,
+          "awayScore": 83.7,
+          "total": 163.1,
+          "spread": 0.8,
+          "spreadEdge": 5.7,
+          "totalEdge": 12.6
+        },
+        "trank": {
+          "homeScore": 78.7,
+          "awayScore": 83.2,
+          "total": 162.0,
+          "spread": 1.0,
+          "spreadEdge": 5.5,
+          "totalEdge": 11.5
+        },
+        "vegas": {
+          "spread": 6.5,
+          "total": 150.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Minnesota",
+        "awayTeam": "Northwestern",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 76.8,
+          "awayScore": 76.5,
+          "total": 153.2,
+          "spread": -3.8,
+          "spreadEdge": 0.3,
+          "totalEdge": 19.7
+        },
+        "trank": {
+          "homeScore": 77.4,
+          "awayScore": 75.6,
+          "total": 153.1,
+          "spread": -5.3,
+          "spreadEdge": 1.8,
+          "totalEdge": 19.6
+        },
+        "vegas": {
+          "spread": -3.5,
+          "total": 133.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "UC Santa Barbara",
+        "awayTeam": "UC San Diego",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 77.8,
+          "awayScore": 78.4,
+          "total": 156.2,
+          "spread": -2.9,
+          "spreadEdge": 1.4,
+          "totalEdge": 16.7
+        },
+        "trank": {
+          "homeScore": 77.6,
+          "awayScore": 76.8,
+          "total": 154.4,
+          "spread": -4.2,
+          "spreadEdge": 2.7,
+          "totalEdge": 14.9
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 139.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Utah Tech",
+        "awayTeam": "Utah Valley",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 76.2,
+          "awayScore": 83.1,
+          "total": 159.3,
+          "spread": 3.4,
+          "spreadEdge": 3.1,
+          "totalEdge": 10.8
+        },
+        "trank": {
+          "homeScore": 76.5,
+          "awayScore": 82.9,
+          "total": 159.4,
+          "spread": 2.8,
+          "spreadEdge": 3.7,
+          "totalEdge": 10.9
+        },
+        "vegas": {
+          "spread": 6.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": "HIGH"
+      },
+      {
+        "homeTeam": "Idaho",
+        "awayTeam": "Sacramento St.",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 85.3,
+          "awayScore": 80.6,
+          "total": 165.9,
+          "spread": -4.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 85.5,
+          "awayScore": 79.9,
+          "total": 165.5,
+          "spread": -5.6,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Nevada",
+        "awayTeam": "Air Force",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.9,
+          "awayScore": 66.2,
+          "total": 152.1,
+          "spread": -23.2,
+          "spreadEdge": -1.3,
+          "totalEdge": 9.6
+        },
+        "trank": {
+          "homeScore": 84.6,
+          "awayScore": 66.6,
+          "total": 151.2,
+          "spread": -21.5,
+          "spreadEdge": -3.0,
+          "totalEdge": 8.7
+        },
+        "vegas": {
+          "spread": -24.5,
+          "total": 142.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "BYU",
+        "awayTeam": "Texas Tech",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 85.2,
+          "awayScore": 87.9,
+          "total": 173.1,
+          "spread": -0.8,
+          "spreadEdge": -0.7,
+          "totalEdge": 13.6
+        },
+        "trank": {
+          "homeScore": 84.4,
+          "awayScore": 90.2,
+          "total": 174.6,
+          "spread": 2.2,
+          "spreadEdge": -3.7,
+          "totalEdge": 15.1
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 159.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "St. Thomas",
+        "awayTeam": "North Dakota",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 88.8,
+          "awayScore": 77.8,
+          "total": 166.6,
+          "spread": -11.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 88.6,
+          "awayScore": 78.4,
+          "total": 167.0,
+          "spread": -10.2,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Colorado",
+        "awayTeam": "Arizona",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.4,
+          "awayScore": 91.9,
+          "total": 167.3,
+          "spread": 13.0,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "trank": {
+          "homeScore": 75.4,
+          "awayScore": 91.7,
+          "total": 167.2,
+          "spread": 12.8,
+          "spreadEdge": null,
+          "totalEdge": null
+        },
+        "vegas": {
+          "spread": null,
+          "total": null
+        },
+        "isEdge": false,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Oregon",
+        "awayTeam": "Washington",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 75.2,
+          "awayScore": 79.8,
+          "total": 155.0,
+          "spread": 1.2,
+          "spreadEdge": -2.7,
+          "totalEdge": 13.5
+        },
+        "trank": {
+          "homeScore": 75.6,
+          "awayScore": 79.7,
+          "total": 155.2,
+          "spread": 0.6,
+          "spreadEdge": -2.1,
+          "totalEdge": 13.7
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 141.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Pacific",
+        "awayTeam": "Seattle",
+        "neutral": true,
+        "kenpom": {
+          "homeScore": 72.2,
+          "awayScore": 71.4,
+          "total": 143.6,
+          "spread": -0.8,
+          "spreadEdge": -0.7,
+          "totalEdge": 14.1
+        },
+        "trank": {
+          "homeScore": 71.6,
+          "awayScore": 71.3,
+          "total": 142.9,
+          "spread": -0.3,
+          "spreadEdge": -1.2,
+          "totalEdge": 13.4
+        },
+        "vegas": {
+          "spread": -1.5,
+          "total": 129.5
+        },
+        "isEdge": true,
+        "confidence": null
+      },
+      {
+        "homeTeam": "Hawaii",
+        "awayTeam": "Long Beach St.",
+        "neutral": false,
+        "kenpom": {
+          "homeScore": 81.3,
+          "awayScore": 73.5,
+          "total": 154.8,
+          "spread": -11.2,
+          "spreadEdge": -2.3,
+          "totalEdge": 6.3
+        },
+        "trank": {
+          "homeScore": 81.0,
+          "awayScore": 73.0,
+          "total": 154.0,
+          "spread": -11.5,
+          "spreadEdge": -2.0,
+          "totalEdge": 5.5
+        },
+        "vegas": {
+          "spread": -13.5,
+          "total": 148.5
+        },
+        "isEdge": true,
+        "confidence": null
+      }
+    ]
+  }
+}

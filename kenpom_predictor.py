@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from thefuzz import process
 from pathlib import Path
 from dotenv import load_dotenv
+from team_name_utils import normalize_team_name
 
 load_dotenv()
 
@@ -214,10 +215,8 @@ def load_barttorvik() -> dict[str, Team]:
 
 def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_THRESHOLD) -> Team | None:
     """Exact-match first lookup with conservative alias/fuzzy fallback."""
-    normalize = lambda s: re.sub(r"\s+", " ", re.sub(r"[’']", "", re.sub(r"[.&]", " ", re.sub(r"\s*\d+$", "", re.sub(r"^\d+\s*", "", s.strip()))))).lower().strip()
-
-    query_norm = normalize(query)
-    lookup = {normalize(name): team for name, team in team_dict.items()}
+    query_norm = normalize_team_name(query)
+    lookup = {normalize_team_name(name): team for name, team in team_dict.items()}
 
     # 1) exact normalized match first
     if query_norm in lookup:
@@ -225,8 +224,8 @@ def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_
 
     # 2) alias map fallback
     alias = TEAM_ALIASES.get(query_norm)
-    if alias and normalize(alias) in lookup:
-        return lookup[normalize(alias)]
+    if alias and normalize_team_name(alias) in lookup:
+        return lookup[normalize_team_name(alias)]
 
     # 3) conservative fuzzy fallback
     keys = list(team_dict.keys())
@@ -377,10 +376,13 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
     # Matching full "A vs B" strings is unreliable because token-sort fuzzy
     # scoring treats "A vs B" and "B vs A" as nearly identical.
     api_team_names: list[str] = []
+    normalized_to_team: dict[str, str] = {}
     team_to_game: dict[str, tuple[str, str]] = {}
     for (h, a) in odds_lookup:
         api_team_names.append(h)
         api_team_names.append(a)
+        normalized_to_team[normalize_team_name(h)] = h
+        normalized_to_team[normalize_team_name(a)] = a
         team_to_game[h] = (h, a)
         team_to_game[a] = (h, a)
 
@@ -389,9 +391,12 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
             break
 
         # Step 1: find the API team that best matches ESPN's home team
-        home_match, home_score = process.extractOne(m.home, api_team_names)
-        if home_score < FUZZY_THRESHOLD:
-            continue
+        home_norm = normalize_team_name(m.home)
+        home_match = normalized_to_team.get(home_norm)
+        if home_match is None:
+            home_match, home_score = process.extractOne(m.home, api_team_names)
+            if home_score < FUZZY_THRESHOLD:
+                continue
 
         game_key = team_to_game[home_match]
         api_h, api_a = game_key
@@ -399,9 +404,11 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
 
         # Step 2: verify the away team also matches the other team in that game
         other_api_team = api_a if home_match == api_h else api_h
-        _, away_score = process.extractOne(m.away, [other_api_team])
-        if away_score < FUZZY_THRESHOLD:
-            continue
+        away_norm = normalize_team_name(m.away)
+        if normalize_team_name(other_api_team) != away_norm:
+            _, away_score = process.extractOne(m.away, [other_api_team])
+            if away_score < FUZZY_THRESHOLD:
+                continue
 
         # Step 3: assign spread from ESPN home team's perspective
         if home_match == api_h:

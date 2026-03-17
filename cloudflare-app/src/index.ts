@@ -47,7 +47,12 @@ type TeamModelsPayload = {
   teams: string[];
 };
 
-type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean };
+type EspnMatchup = {
+  homeTeam: string;
+  awayTeam: string;
+  neutral: boolean;
+  vegas: LineProjection;
+};
 
 const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
@@ -144,6 +149,74 @@ const predictGame = (home: TeamRatings, away: TeamRatings, neutral = false) => {
   };
 };
 
+const toNullableNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+};
+
+const parseSpreadFromDetails = (details: string, homeTeam: string, awayTeam: string): number | null => {
+  const normalized = details.toLowerCase();
+  if (normalized.includes("pick") || normalized.includes("pk")) {
+    return 0;
+  }
+
+  const spreadMatch = details.match(/([+-]?\d+(?:\.\d+)?)/);
+  if (!spreadMatch) {
+    return null;
+  }
+
+  const lineValue = Number(spreadMatch[1]);
+  if (!Number.isFinite(lineValue)) {
+    return null;
+  }
+
+  const homeLower = homeTeam.toLowerCase();
+  const awayLower = awayTeam.toLowerCase();
+  if (normalized.includes(homeLower)) {
+    return lineValue;
+  }
+  if (normalized.includes(awayLower)) {
+    return -lineValue;
+  }
+  return null;
+};
+
+const parseVegasLine = (competition: Record<string, unknown>, homeTeam: string, awayTeam: string): LineProjection => {
+  const odds = ((competition.odds as Record<string, unknown>[] | undefined) ?? [])[0] ?? null;
+  if (!odds) {
+    return { spread: null, total: null };
+  }
+
+  let spread = toNullableNumber((odds.homeTeamOdds as Record<string, unknown> | undefined)?.spread);
+  if (spread === null) {
+    const awaySpread = toNullableNumber((odds.awayTeamOdds as Record<string, unknown> | undefined)?.spread);
+    spread = awaySpread === null ? null : -awaySpread;
+  }
+
+  const details = String(odds.details ?? "").trim();
+  if (spread === null && details) {
+    spread = parseSpreadFromDetails(details, homeTeam, awayTeam);
+  }
+
+  let total = toNullableNumber(odds.overUnder);
+  if (total === null && details) {
+    const ouMatch = details.match(/(?:o\/u|total)\s*([+-]?\d+(?:\.\d+)?)/i);
+    if (ouMatch) {
+      total = Number(ouMatch[1]);
+    }
+  }
+
+  return { spread, total };
+};
+
 const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.dates[selectedDate] ?? [];
 
 const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
@@ -184,6 +257,7 @@ const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | 
           homeTeam,
           awayTeam,
           neutral: Boolean(comp.neutralSite),
+          vegas: parseVegasLine(comp, homeTeam, awayTeam),
         });
       }
     }
@@ -246,13 +320,31 @@ const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksRespons
       trankProjection.spread = calc.spread;
     }
 
+    if (game.vegas.spread !== null) {
+      if (kenpomProjection.spread !== null) {
+        kenpomProjection.spreadEdge = Number((game.vegas.spread - kenpomProjection.spread).toFixed(1));
+      }
+      if (trankProjection.spread !== null) {
+        trankProjection.spreadEdge = Number((game.vegas.spread - trankProjection.spread).toFixed(1));
+      }
+    }
+
+    if (game.vegas.total !== null) {
+      if (kenpomProjection.total !== null) {
+        kenpomProjection.totalEdge = Number((kenpomProjection.total - game.vegas.total).toFixed(1));
+      }
+      if (trankProjection.total !== null) {
+        trankProjection.totalEdge = Number((trankProjection.total - game.vegas.total).toFixed(1));
+      }
+    }
+
     picks.push({
       homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? game.homeTeam,
       awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? game.awayTeam,
       neutral: game.neutral,
       kenpom: kenpomProjection,
       trank: trankProjection,
-      vegas: { spread: null, total: null },
+      vegas: game.vegas,
       isEdge: false,
       confidence: null,
     });

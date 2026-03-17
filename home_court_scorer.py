@@ -12,6 +12,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from team_name_utils import normalize_team_name
+
 from dotenv import load_dotenv
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
@@ -173,8 +175,9 @@ def _get_team_row(team_name: str) -> dict[str, str] | None:
     if not _ensure_team_master():
         return None
     rows = _read_csv(TEAM_MASTER_PATH)
+    team_key = normalize_team_name(team_name)
     for row in rows:
-        if row.get("team_name", "").strip().lower() == team_name.strip().lower():
+        if normalize_team_name(row.get("team_name", "")) == team_key:
             return row
 
     _warn(f"Team '{team_name}' missing from {TEAM_MASTER_PATH}.")

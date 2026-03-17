@@ -1,16 +1,7 @@
 import gamesData from "../data/games-by-date.json";
 import modelsData from "../data/team-models.json";
-
-type GamePrediction = {
-  homeTeam: string;
-  awayTeam: string;
-  neutral: boolean;
-  kenpom: ModelProjection;
-  trank: ModelProjection;
-  vegas: LineProjection;
-  isEdge: boolean;
-  confidence: string | null;
-};
+import { normalizeTeamName } from "./teamName";
+import { toLocalIsoDate } from "./date";
 
 type ModelProjection = {
   homeScore: number | null;
@@ -22,6 +13,20 @@ type ModelProjection = {
 };
 
 type LineProjection = { spread: number | null; total: number | null };
+type DistanceInfo = { homeMiles: number | null; awayMiles: number | null };
+
+type GamePrediction = {
+  homeTeam: string;
+  awayTeam: string;
+  neutral: boolean;
+  gameTimeEt?: string | null;
+  kenpom: ModelProjection;
+  trank: ModelProjection;
+  vegas: LineProjection;
+  distance?: DistanceInfo | null;
+  isEdge: boolean;
+  confidence: string | null;
+};
 
 type PicksResponse = {
   selectedDate: string;
@@ -30,38 +35,17 @@ type PicksResponse = {
   reason?: "no_games_scheduled" | "no_cached_data" | "upstream_unavailable";
 };
 
-type GamesByDatePayload = {
-  dates: Record<string, GamePrediction[]>;
-};
-
-type TeamRatings = {
-  adjO: number;
-  adjD: number;
-  adjT: number;
-  sourceName: string;
-};
-
-type TeamModelsPayload = {
-  kenpom: Record<string, TeamRatings>;
-  trank: Record<string, TeamRatings>;
-  teams: string[];
-};
-
-type EspnMatchup = {
-  homeTeam: string;
-  awayTeam: string;
-  neutral: boolean;
-  vegas: LineProjection;
-};
+type TeamRatings = { adjO: number; adjD: number; adjT: number; sourceName: string };
+type TeamModelsPayload = { kenpom: Record<string, TeamRatings>; trank: Record<string, TeamRatings>; teams: string[] };
+type GamesByDatePayload = { dates: Record<string, GamePrediction[]> };
+type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean; gameTimeEt: string | null; vegas: LineProjection };
 
 const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
-
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" };
-const todayDate = new Date();
-const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
-const today = toIsoDate(todayDate);
 
+const todayDate = new Date();
+const today = toLocalIsoDate(todayDate);
 const minDate = new Date(todayDate);
 minDate.setFullYear(minDate.getFullYear() - 2);
 const maxDate = new Date(todayDate);
@@ -84,21 +68,9 @@ const LAMBDA = 0.88;
 const AVG_EFFICIENCY = 100;
 const HCA = 3.5;
 
-const normalizeTeamName = (input: string): string =>
-  input
-    .trim()
-    .replace(/^\d+\s*/, "")
-    .replace(/\s*\d+$/, "")
-    .replace(/[’']/g, "")
-    .replace(/[.&]/g, " ")
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-
 const buildNormalizedLookup = (teams: string[]): Map<string, string> => {
   const lookup = new Map<string, string>();
-  for (const team of teams) {
-    lookup.set(normalizeTeamName(team), team);
-  }
+  for (const team of teams) lookup.set(normalizeTeamName(team), team);
   return lookup;
 };
 
@@ -106,29 +78,21 @@ const kenpomLookup = buildNormalizedLookup(Object.keys(teamModels.kenpom));
 const trankLookup = buildNormalizedLookup(Object.keys(teamModels.trank));
 
 const deterministicFallback = (query: string, lookup: Map<string, string>): string | null => {
-  if (query.split(" ").length < 2) {
-    return null;
-  }
+  if (query.split(" ").length < 2) return null;
   const candidates = [...lookup.keys()].filter((name) => name.startsWith(query) || query.startsWith(name));
-  if (candidates.length !== 1) {
-    return null;
-  }
+  if (candidates.length !== 1) return null;
   return lookup.get(candidates[0]) ?? null;
 };
 
 const resolveTeamName = (teamName: string, lookup: Map<string, string>): string | null => {
   const normalized = normalizeTeamName(teamName);
   const exact = lookup.get(normalized);
-  if (exact) {
-    return exact;
-  }
+  if (exact) return exact;
 
   const alias = TEAM_ALIASES[normalized];
   if (alias) {
     const aliasExact = lookup.get(normalizeTeamName(alias));
-    if (aliasExact) {
-      return aliasExact;
-    }
+    if (aliasExact) return aliasExact;
   }
 
   return deterministicFallback(normalized, lookup);
@@ -141,60 +105,36 @@ const predictGame = (home: TeamRatings, away: TeamRatings, neutral = false) => {
   const homeScore = Number(((tempo * effHome) / 100).toFixed(1));
   const awayScore = Number(((tempo * effAway) / 100).toFixed(1));
   const spread = Number((-((homeScore - awayScore) + (neutral ? 0 : HCA))).toFixed(1));
-  return {
-    homeScore,
-    awayScore,
-    total: Number((homeScore + awayScore).toFixed(1)),
-    spread,
-  };
+  return { homeScore, awayScore, total: Number((homeScore + awayScore).toFixed(1)), spread };
 };
 
 const toNullableNumber = (value: unknown): number | null => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
+  if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
     const parsed = Number(value.trim());
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
+    if (Number.isFinite(parsed)) return parsed;
   }
   return null;
 };
 
 const parseSpreadFromDetails = (details: string, homeTeam: string, awayTeam: string): number | null => {
   const normalized = details.toLowerCase();
-  if (normalized.includes("pick") || normalized.includes("pk")) {
-    return 0;
-  }
-
+  if (normalized.includes("pick") || normalized.includes("pk")) return 0;
   const spreadMatch = details.match(/([+-]?\d+(?:\.\d+)?)/);
-  if (!spreadMatch) {
-    return null;
-  }
-
+  if (!spreadMatch) return null;
   const lineValue = Number(spreadMatch[1]);
-  if (!Number.isFinite(lineValue)) {
-    return null;
-  }
+  if (!Number.isFinite(lineValue)) return null;
 
-  const homeLower = homeTeam.toLowerCase();
-  const awayLower = awayTeam.toLowerCase();
-  if (normalized.includes(homeLower)) {
-    return lineValue;
-  }
-  if (normalized.includes(awayLower)) {
-    return -lineValue;
-  }
+  const homeLower = normalizeTeamName(homeTeam);
+  const awayLower = normalizeTeamName(awayTeam);
+  if (normalizeTeamName(normalized).includes(homeLower)) return lineValue;
+  if (normalizeTeamName(normalized).includes(awayLower)) return -lineValue;
   return null;
 };
 
 const parseVegasLine = (competition: Record<string, unknown>, homeTeam: string, awayTeam: string): LineProjection => {
   const odds = ((competition.odds as Record<string, unknown>[] | undefined) ?? [])[0] ?? null;
-  if (!odds) {
-    return { spread: null, total: null };
-  }
-
+  if (!odds) return { spread: null, total: null };
   let spread = toNullableNumber((odds.homeTeamOdds as Record<string, unknown> | undefined)?.spread);
   if (spread === null) {
     const awaySpread = toNullableNumber((odds.awayTeamOdds as Record<string, unknown> | undefined)?.spread);
@@ -202,19 +142,27 @@ const parseVegasLine = (competition: Record<string, unknown>, homeTeam: string, 
   }
 
   const details = String(odds.details ?? "").trim();
-  if (spread === null && details) {
-    spread = parseSpreadFromDetails(details, homeTeam, awayTeam);
-  }
+  if (spread === null && details) spread = parseSpreadFromDetails(details, homeTeam, awayTeam);
 
   let total = toNullableNumber(odds.overUnder);
   if (total === null && details) {
     const ouMatch = details.match(/(?:o\/u|total)\s*([+-]?\d+(?:\.\d+)?)/i);
-    if (ouMatch) {
-      total = Number(ouMatch[1]);
-    }
+    if (ouMatch) total = Number(ouMatch[1]);
   }
-
   return { spread, total };
+};
+
+const toEasternTime = (isoDateTime: unknown): string | null => {
+  if (typeof isoDateTime !== "string" || !isoDateTime) return null;
+  const dt = new Date(isoDateTime);
+  if (Number.isNaN(dt.getTime())) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+  }).format(dt) + " ET";
 };
 
 const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.dates[selectedDate] ?? [];
@@ -222,46 +170,36 @@ const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.date
 const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
   const yyyymmdd = selectedDate.replaceAll("-", "");
   const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${yyyymmdd}&groups=50`;
-
   try {
     const response = await fetch(url, { cf: { cacheTtl: 120, cacheEverything: false } });
-    if (!response.ok) {
-      return null;
-    }
+    if (!response.ok) return null;
     const data = (await response.json()) as Record<string, unknown>;
     const events = (data.events as Record<string, unknown>[] | undefined) ?? [];
-
     const matchups: EspnMatchup[] = [];
     for (const event of events) {
       const competitions = (event.competitions as Record<string, unknown>[] | undefined) ?? [];
       const comp = competitions[0] ?? {};
       const competitors = (comp.competitors as Record<string, unknown>[] | undefined) ?? [];
-      if (competitors.length < 2) {
-        continue;
-      }
+      if (competitors.length < 2) continue;
 
       let homeTeam = "";
       let awayTeam = "";
       for (const c of competitors) {
         const team = (c.team as Record<string, unknown> | undefined) ?? {};
         const teamName = String(team.shortDisplayName ?? team.displayName ?? "").trim();
-        if (String(c.homeAway ?? "") === "home") {
-          homeTeam = teamName;
-        } else {
-          awayTeam = teamName;
-        }
+        if (String(c.homeAway ?? "") === "home") homeTeam = teamName;
+        else awayTeam = teamName;
       }
+      if (!homeTeam || !awayTeam) continue;
 
-      if (homeTeam && awayTeam) {
-        matchups.push({
-          homeTeam,
-          awayTeam,
-          neutral: Boolean(comp.neutralSite),
-          vegas: parseVegasLine(comp, homeTeam, awayTeam),
-        });
-      }
+      matchups.push({
+        homeTeam,
+        awayTeam,
+        neutral: Boolean(comp.neutralSite),
+        gameTimeEt: toEasternTime(event.date),
+        vegas: parseVegasLine(comp, homeTeam, awayTeam),
+      });
     }
-
     return matchups;
   } catch {
     return null;
@@ -270,15 +208,7 @@ const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | 
 
 const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksResponse> => {
   const schedule = await fetchEspnSchedule(selectedDate);
-  if (schedule === null) {
-    return {
-      selectedDate,
-      picks: [],
-      source: "live",
-      reason: "upstream_unavailable",
-    };
-  }
-
+  if (schedule === null) return { selectedDate, picks: [], source: "live", reason: "upstream_unavailable" };
   const picks: GamePrediction[] = [];
   for (const game of schedule) {
     const resolvedHomeKenpom = resolveTeamName(game.homeTeam, kenpomLookup);
@@ -286,62 +216,26 @@ const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksRespons
     const resolvedHomeTrank = resolveTeamName(game.homeTeam, trankLookup);
     const resolvedAwayTrank = resolveTeamName(game.awayTeam, trankLookup);
 
-    const kenpomProjection: ModelProjection = {
-      homeScore: null,
-      awayScore: null,
-      total: null,
-      spread: null,
-      spreadEdge: null,
-      totalEdge: null,
-    };
+    const kenpomProjection: ModelProjection = { homeScore: null, awayScore: null, total: null, spread: null, spreadEdge: null, totalEdge: null };
+    const trankProjection: ModelProjection = { homeScore: null, awayScore: null, total: null, spread: null, spreadEdge: null, totalEdge: null };
 
-    const trankProjection: ModelProjection = {
-      homeScore: null,
-      awayScore: null,
-      total: null,
-      spread: null,
-      spreadEdge: null,
-      totalEdge: null,
-    };
-
-    if (resolvedHomeKenpom && resolvedAwayKenpom) {
-      const calc = predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], game.neutral);
-      kenpomProjection.homeScore = calc.homeScore;
-      kenpomProjection.awayScore = calc.awayScore;
-      kenpomProjection.total = calc.total;
-      kenpomProjection.spread = calc.spread;
-    }
-
-    if (resolvedHomeTrank && resolvedAwayTrank) {
-      const calc = predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], game.neutral);
-      trankProjection.homeScore = calc.homeScore;
-      trankProjection.awayScore = calc.awayScore;
-      trankProjection.total = calc.total;
-      trankProjection.spread = calc.spread;
-    }
+    if (resolvedHomeKenpom && resolvedAwayKenpom) Object.assign(kenpomProjection, predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], game.neutral));
+    if (resolvedHomeTrank && resolvedAwayTrank) Object.assign(trankProjection, predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], game.neutral));
 
     if (game.vegas.spread !== null) {
-      if (kenpomProjection.spread !== null) {
-        kenpomProjection.spreadEdge = Number((game.vegas.spread - kenpomProjection.spread).toFixed(1));
-      }
-      if (trankProjection.spread !== null) {
-        trankProjection.spreadEdge = Number((game.vegas.spread - trankProjection.spread).toFixed(1));
-      }
+      if (kenpomProjection.spread !== null) kenpomProjection.spreadEdge = Number((game.vegas.spread - kenpomProjection.spread).toFixed(1));
+      if (trankProjection.spread !== null) trankProjection.spreadEdge = Number((game.vegas.spread - trankProjection.spread).toFixed(1));
     }
-
     if (game.vegas.total !== null) {
-      if (kenpomProjection.total !== null) {
-        kenpomProjection.totalEdge = Number((kenpomProjection.total - game.vegas.total).toFixed(1));
-      }
-      if (trankProjection.total !== null) {
-        trankProjection.totalEdge = Number((trankProjection.total - game.vegas.total).toFixed(1));
-      }
+      if (kenpomProjection.total !== null) kenpomProjection.totalEdge = Number((kenpomProjection.total - game.vegas.total).toFixed(1));
+      if (trankProjection.total !== null) trankProjection.totalEdge = Number((trankProjection.total - game.vegas.total).toFixed(1));
     }
 
     picks.push({
       homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? game.homeTeam,
       awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? game.awayTeam,
       neutral: game.neutral,
+      gameTimeEt: game.gameTimeEt,
       kenpom: kenpomProjection,
       trank: trankProjection,
       vegas: game.vegas,
@@ -350,297 +244,60 @@ const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksRespons
     });
   }
 
-  return {
-    selectedDate,
-    picks,
-    source: "live",
-    reason: picks.length ? undefined : "no_games_scheduled",
-  };
+  return { selectedDate, picks, source: "live", reason: picks.length ? undefined : "no_games_scheduled" };
 };
 
 const getPicksResponse = async (selectedDate: string): Promise<PicksResponse> => {
   const cached = getGamesForDate(selectedDate);
-  if (cached.length > 0) {
-    return {
-      selectedDate,
-      picks: cached,
-      source: "cache",
-    };
-  }
-
+  if (cached.length > 0) return { selectedDate, picks: cached, source: "cache" };
   const liveResult = await buildLiveGamesForDate(selectedDate);
-  if (liveResult.picks.length > 0 || liveResult.reason === "upstream_unavailable") {
-    return liveResult;
-  }
-
-  return {
-    selectedDate,
-    picks: [],
-    source: "cache",
-    reason: "no_cached_data",
-  };
+  if (liveResult.picks.length > 0 || liveResult.reason === "upstream_unavailable") return liveResult;
+  return { selectedDate, picks: [], source: "cache", reason: "no_cached_data" };
 };
 
-const renderHomePage = () => `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>College Basketball Dashboard</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#020617; color:#e2e8f0; }
-      main { max-width: 1260px; margin: 0 auto; padding: 1.25rem; }
-      .hero { display:flex; flex-wrap: wrap; gap: 1rem; justify-content:space-between; align-items:flex-end; margin-bottom: 1.25rem; }
-      h1 { margin: 0; font-size: clamp(1.5rem, 3.8vw, 2.2rem); letter-spacing:.01em; }
-      .subtitle { margin:.4rem 0 0; color:#94a3b8; font-size:.95rem; }
-      .layout { display:grid; gap:1rem; grid-template-columns: minmax(0, 1fr) 280px; align-items:start; }
-      .content { min-width: 0; }
-      .controls { position: sticky; top: 1rem; background:#0b1220; border:1px solid #1f314d; border-radius:14px; padding:1rem; }
-      .controls h3 { margin:.1rem 0 .8rem; font-size:.95rem; }
-      .control-group { margin-bottom:.7rem; }
-      .control-group label { display:block; color:#cbd5e1; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.25rem; }
-      input, select, button { width:100%; padding:.6rem .7rem; border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }
-      input:focus, select:focus { outline: none; border-color:#38bdf8; }
-      .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1rem; }
-      .card { background:linear-gradient(180deg, #0f172a, #0b1220); border:1px solid #1f314d; border-radius:14px; box-shadow: 0 12px 28px rgba(2,6,23,.4); padding:1rem; }
-      .card.highlight { border-color:#f59e0b; box-shadow: 0 0 0 1px rgba(245,158,11,.45), 0 12px 28px rgba(2,6,23,.4); }
-      .matchup { margin:0 0 .85rem; font-size:1rem; font-weight:700; }
-      .section { border-top:1px solid #1e293b; padding-top:.6rem; margin-top:.6rem; }
-      .section h3 { margin:0 0 .45rem; font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#93c5fd; }
-      .scoreline { font-size:1rem; font-weight:700; margin-bottom:.35rem; }
-      .meta { display:flex; gap:.5rem; flex-wrap:wrap; color:#cbd5e1; font-size:.88rem; }
-      .edge { margin-top:.5rem; border-radius:10px; padding:.55rem .65rem; border:1px solid #14532d; background: rgba(22, 101, 52, .16); color:#dcfce7; font-size:.9rem; }
-      .edge.flat { border-color:#374151; background:rgba(30,41,59,.45); color:#d1d5db; }
-      .pill { display:inline-block; margin-left:.5rem; border-radius:999px; padding:.12rem .48rem; font-size:.72rem; background:#1e293b; color:#cbd5e1; }
-      .panel { margin-top: 1.3rem; background:#0b1220; border:1px solid #1f314d; border-radius:14px; padding:1rem; }
-      .quick-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:.7rem; }
-      .actions { display:flex; align-items:flex-end; }
-      button { background:#22c55e; border-color:#22c55e; color:#052e16; font-weight:700; cursor:pointer; }
-      #empty-state { display:none; margin-top:1rem; color:#94a3b8; }
-      #quick-result { margin-top:.85rem; }
-      .result-card { border:1px solid #334155; border-radius:12px; padding:.8rem; background:#0f172a; }
-      .small-note { color:#94a3b8; font-size:.82rem; margin-top: .5rem; }
-      @media (max-width: 980px) {
-        .layout { grid-template-columns: 1fr; }
-        .controls { position: static; }
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <header class="hero">
-        <div>
-          <h1>Picks of the Day</h1>
-          <p class="subtitle">All available games for the selected date. Highlight = spread and total discrepancies exceed your thresholds.</p>
-        </div>
-      </header>
-
-      <div class="layout">
-        <section class="content">
-          <section id="cards" class="grid"></section>
-          <p id="empty-state">No games found for this date. Try another date from the controls.</p>
-
-          <section class="panel">
-            <h2 style="margin:0 0 .75rem;">Quick Predict</h2>
-            <form id="quick-form">
-              <div class="quick-grid">
-                <label>Home Team<input list="team-list" type="text" name="homeTeam" placeholder="Duke" required /></label>
-                <label>Away Team<input list="team-list" type="text" name="awayTeam" placeholder="North Carolina" required /></label>
-                <label>Neutral Court?
-                  <select name="neutral"><option value="false">No</option><option value="true">Yes</option></select>
-                </label>
-                <div class="actions"><button type="submit">Run Quick Predict</button></div>
-              </div>
-              <datalist id="team-list"></datalist>
-            </form>
-            <div id="quick-result"></div>
-          </section>
-        </section>
-
-        <aside class="controls">
-          <h3>Filters</h3>
-          <div class="control-group">
-            <label for="pick-date">Selected Date</label>
-            <input id="pick-date" type="date" value="${today}" min="${toIsoDate(minDate)}" max="${toIsoDate(maxDate)}" />
-          </div>
-          <div class="control-group">
-            <label for="spread-threshold">Spread discrepancy X (pts)</label>
-            <input id="spread-threshold" type="number" value="3" step="0.5" min="0" />
-          </div>
-          <div class="control-group">
-            <label for="total-threshold">Total discrepancy X (pts)</label>
-            <input id="total-threshold" type="number" value="5" step="0.5" min="0" />
-          </div>
-          <p class="small-note" id="status-line">Date: ${today}</p>
-        </aside>
-      </div>
-    </main>
-    <script>
-      const cardsContainer = document.getElementById('cards');
-      const dateInput = document.getElementById('pick-date');
-      const spreadThresholdInput = document.getElementById('spread-threshold');
-      const totalThresholdInput = document.getElementById('total-threshold');
-      const statusLine = document.getElementById('status-line');
-      const emptyState = document.getElementById('empty-state');
-      const teamList = document.getElementById('team-list');
-      const quickForm = document.getElementById('quick-form');
-      const quickResult = document.getElementById('quick-result');
-      let currentGames = [];
-      let currentSource = 'cache';
-      let currentReason = '';
-
-      const asLine = (label, value) => '<span>' + label + ': ' + value + '</span>';
-      const formatSpread = (spread) => {
-        if (spread == null) return 'N/A';
-        return spread < 0 ? 'Home ' + spread : 'Away +' + spread;
-      };
-
-      const modelHasDiscrepancy = (model, spreadThreshold, totalThreshold) =>
-        model &&
-        model.spreadEdge != null &&
-        model.totalEdge != null &&
-        Math.abs(model.spreadEdge) >= spreadThreshold &&
-        Math.abs(model.totalEdge) >= totalThreshold;
-
-      const renderEdge = (game) => {
-        const parts = [];
-        if (game.kenpom.spreadEdge != null) parts.push('KenPom spread edge: ' + (game.kenpom.spreadEdge > 0 ? 'Home' : 'Away') + ' +' + Math.abs(game.kenpom.spreadEdge).toFixed(1));
-        if (game.trank.spreadEdge != null) parts.push('T-Rank spread edge: ' + (game.trank.spreadEdge > 0 ? 'Home' : 'Away') + ' +' + Math.abs(game.trank.spreadEdge).toFixed(1));
-        if (game.kenpom.totalEdge != null) parts.push('KenPom total: ' + (game.kenpom.totalEdge > 0 ? 'Over' : 'Under') + ' ' + Math.abs(game.kenpom.totalEdge).toFixed(1));
-        if (game.trank.totalEdge != null) parts.push('T-Rank total: ' + (game.trank.totalEdge > 0 ? 'Over' : 'Under') + ' ' + Math.abs(game.trank.totalEdge).toFixed(1));
-        if (!parts.length) return '<div class="edge flat">No actionable edge from available model + line data.</div>';
-        return '<div class="edge">' + parts.join('<br/>') + '</div>';
-      };
-
-      const modelBlock = (title, model, awayTeam, homeTeam) =>
-        '<div class="section">' +
-          '<h3>' + title + '</h3>' +
-          '<div class="scoreline">' + awayTeam + ' (' + (model.awayScore ?? 'N/A') + ') vs ' + homeTeam + ' (' + (model.homeScore ?? 'N/A') + ')</div>' +
-          '<div class="meta">' +
-            asLine('Spread', formatSpread(model.spread)) +
-            asLine('Total', model.total ?? 'N/A') +
-          '</div>' +
-        '</div>';
-
-      function renderEmptyState() {
-        if (!currentGames.length) {
-          if (currentReason === 'upstream_unavailable') {
-            emptyState.textContent = 'No games shown because live schedule fetch is currently unavailable.';
-          } else if (currentReason === 'no_cached_data') {
-            emptyState.textContent = 'No cached data for this date and no live games were returned.';
-          } else {
-            emptyState.textContent = 'No games scheduled for this date.';
-          }
-          emptyState.style.display = 'block';
-          return;
-        }
-        emptyState.style.display = 'none';
-      }
-
-      function renderCards(games) {
-        const spreadThreshold = Number(spreadThresholdInput.value) || 0;
-        const totalThreshold = Number(totalThresholdInput.value) || 0;
-        let highlighted = 0;
-
-        cardsContainer.innerHTML = games.map((game) => {
-          const shouldHighlight =
-            modelHasDiscrepancy(game.kenpom, spreadThreshold, totalThreshold) ||
-            modelHasDiscrepancy(game.trank, spreadThreshold, totalThreshold);
-          if (shouldHighlight) highlighted += 1;
-
-          return '<article class="card' + (shouldHighlight ? ' highlight' : '') + '">' +
-            '<h2 class="matchup">' + game.awayTeam + ' @ ' + game.homeTeam + ' ' + (game.confidence ? '<span class="pill">' + game.confidence + '</span>' : '') + '</h2>' +
-            modelBlock('KenPom', game.kenpom, game.awayTeam, game.homeTeam) +
-            modelBlock('T-Rank', game.trank, game.awayTeam, game.homeTeam) +
-            '<div class="section">' +
-              '<h3>Vegas Line</h3>' +
-              '<div class="meta">' +
-                asLine('Spread', formatSpread(game.vegas.spread)) +
-                asLine('Total', game.vegas.total ?? 'N/A') +
-              '</div>' +
-            '</div>' +
-            '<div class="section">' +
-              '<h3>Edge Summary</h3>' +
-              renderEdge(game) +
-            '</div>' +
-          '</article>';
-        }).join('');
-
-        const reasonText = currentReason ? ' • Reason: ' + currentReason : '';
-        statusLine.textContent =
-          'Date: ' + dateInput.value +
-          ' • Source: ' + currentSource +
-          ' • Games: ' + games.length +
-          ' • Highlighted: ' + highlighted +
-          ' (Spread ≥ ' + spreadThreshold + ', Total ≥ ' + totalThreshold + ')' +
-          reasonText;
-
-        renderEmptyState();
-      }
-
-      async function loadTeams() {
-        const response = await fetch('/api/teams');
-        const data = await response.json();
-        teamList.innerHTML = data.teams.map((team) => '<option value="' + team + '"></option>').join('');
-      }
-
-      async function loadPicks() {
-        const selectedDate = dateInput.value;
-        const response = await fetch('/api/picks?date=' + encodeURIComponent(selectedDate));
-        const data = await response.json();
-        currentGames = data.picks;
-        currentSource = data.source || 'cache';
-        currentReason = data.reason || '';
-        renderCards(currentGames);
-      }
-
-      dateInput.addEventListener('change', loadPicks);
-      dateInput.addEventListener('input', loadPicks);
-      spreadThresholdInput.addEventListener('input', () => renderCards(currentGames));
-      totalThresholdInput.addEventListener('input', () => renderCards(currentGames));
-
-      quickForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const body = Object.fromEntries(new FormData(quickForm).entries());
-        const response = await fetch('/api/quick-predict', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await response.json();
-
-        const rows = [];
-        if (data.kenpom) rows.push('<p><strong>KenPom:</strong> Spread ' + data.kenpom.spread + ' | Total ' + data.kenpom.total + '</p>');
-        if (data.trank) rows.push('<p><strong>T-Rank:</strong> Spread ' + data.trank.spread + ' | Total ' + data.trank.total + '</p>');
-        if (data.notes && data.notes.length) rows.push('<p style="color:#fbbf24">' + data.notes.join(' ') + '</p>');
-
-        quickResult.innerHTML =
-          '<div class="result-card">' +
-            '<h3 style="margin:0 0 .45rem;">' + data.awayTeam + ' @ ' + data.homeTeam + '</h3>' +
-            (rows.join('') || '<p>No model output available for that matchup.</p>') +
-          '</div>';
-      });
-
-      loadTeams();
-      loadPicks();
-    </script>
-  </body>
-</html>`;
+const renderHomePage = () => `<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>College Basketball Dashboard</title>
+<style>
+:root{color-scheme:dark;}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#020617;color:#e2e8f0}main{max-width:1260px;margin:0 auto;padding:1rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:1rem}.controls{position:sticky;top:1rem;background:#0b1220;border:1px solid #1f314d;border-radius:12px;padding:.9rem}.content{min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem}.card{background:#0b1220;border:1px solid #1f314d;border-radius:14px;padding:.9rem}.card.highlight{border-color:#f59e0b;box-shadow:0 0 0 1px rgba(245,158,11,.45)}
+.line1{font-size:1rem;font-weight:700;margin:0 0 .7rem}.row{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;border-top:1px solid #1e293b;padding-top:.5rem;margin-top:.5rem}.label{color:#93c5fd;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+.edgeBox{margin-top:.4rem;padding:.45rem .55rem;border-radius:10px;border:1px solid #334155;background:#111827}.edgeBox.hot{border-color:#14532d;background:rgba(22,101,52,.2);color:#dcfce7;font-weight:700}
+.control-group{margin-bottom:.7rem}.control-group label{display:block;font-size:.78rem;text-transform:uppercase;margin-bottom:.2rem}input,button{width:100%;padding:.58rem .66rem;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0}
+.btn-row{display:flex;gap:.5rem}button{background:#22c55e;border-color:#22c55e;color:#052e16;font-weight:700;cursor:pointer}.today{background:#0f172a;color:#93c5fd;border-color:#334155}
+@media (max-width:980px){.layout{grid-template-columns:1fr}.controls{position:static;order:-1}}
+</style></head><body><main><h1>Picks of the Day</h1><div class="layout"><aside class="controls"><h3>Filters</h3><div class="control-group"><label for="pick-date">Selected Date</label><input id="pick-date" type="date" value="${today}" min="${toLocalIsoDate(minDate)}" max="${toLocalIsoDate(maxDate)}"/></div><div class="btn-row"><button id="today-btn" type="button" class="today">Today</button><button id="refresh-btn" type="button">Refresh</button></div><div class="control-group"><label for="spread-threshold">Spread threshold</label><input id="spread-threshold" type="number" value="3" step="0.5" min="0"/></div><div class="control-group"><label for="total-threshold">Total threshold</label><input id="total-threshold" type="number" value="5" step="0.5" min="0"/></div><p id="status-line"></p></aside><section class="content"><section id="cards" class="grid"></section><p id="empty-state" style="display:none;color:#94a3b8"></p></section></div></main>
+<script>
+const cardsContainer=document.getElementById('cards');const dateInput=document.getElementById('pick-date');const spreadThresholdInput=document.getElementById('spread-threshold');const totalThresholdInput=document.getElementById('total-threshold');const statusLine=document.getElementById('status-line');const emptyState=document.getElementById('empty-state');
+let currentGames=[];let currentSource='cache';let currentReason='';
+const localToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const formatSpread=(spread)=>spread==null?'N/A':(spread<0?'Home ':'Away +')+spread;
+const modelScore=(m,away,home)=>m.awayScore==null||m.homeScore==null?'N/A':away+' '+m.awayScore+' - '+home+' '+m.homeScore;
+const sideSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'home':'away');
+const totalSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'over':'under');
+function calcSideEdge(game,t){const pts={home:0,away:0};const reasons=[];const kp=sideSignal(game.kenpom.spreadEdge,t);if(kp){pts[kp]++;reasons.push('KenPom→'+kp)}const tr=sideSignal(game.trank.spreadEdge,t);if(tr){pts[tr]++;reasons.push('T-Rank→'+tr)}if(game.distance&&game.distance.homeMiles!=null&&game.distance.awayMiles!=null&&game.distance.homeMiles!==game.distance.awayMiles){const c=game.distance.homeMiles<game.distance.awayMiles?'home':'away';pts[c]++;reasons.push('Distance→'+c)}const side=pts.home===pts.away?null:(pts.home>pts.away?'home':'away');const score=Math.max(pts.home,pts.away);return {score,side,reasons,highlight:score>1};}
+function calcTotalEdge(game,t){const pts={over:0,under:0};const reasons=[];const kp=totalSignal(game.kenpom.totalEdge,t);if(kp){pts[kp]++;reasons.push('KenPom→'+kp)}const tr=totalSignal(game.trank.totalEdge,t);if(tr){pts[tr]++;reasons.push('T-Rank→'+tr)}const side=pts.over===pts.under?null:(pts.over>pts.under?'over':'under');const score=Math.max(pts.over,pts.under);return {score,side,reasons,highlight:score>1};}
+function edgeText(prefix,e){if(!e.reasons.length)return prefix+': no qualifying signals';return prefix+': '+(e.side||'split')+' ('+e.score+') • '+e.reasons.join(', ')}
+function renderCards(games){const spreadT=Number(spreadThresholdInput.value)||0;const totalT=Number(totalThresholdInput.value)||0;let highlighted=0;cardsContainer.innerHTML=games.map((g)=>{const side=calcSideEdge(g,spreadT);const total=calcTotalEdge(g,totalT);const hot=side.highlight||total.highlight;if(hot)highlighted++;const time=g.gameTimeEt||'TBD ET';return '<article class="card'+(hot?' highlight':'')+'"><h2 class="line1">'+g.awayTeam+' @ '+g.homeTeam+' | '+time+'</h2>'+
+'<div class="row"><span class="label">KenPom predicted score</span><span>'+modelScore(g.kenpom,g.awayTeam,g.homeTeam)+'</span></div>'+
+'<div class="row"><span class="label">T-Rank predicted score</span><span>'+modelScore(g.trank,g.awayTeam,g.homeTeam)+'</span></div>'+
+'<div class="row"><span class="label">Vegas line</span><span>Spread: '+formatSpread(g.vegas.spread)+' | Total: '+(g.vegas.total??'N/A')+'</span></div>'+
+'<div class="row"><span class="label">EDGE</span><div style="width:100%"><div class="edgeBox '+(side.highlight?'hot':'')+'">'+edgeText('Side',side)+'</div><div class="edgeBox '+(total.highlight?'hot':'')+'">'+edgeText('Total',total)+'</div></div></div></article>'}).join('');
+if(!games.length){emptyState.textContent=currentReason==='upstream_unavailable'?'No games shown because live schedule fetch is currently unavailable.':'No games scheduled for this date.';emptyState.style.display='block'}else{emptyState.style.display='none'}
+statusLine.textContent='Date: '+dateInput.value+' • Source: '+currentSource+' • Games: '+games.length+' • Highlighted: '+highlighted;
+}
+async function loadPicks(){if(!dateInput.value)dateInput.value=localToday();const r=await fetch('/api/picks?date='+encodeURIComponent(dateInput.value));const data=await r.json();currentGames=data.picks||[];currentSource=data.source||'cache';currentReason=data.reason||'';renderCards(currentGames)}
+document.getElementById('today-btn').addEventListener('click',()=>{dateInput.value=localToday();loadPicks()});
+document.getElementById('refresh-btn').addEventListener('click',loadPicks);
+dateInput.addEventListener('change',loadPicks);spreadThresholdInput.addEventListener('input',()=>renderCards(currentGames));totalThresholdInput.addEventListener('input',()=>renderCards(currentGames));
+if(!dateInput.value)dateInput.value=localToday();loadPicks();
+</script></body></html>`;
 
 const quickPredict = async (request: Request) => {
   const body = (await request.json()) as Record<string, string>;
   const homeTeamInput = String(body.homeTeam || "").trim();
   const awayTeamInput = String(body.awayTeam || "").trim();
   const neutral = String(body.neutral || "false") === "true";
-
-  if (!homeTeamInput || !awayTeamInput) {
-    return new Response(JSON.stringify({ error: "homeTeam and awayTeam are required." }), {
-      status: 400,
-      headers: jsonHeaders,
-    });
-  }
+  if (!homeTeamInput || !awayTeamInput) return new Response(JSON.stringify({ error: "homeTeam and awayTeam are required." }), { status: 400, headers: jsonHeaders });
 
   const resolvedHomeKenpom = resolveTeamName(homeTeamInput, kenpomLookup);
   const resolvedAwayKenpom = resolveTeamName(awayTeamInput, kenpomLookup);
@@ -650,59 +307,26 @@ const quickPredict = async (request: Request) => {
   const notes: string[] = [];
   let kenpomResult: ReturnType<typeof predictGame> | null = null;
   let trankResult: ReturnType<typeof predictGame> | null = null;
+  if (resolvedHomeKenpom && resolvedAwayKenpom) kenpomResult = predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], neutral);
+  else notes.push("KenPom projection unavailable for one or both teams.");
+  if (resolvedHomeTrank && resolvedAwayTrank) trankResult = predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], neutral);
+  else notes.push("T-Rank projection unavailable for one or both teams.");
 
-  if (resolvedHomeKenpom && resolvedAwayKenpom) {
-    kenpomResult = predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], neutral);
-  } else {
-    notes.push("KenPom projection unavailable for one or both teams.");
-  }
-
-  if (resolvedHomeTrank && resolvedAwayTrank) {
-    trankResult = predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], neutral);
-  } else {
-    notes.push("T-Rank projection unavailable for one or both teams.");
-  }
-
-  return new Response(
-    JSON.stringify({
-      homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? homeTeamInput,
-      awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? awayTeamInput,
-      kenpom: kenpomResult,
-      trank: trankResult,
-      notes,
-    }),
-    { headers: jsonHeaders },
-  );
+  return new Response(JSON.stringify({ homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? homeTeamInput, awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? awayTeamInput, kenpom: kenpomResult, trank: trankResult, notes }), { headers: jsonHeaders });
 };
 
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
-
     if (request.method === "GET" && url.pathname === "/api/picks") {
       const selectedDate = url.searchParams.get("date") || today;
       const result = await getPicksResponse(selectedDate);
       return new Response(JSON.stringify(result), { headers: jsonHeaders });
     }
-
-    if (request.method === "GET" && url.pathname === "/api/dates") {
-      return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/teams") {
-      return new Response(JSON.stringify({ teams: teamModels.teams }), { headers: jsonHeaders });
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/quick-predict") {
-      return quickPredict(request);
-    }
-
-    if (request.method === "GET" && url.pathname === "/") {
-      return new Response(renderHomePage(), {
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
-    }
-
+    if (request.method === "GET" && url.pathname === "/api/dates") return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
+    if (request.method === "GET" && url.pathname === "/api/teams") return new Response(JSON.stringify({ teams: teamModels.teams }), { headers: jsonHeaders });
+    if (request.method === "POST" && url.pathname === "/api/quick-predict") return quickPredict(request);
+    if (request.method === "GET" && url.pathname === "/") return new Response(renderHomePage(), { headers: { "content-type": "text/html; charset=utf-8" } });
     return new Response("Not found", { status: 404 });
   },
 };

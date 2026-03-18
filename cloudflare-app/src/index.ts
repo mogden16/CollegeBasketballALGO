@@ -455,471 +455,366 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 </div><!-- /.app -->
 
 <script>
-(function() {
-  'use strict';
+// Show any JS errors visually on the page
+window.addEventListener('error', function(ev) {
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#b91c1c;color:#fff;padding:.75rem 1rem;font-family:monospace;font-size:13px;z-index:9999;word-break:break-all';
+  d.textContent = 'JS Error: ' + ev.message + ' (line ' + ev.lineno + ')';
+  document.body.appendChild(d);
+});
 
-  // ── Teams & custom autocomplete ────────────────────────────
-  var TEAMS = ${teamsJson};
+var TEAMS = ${teamsJson};
 
-  function setupAutocomplete(inputId, listId) {
-    var input   = document.getElementById(inputId);
-    var listEl  = document.getElementById(listId);
-    var hiIndex = -1;
+// ── Autocomplete ──────────────────────────────────────────────────────────────
+function setupAC(inputId, listId) {
+  var inp = document.getElementById(inputId);
+  var ul  = document.getElementById(listId);
+  var hi  = -1;
+  if (!inp || !ul) return;
 
-    function getMatches(query) {
-      if (!query) return TEAMS.slice(0, 80);
-      var q = query.toLowerCase();
-      return TEAMS.filter(function(t) { return t.toLowerCase().indexOf(q) !== -1; }).slice(0, 80);
-    }
-    function renderList(matches) {
-      listEl.innerHTML = '';
-      hiIndex = -1;
-      if (!matches.length) { listEl.classList.remove('open'); return; }
-      matches.forEach(function(team) {
-        var li = document.createElement('li');
-        li.textContent = team;
-        li.addEventListener('mousedown', function(e) {
-          e.preventDefault();
-          input.value = team;
-          listEl.classList.remove('open');
-        });
-        listEl.appendChild(li);
+  function match(q) {
+    if (!q) return TEAMS.slice(0, 80);
+    q = q.toLowerCase();
+    return TEAMS.filter(function(t) { return t.toLowerCase().indexOf(q) !== -1; }).slice(0, 80);
+  }
+  function show(list) {
+    ul.innerHTML = ''; hi = -1;
+    if (!list.length) { ul.classList.remove('open'); return; }
+    list.forEach(function(name) {
+      var li = document.createElement('li');
+      li.textContent = name;
+      li.addEventListener('mousedown', function(e) {
+        e.preventDefault(); inp.value = name; ul.classList.remove('open');
       });
-      listEl.classList.add('open');
-    }
-    function highlight(idx) {
-      var items = listEl.querySelectorAll('li');
-      items.forEach(function(li) { li.classList.remove('ac-hi'); });
-      if (idx >= 0 && idx < items.length) { items[idx].classList.add('ac-hi'); items[idx].scrollIntoView({ block: 'nearest' }); }
-    }
-    input.addEventListener('focus', function() { renderList(getMatches(input.value)); });
-    input.addEventListener('input', function() { renderList(getMatches(input.value)); });
-    input.addEventListener('keydown', function(e) {
-      var items = listEl.querySelectorAll('li');
-      if (e.key === 'ArrowDown') { e.preventDefault(); hiIndex = Math.min(hiIndex + 1, items.length - 1); highlight(hiIndex); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); hiIndex = Math.max(hiIndex - 1, 0); highlight(hiIndex); }
-      else if (e.key === 'Enter' && hiIndex >= 0) { e.preventDefault(); input.value = items[hiIndex].textContent; listEl.classList.remove('open'); }
-      else if (e.key === 'Escape') { listEl.classList.remove('open'); }
+      ul.appendChild(li);
     });
-    input.addEventListener('blur', function() { setTimeout(function() { listEl.classList.remove('open'); }, 160); });
+    ul.classList.add('open');
   }
-  setupAutocomplete('ta-input', 'ta-list');
-  setupAutocomplete('tb-input', 'tb-list');
-
-  // ── App state ──────────────────────────────────────────────
-  var state = {
-    neutral     : false,
-    useDampening: true,
-    baseData    : null,
-    sliders     : { injury: 0, hca: 0, tempo: 0, vol: 0 },
-    simResult   : null,
-  };
-
-  // ── Toggle helpers ──────────────────────────────────────────
-  function setToggle(yesId, noId, value) {
-    document.getElementById(yesId).classList.toggle('active', value);
-    document.getElementById(noId).classList.toggle('active', !value);
+  function setHi(idx) {
+    var items = ul.querySelectorAll('li');
+    items.forEach(function(li) { li.classList.remove('ac-hi'); });
+    if (idx >= 0 && items[idx]) { items[idx].classList.add('ac-hi'); items[idx].scrollIntoView({ block: 'nearest' }); }
   }
+  inp.addEventListener('focus', function() { show(match(inp.value)); });
+  inp.addEventListener('input', function() { show(match(inp.value)); });
+  inp.addEventListener('keydown', function(e) {
+    var items = ul.querySelectorAll('li');
+    if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, items.length - 1); setHi(hi); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(hi - 1, 0); setHi(hi); }
+    else if (e.key === 'Enter' && hi >= 0 && items[hi]) { e.preventDefault(); inp.value = items[hi].textContent; ul.classList.remove('open'); }
+    else if (e.key === 'Escape') { ul.classList.remove('open'); }
+  });
+  inp.addEventListener('blur', function() { setTimeout(function() { ul.classList.remove('open'); }, 160); });
+}
 
-  function syncNeutralUI() {
-    var hcaInput = document.getElementById('sl-hca');
-    var hcaHint  = document.getElementById('hca-hint');
-    if (state.neutral) {
-      hcaInput.disabled = true;
-      hcaInput.value = '0';
-      state.sliders.hca = 0;
-      document.getElementById('sv-hca').textContent = '0';
-      hcaHint.textContent = 'Disabled \u2014 neutral site';
-    } else {
-      hcaInput.disabled = false;
-      hcaHint.textContent = 'Adds to Team B home advantage';
-    }
-  }
+// ── App state ─────────────────────────────────────────────────────────────────
+var appNeutral   = false;
+var appDampening = true;
+var appData      = null;
+var appSliders   = { injury: 0, hca: 0, tempo: 0, vol: 0 };
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function initApp() {
+  setupAC('ta-input', 'ta-list');
+  setupAC('tb-input', 'tb-list');
 
   document.getElementById('neutral-yes').addEventListener('click', function() {
-    state.neutral = true; setToggle('neutral-yes','neutral-no', true); syncNeutralUI(); if (state.baseData) recompute();
+    appNeutral = true; setToggle('neutral-yes','neutral-no', true); syncNeutral(); if (appData) recompute();
   });
   document.getElementById('neutral-no').addEventListener('click', function() {
-    state.neutral = false; setToggle('neutral-yes','neutral-no', false); syncNeutralUI(); if (state.baseData) recompute();
+    appNeutral = false; setToggle('neutral-yes','neutral-no', false); syncNeutral(); if (appData) recompute();
   });
   document.getElementById('damp-yes').addEventListener('click', function() {
-    state.useDampening = true; setToggle('damp-yes','damp-no', true); if (state.baseData) runPredict();
+    appDampening = true; setToggle('damp-yes','damp-no', true); if (appData) runPredict();
   });
   document.getElementById('damp-no').addEventListener('click', function() {
-    state.useDampening = false; setToggle('damp-yes','damp-no', false); if (state.baseData) runPredict();
+    appDampening = false; setToggle('damp-yes','damp-no', false); if (appData) runPredict();
   });
 
-  // ── Slider wiring ───────────────────────────────────────────
-  function wireSlider(inputId, valId, key) {
-    var el = document.getElementById(inputId);
-    var vl = document.getElementById(valId);
-    el.addEventListener('input', function() {
-      var v = parseFloat(el.value);
-      state.sliders[key] = v;
-      vl.textContent = v > 0 ? '+' + v : String(v);
-      if (state.baseData) recompute();
-    });
-  }
   wireSlider('sl-injury','sv-injury','injury');
   wireSlider('sl-hca',   'sv-hca',   'hca');
   wireSlider('sl-tempo', 'sv-tempo', 'tempo');
   wireSlider('sl-vol',   'sv-vol',   'vol');
 
-  // ── Spread evaluator wiring ─────────────────────────────────
-  document.getElementById('ev-team').addEventListener('change',   function() { if (state.baseData) renderEvaluator(); });
-  document.getElementById('ev-spread').addEventListener('input',  function() { if (state.baseData) renderEvaluator(); });
+  document.getElementById('ev-team').addEventListener('change',  function() { if (appData) renderEval(); });
+  document.getElementById('ev-spread').addEventListener('input', function() { if (appData) renderEval(); });
+  document.getElementById('predict-btn').addEventListener('click', runPredict);
+  document.getElementById('reset-btn').addEventListener('click',  resetAll);
+}
 
-  // ── Reset ───────────────────────────────────────────────────
-  document.getElementById('reset-btn').addEventListener('click', function() {
-    document.getElementById('ta-input').value = '';
-    document.getElementById('tb-input').value = '';
-    state.neutral = false; state.useDampening = true; state.baseData = null; state.simResult = null;
-    setToggle('neutral-yes','neutral-no', false);
-    setToggle('damp-yes','damp-no', true);
-    syncNeutralUI();
-    ['sl-injury','sl-hca','sl-tempo','sl-vol'].forEach(function(id) { document.getElementById(id).value = '0'; });
-    ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(function(id) { document.getElementById(id).textContent = '0'; });
-    state.sliders = { injury: 0, hca: 0, tempo: 0, vol: 0 };
-    document.getElementById('ev-spread').value = '';
-    document.getElementById('results').style.display = 'none';
-    clearError();
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setToggle(yesId, noId, val) {
+  document.getElementById(yesId).classList.toggle('active', val);
+  document.getElementById(noId).classList.toggle('active', !val);
+}
+function syncNeutral() {
+  var el = document.getElementById('sl-hca');
+  var ht = document.getElementById('hca-hint');
+  if (appNeutral) {
+    el.disabled = true; el.value = '0'; appSliders.hca = 0;
+    document.getElementById('sv-hca').textContent = '0';
+    ht.textContent = 'Disabled \u2014 neutral site';
+  } else {
+    el.disabled = false;
+    ht.textContent = 'Adds to Team B home advantage';
+  }
+}
+function wireSlider(inId, valId, key) {
+  var el = document.getElementById(inId);
+  var vl = document.getElementById(valId);
+  el.addEventListener('input', function() {
+    var v = parseFloat(el.value);
+    appSliders[key] = v;
+    vl.textContent = v > 0 ? '+' + v : String(v);
+    if (appData) recompute();
   });
+}
+function resetAll() {
+  document.getElementById('ta-input').value = '';
+  document.getElementById('tb-input').value = '';
+  appNeutral = false; appDampening = true; appData = null;
+  setToggle('neutral-yes','neutral-no', false);
+  setToggle('damp-yes','damp-no', true);
+  syncNeutral();
+  ['sl-injury','sl-hca','sl-tempo','sl-vol'].forEach(function(id) { document.getElementById(id).value = '0'; });
+  ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(function(id) { document.getElementById(id).textContent = '0'; });
+  appSliders = { injury: 0, hca: 0, tempo: 0, vol: 0 };
+  document.getElementById('ev-spread').value = '';
+  document.getElementById('results').style.display = 'none';
+  clearErr();
+}
+function setBadge(id, text, cls) {
+  var el = document.getElementById(id);
+  if (el) { el.textContent = text; el.className = 'badge ' + cls; }
+}
+function fmtMargin(s, tA, tB) {
+  if (s == null) return '\u2014';
+  var a = Math.abs(s).toFixed(1);
+  if (s > 0.05) return tA + ' -' + a;
+  if (s < -0.05) return tB + ' -' + a;
+  return "Pick 'em";
+}
+function htmlEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function showErr(msg, warn) {
+  var bg = warn ? 'background:var(--amber-d);border-color:rgba(251,191,36,.3);color:var(--amber)'
+                : 'background:rgba(240,112,112,.1);border-color:rgba(240,112,112,.3);color:var(--red)';
+  document.getElementById('builder-error').innerHTML =
+    '<div style="' + bg + ';border:1px solid;border-radius:10px;padding:.75rem 1rem;font-size:.85rem;margin-top:.6rem">' + htmlEsc(msg) + '</div>';
+}
+function clearErr() { document.getElementById('builder-error').innerHTML = ''; }
 
-  // ── Predict ─────────────────────────────────────────────────
-  document.getElementById('predict-btn').addEventListener('click', function() { runPredict(); });
+// ── Predict API call ──────────────────────────────────────────────────────────
+function runPredict() {
+  var ta = document.getElementById('ta-input').value.trim();
+  var tb = document.getElementById('tb-input').value.trim();
+  if (!ta || !tb) { showErr('Please enter both Team A and Team B.'); return; }
+  clearErr();
+  var btn = document.getElementById('predict-btn');
+  btn.disabled = true; btn.textContent = 'Loading\u2026';
+  fetch('/api/matchup', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ teamA: ta, teamB: tb, neutral: appNeutral, useDampening: appDampening })
+  })
+  .then(function(res) {
+    if (!res.ok) return res.json().then(function(e) { throw new Error(e.error || 'Server error ' + res.status); });
+    return res.json();
+  })
+  .then(function(data) {
+    if (!data.kenpom && !data.trank) { showErr('No model data found. Check team names.'); return; }
+    if (data.notes && data.notes.length) showErr(data.notes.join(' '), true);
+    appData = data;
+    recompute();
+    document.getElementById('results').style.display = 'block';
+  })
+  .catch(function(e) { showErr(e.message || 'Network error.'); })
+  .finally(function() { btn.disabled = false; btn.textContent = 'Predict'; });
+}
 
-  function runPredict() {
-    var taInput = document.getElementById('ta-input').value.trim();
-    var tbInput = document.getElementById('tb-input').value.trim();
-    if (!taInput || !tbInput) { showError('Please enter both Team A and Team B.'); return; }
-    clearError();
-    var btn = document.getElementById('predict-btn');
-    btn.disabled = true;
-    btn.textContent = 'Loading\u2026';
-    fetch('/api/matchup', {
-      method : 'POST',
-      headers: { 'content-type': 'application/json' },
-      body   : JSON.stringify({ teamA: taInput, teamB: tbInput, neutral: state.neutral, useDampening: state.useDampening })
-    })
-    .then(function(res) {
-      if (!res.ok) return res.json().catch(function() { return {}; }).then(function(e) { throw new Error(e.error || 'Server error ' + res.status); });
-      return res.json();
-    })
-    .then(function(data) {
-      if (!data.kenpom && !data.trank) { showError('No model data found for one or both teams. Check team names.'); return; }
-      if (data.notes && data.notes.length) showError(data.notes.join(' '), true);
-      state.baseData = data;
-      recompute();
-      document.getElementById('results').style.display = 'block';
-    })
-    .catch(function(err) { showError(err.message || 'Network error \u2014 could not reach the prediction API.'); })
-    .finally(function() { btn.disabled = false; btn.textContent = 'Predict'; });
+// ── Computation ───────────────────────────────────────────────────────────────
+function getSpread() {
+  var c = appData && appData.consensus;
+  if (!c) return null;
+  var s = c.spread + appSliders.injury;
+  if (!appNeutral) s -= appSliders.hca;
+  return s;
+}
+function getTotal() {
+  var c = appData && appData.consensus;
+  return c ? c.total + appSliders.tempo : null;
+}
+
+// ── Simulation ────────────────────────────────────────────────────────────────
+function randNorm() {
+  var u = Math.max(1e-14, Math.random());
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+}
+function runSim(spread, volAdj) {
+  var N = 5000, std = Math.max(3, 11 + (volAdj || 0));
+  var margins = [], winsA = 0;
+  for (var i = 0; i < N; i++) {
+    var m = spread + std * randNorm();
+    margins.push(m);
+    if (m > 0) winsA++;
   }
+  margins.sort(function(a, b) { return a - b; });
+  return { margins: margins, median: margins[Math.floor(N / 2)], pA: winsA / N, pB: 1 - winsA / N };
+}
+function histBuckets(margins) {
+  var W = 2, out = {};
+  for (var v = -42; v <= 42; v += W) out[v] = 0;
+  margins.forEach(function(m) {
+    if (m >= -42 && m <= 42) { var b = Math.floor(m / W) * W; out[b] = (out[b] || 0) + 1; }
+  });
+  return Object.keys(out).map(function(k) { return { x: +k, n: out[k] }; });
+}
 
-  // ── Core computation ─────────────────────────────────────────
-  function computeFinalSpread() {
-    const c = state.baseData && state.baseData.consensus;
-    if (!c) return null;
-    let s = c.spread;
-    s += state.sliders.injury;
-    if (!state.neutral) s -= state.sliders.hca;
-    return s;
+// ── Labels ────────────────────────────────────────────────────────────────────
+function confLabel(pA) {
+  var p = Math.max(pA, 1 - pA);
+  if (p >= 0.70) return { text: 'Strong Lean', cls: 'strong-lean' };
+  if (p >= 0.60) return { text: 'Lean', cls: 'lean' };
+  if (p >= 0.55) return { text: 'Slight Lean', cls: 'lean' };
+  return { text: 'Toss-up', cls: 'toss-up' };
+}
+function leanResult(edge, tA, tB) {
+  var a = Math.abs(edge);
+  var tier = a < 1 ? null : a < 2.5 ? 'Small Lean' : a < 4 ? 'Strong Lean' : 'Very Strong Lean';
+  if (!tier) return { text: 'Pass', cls: 'pass' };
+  if (edge > 0) return { text: tier + ' \u2014 ' + tA, cls: 'model-lean-a' };
+  return { text: tier + ' \u2014 ' + tB, cls: 'model-lean-b' };
+}
+
+// ── Recompute ─────────────────────────────────────────────────────────────────
+function recompute() {
+  if (!appData) return;
+  var fs = getSpread(), ft = getTotal();
+  if (fs === null || ft === null) return;
+  var sim = runSim(fs, appSliders.vol);
+  renderSummary(sim, fs, ft);
+  renderTable();
+  renderHist(sim.margins, fs);
+  renderEval();
+}
+
+// ── Render: Summary ───────────────────────────────────────────────────────────
+function renderSummary(sim, fs, ft) {
+  var tA = appData.teamA, tB = appData.teamB;
+  document.getElementById('summary-title').textContent = tA + '  @  ' + tB + (appData.neutral ? '  (Neutral)' : '');
+  document.getElementById('wp-name-a').textContent = tA;
+  document.getElementById('wp-name-b').textContent = tB;
+  document.getElementById('hist-leg-a').textContent = tA + ' wins';
+  document.getElementById('hist-leg-b').textContent = tB + ' wins';
+  var pA = (sim.pA * 100).toFixed(1), pB = (sim.pB * 100).toFixed(1);
+  document.getElementById('wp-pct-a').textContent = pA + '%';
+  document.getElementById('wp-pct-b').textContent = pB + '%';
+  document.getElementById('wp-bar-a').style.width = pA + '%';
+  document.getElementById('stat-margin').textContent = fmtMargin(sim.median, tA, tB);
+  document.getElementById('stat-total').textContent  = ft.toFixed(1);
+  document.getElementById('stat-model-spread').textContent = fmtMargin(fs, tA, tB);
+  var c = confLabel(sim.pA);
+  document.getElementById('stat-confidence').textContent = c.text;
+  setBadge('confidence-badge', c.text, c.cls);
+  setBadge('lean-badge', 'Model Lean: \u2014', 'pass');
+}
+
+// ── Render: Projections table ─────────────────────────────────────────────────
+function renderTable() {
+  var tA = appData.teamA, tB = appData.teamB;
+  document.getElementById('th-a').textContent = tA;
+  document.getElementById('th-b').textContent = tB;
+  var rows = [
+    { lbl: 'KenPom',    proj: appData.kenpom,    cls: '' },
+    { lbl: 'BartTorvik', proj: appData.trank,    cls: '' },
+    { lbl: 'Consensus', proj: appData.consensus, cls: 'consensus' }
+  ];
+  document.getElementById('proj-tbody').innerHTML = rows.map(function(r) {
+    if (!r.proj) return '<tr class="' + r.cls + '"><td class="src-label">' + r.lbl + '</td><td colspan="4" style="color:var(--muted)">Unavailable</td></tr>';
+    var diff = Math.abs(r.proj.spread).toFixed(1);
+    var win  = r.proj.spread > 0.05 ? tA : (r.proj.spread < -0.05 ? tB : null);
+    var wCls = win === tB ? ' b' : '';
+    var wCell = win ? '<span class="winner-badge' + wCls + '">' + htmlEsc(win) + '</span>' : "Pick 'em";
+    return '<tr class="' + r.cls + '"><td class="src-label">' + r.lbl + '</td>'
+      + '<td class="score">' + r.proj.teamAScore.toFixed(1) + '</td>'
+      + '<td class="score">' + r.proj.teamBScore.toFixed(1) + '</td>'
+      + '<td>' + diff + '</td><td>' + wCell + '</td></tr>';
+  }).join('');
+}
+
+// ── Render: Histogram ─────────────────────────────────────────────────────────
+function renderHist(margins, fs) {
+  var bkts = histBuckets(margins);
+  var tA = appData.teamA, tB = appData.teamB;
+  var W = 800, H = 190, PL = 8, PT = 14, PR = 8, PB = 28;
+  var pw = W - PL - PR, ph = H - PT - PB;
+  var maxN = 1;
+  bkts.forEach(function(b) { if (b.n > maxN) maxN = b.n; });
+  var xs = bkts.map(function(b) { return b.x; });
+  var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  var xr = maxX - minX || 1;
+  var bw = bkts.length > 1 ? bkts[1].x - bkts[0].x : 2;
+  var bpx = (bw / xr) * pw;
+  function toX(v) { return PL + (v - minX) / xr * pw; }
+  var bars = '';
+  bkts.forEach(function(b) {
+    if (!b.n) return;
+    var bh = (b.n / maxN) * ph;
+    bars += '<rect x="' + toX(b.x).toFixed(1) + '" y="' + (PT + ph - bh).toFixed(1)
+      + '" width="' + Math.max(1, bpx - 1).toFixed(1) + '" height="' + bh.toFixed(1)
+      + '" fill="' + (b.x >= 0 ? '#4a90e2' : '#f07070') + '" opacity=".82"/>';
+  });
+  var z = toX(0), md = toX(Math.max(minX, Math.min(maxX, fs)));
+  var ticks = '';
+  for (var v = -40; v <= 40; v += 10) {
+    if (v < minX || v > maxX) continue;
+    var tx = toX(v);
+    ticks += '<line x1="' + tx.toFixed(1) + '" y1="' + (PT+ph) + '" x2="' + tx.toFixed(1) + '" y2="' + (PT+ph+4) + '" stroke="#3d5470" stroke-width="1"/>';
+    ticks += '<text x="' + tx.toFixed(1) + '" y="' + (H-2) + '" fill="#4a6080" font-size="10" text-anchor="middle">' + (v > 0 ? '+' + v : v) + '</text>';
   }
+  document.getElementById('histogram-wrap').innerHTML =
+    '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="display:block">'
+    + '<line x1="' + PL + '" y1="' + (PT+ph) + '" x2="' + (PL+pw) + '" y2="' + (PT+ph) + '" stroke="#1a2e4a" stroke-width="1"/>'
+    + bars
+    + '<line x1="' + z.toFixed(1) + '" y1="' + PT + '" x2="' + z.toFixed(1) + '" y2="' + (PT+ph) + '" stroke="#7a93b0" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>'
+    + '<line x1="' + md.toFixed(1) + '" y1="' + PT + '" x2="' + md.toFixed(1) + '" y2="' + (PT+ph) + '" stroke="#fbbf24" stroke-width="2"/>'
+    + ticks
+    + '<text x="' + (PL+3) + '" y="' + (PT+11) + '" fill="#f07070" font-size="10">\u2190 ' + htmlEsc(tB) + ' wins</text>'
+    + '<text x="' + (PL+pw-3) + '" y="' + (PT+11) + '" fill="#4a90e2" font-size="10" text-anchor="end">' + htmlEsc(tA) + ' wins \u2192</text>'
+    + '</svg>';
+}
 
-  function computeFinalTotal() {
-    const c = state.baseData && state.baseData.consensus;
-    if (!c) return null;
-    return c.total + state.sliders.tempo;
+// ── Render: Spread Evaluator ──────────────────────────────────────────────────
+function renderEval() {
+  if (!appData) return;
+  var val = parseFloat(document.getElementById('ev-spread').value);
+  var res = document.getElementById('ev-result');
+  var ph  = document.getElementById('ev-placeholder');
+  if (isNaN(val)) {
+    res.style.display = 'none'; ph.style.display = 'block';
+    setBadge('lean-badge', 'Model Lean: \u2014', 'pass'); return;
   }
+  res.style.display = 'block'; ph.style.display = 'none';
+  var fs = getSpread(); if (fs === null) return;
+  var team  = document.getElementById('ev-team').value;
+  var userA = team === 'A' ? -val : val;
+  var edge  = fs - userA;
+  var tA = appData.teamA, tB = appData.teamB;
+  var lean = leanResult(edge, tA, tB);
+  document.getElementById('ev-model-spread').textContent  = fmtMargin(fs, tA, tB);
+  document.getElementById('ev-market-spread').textContent = (team === 'A' ? tA : tB) + ' ' + (val > 0 ? '+' : '') + val.toFixed(1);
+  document.getElementById('ev-edge').textContent = (edge > 0.05 ? '+' : '') + edge.toFixed(1) + ' pts (' + (edge > 0.05 ? tA : edge < -0.05 ? tB : 'even') + ')';
+  setBadge('ev-lean-badge', lean.text, lean.cls);
+  setBadge('lean-badge', 'Model Lean: ' + lean.text, lean.cls);
+}
 
-  // ── Simulation ────────────────────────────────────────────────
-  function randn() {
-    const u1 = Math.max(1e-14, Math.random());
-    const u2 = Math.random();
-    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  }
-
-  function simulate(finalSpread, stdAdj, n) {
-    n = n || 5000;
-    const STD_BASE = 11.0;
-    const std = Math.max(3, STD_BASE + stdAdj);
-    const margins = new Float32Array(n);
-    let winsA = 0;
-    for (let i = 0; i < n; i++) {
-      const m = finalSpread + std * randn();
-      margins[i] = m;
-      if (m > 0) winsA++;
-    }
-    // Sort margins for median
-    const sorted = Array.from(margins).sort((a, b) => a - b);
-    const median = sorted[Math.floor(n / 2)];
-    return { margins: sorted, median, winProbA: winsA / n, winProbB: 1 - winsA / n };
-  }
-
-  function buildHistData(sorted, bucketW) {
-    bucketW = bucketW || 2;
-    const MIN = -42, MAX = 42;
-    const buckets = {};
-    for (let v = MIN; v <= MAX; v += bucketW) buckets[v] = 0;
-    for (const m of sorted) {
-      if (m >= MIN && m <= MAX) {
-        const b = Math.floor(m / bucketW) * bucketW;
-        buckets[b] = (buckets[b] || 0) + 1;
-      }
-    }
-    return Object.keys(buckets).map(k => ({ x: +k, count: buckets[k] }));
-  }
-
-  // ── Confidence & lean labels ──────────────────────────────────
-  function confidenceLabel(probA) {
-    const p = Math.max(probA, 1 - probA);
-    if (p >= 0.70) return { label: 'Strong Lean',  cls: 'strong-lean' };
-    if (p >= 0.60) return { label: 'Lean',         cls: 'lean' };
-    if (p >= 0.55) return { label: 'Slight Lean',  cls: 'lean' };
-    return              { label: 'Toss-up',         cls: 'toss-up' };
-  }
-
-  function leanLabel(edge, teamAName, teamBName) {
-    const abs = Math.abs(edge);
-    let tier, cls;
-    if (abs < 1.0) {
-      return { label: 'Pass',             cls: 'pass', teamName: null };
-    } else if (abs < 2.5) {
-      tier = 'Small Lean';
-    } else if (abs < 4.0) {
-      tier = 'Strong Lean';
-    } else {
-      tier = 'Very Strong Lean';
-    }
-    if (edge > 0) {
-      cls = 'model-lean-a';
-      return { label: tier + ' — ' + teamAName, cls, teamName: teamAName };
-    } else {
-      cls = 'model-lean-b';
-      return { label: tier + ' — ' + teamBName, cls, teamName: teamBName };
-    }
-  }
-
-  // ── Histogram SVG renderer ────────────────────────────────────
-  function renderHistSVG(histData, finalSpread, teamAName, teamBName) {
-    const W = 800, H = 190;
-    const PL = 8, PR = 8, PT = 14, PB = 28;
-    const plotW = W - PL - PR;
-    const plotH = H - PT - PB;
-    const maxCount = Math.max(1, ...histData.map(d => d.count));
-    const xs = histData.map(d => d.x);
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const xRange = maxX - minX || 1;
-    const bucketW = histData.length > 1 ? histData[1].x - histData[0].x : 2;
-
-    const toX  = x => PL + (x - minX) / xRange * plotW;
-    const toH  = c => (c / maxCount) * plotH;
-    const bpx  = (bucketW / xRange) * plotW;
-
-    let bars = '';
-    for (const { x, count } of histData) {
-      if (!count) continue;
-      const px = toX(x);
-      const bh = toH(count);
-      const py = PT + plotH - bh;
-      const fill = x >= 0 ? '#4a90e2' : '#f07070';
-      bars += '<rect x="' + px.toFixed(1) + '" y="' + py.toFixed(1) + '" width="' + Math.max(1, bpx - 1).toFixed(1) + '" height="' + bh.toFixed(1) + '" fill="' + fill + '" opacity=".82"/>';
-    }
-
-    const z  = toX(0);
-    const md = toX(Math.max(minX, Math.min(maxX, finalSpread)));
-
-    let ticks = '';
-    for (let v = -40; v <= 40; v += 10) {
-      if (v < minX || v > maxX) continue;
-      const tx = toX(v);
-      const lbl = v > 0 ? '+' + v : String(v);
-      ticks += '<line x1="' + tx.toFixed(1) + '" y1="' + (PT+plotH) + '" x2="' + tx.toFixed(1) + '" y2="' + (PT+plotH+4) + '" stroke="#3d5470" stroke-width="1"/>';
-      ticks += '<text x="' + tx.toFixed(1) + '" y="' + (H - 2) + '" fill="#4a6080" font-size="10" text-anchor="middle">' + lbl + '</text>';
-    }
-
-    return '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="display:block">'
-      + '<line x1="' + PL + '" y1="' + PT + '" x2="' + PL + '" y2="' + (PT+plotH) + '" stroke="#1a2e4a" stroke-width="1"/>'
-      + '<line x1="' + PL + '" y1="' + (PT+plotH) + '" x2="' + (PL+plotW) + '" y2="' + (PT+plotH) + '" stroke="#1a2e4a" stroke-width="1"/>'
-      + bars
-      + '<line x1="' + z.toFixed(1) + '" y1="' + PT + '" x2="' + z.toFixed(1) + '" y2="' + (PT+plotH) + '" stroke="#7a93b0" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>'
-      + '<line x1="' + md.toFixed(1) + '" y1="' + PT + '" x2="' + md.toFixed(1) + '" y2="' + (PT+plotH) + '" stroke="#fbbf24" stroke-width="2"/>'
-      + ticks
-      + '<text x="' + (PL + 3) + '" y="' + (PT + 11) + '" fill="#f07070" font-size="10">\u2190 ' + esc(teamBName) + ' wins</text>'
-      + '<text x="' + (PL + plotW - 3) + '" y="' + (PT + 11) + '" fill="#4a90e2" font-size="10" text-anchor="end">' + esc(teamAName) + ' wins \u2192</text>'
-      + '</svg>';
-  }
-
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function fmtSpread(s, teamAName, teamBName) {
-    if (s === null || s === undefined) return '—';
-    const abs = Math.abs(s).toFixed(1);
-    if (s > 0.05) return teamAName + ' -' + abs;
-    if (s < -0.05) return teamBName + ' -' + abs;
-    return 'Pick \'em';
-  }
-
-  // ── Full recompute (sliders changed or initial render) ─────────
-  function recompute() {
-    const data = state.baseData;
-    if (!data) return;
-
-    const finalSpread = computeFinalSpread();
-    const finalTotal  = computeFinalTotal();
-    if (finalSpread === null || finalTotal === null) return;
-
-    const sim = simulate(finalSpread, state.sliders.vol, 5000);
-    state.simResult = sim;
-
-    renderSummary(data, sim, finalSpread, finalTotal);
-    renderProjections(data);
-    renderHistogram(sim.margins, finalSpread, data.teamA, data.teamB);
-    renderEvaluator();
-  }
-
-  // ── Section 2: Summary ─────────────────────────────────────────
-  function renderSummary(data, sim, finalSpread, finalTotal) {
-    const tA = data.teamA, tB = data.teamB;
-    document.getElementById('summary-title').textContent = tA + '  @  ' + tB + (data.neutral ? '  (Neutral)' : '');
-    document.getElementById('wp-name-a').textContent = tA;
-    document.getElementById('wp-name-b').textContent = tB;
-    document.getElementById('hist-leg-a').textContent = tA + ' wins';
-    document.getElementById('hist-leg-b').textContent = tB + ' wins';
-
-    const pA = (sim.winProbA * 100).toFixed(1);
-    const pB = (sim.winProbB * 100).toFixed(1);
-    document.getElementById('wp-pct-a').textContent = pA + '%';
-    document.getElementById('wp-pct-b').textContent = pB + '%';
-    document.getElementById('wp-bar-a').style.width = pA + '%';
-
-    // Median margin display
-    const med = sim.median;
-    const medStr = fmtSpread(med, tA, tB);
-    document.getElementById('stat-margin').textContent = medStr;
-    document.getElementById('stat-total').textContent  = finalTotal.toFixed(1);
-    document.getElementById('stat-model-spread').textContent = fmtSpread(finalSpread, tA, tB);
-
-    const conf = confidenceLabel(sim.winProbA);
-    document.getElementById('stat-confidence').textContent = conf.label;
-    const cb = document.getElementById('confidence-badge');
-    cb.textContent = conf.label;
-    cb.className   = 'badge ' + conf.cls;
-
-    // Lean badge stays as-is until evaluator computes it
-    renderLeanBadge(null, tA, tB);
-  }
-
-  function renderLeanBadge(lean) {
-    const lb = document.getElementById('lean-badge');
-    if (!lean) {
-      lb.textContent = 'Model Lean: —';
-      lb.className   = 'badge pass';
-      return;
-    }
-    lb.textContent = 'Model Lean: ' + lean.label;
-    lb.className   = 'badge ' + lean.cls;
-  }
-
-  // ── Section 3: Projections table ───────────────────────────────
-  function renderProjections(data) {
-    const tA = data.teamA, tB = data.teamB;
-    document.getElementById('th-a').textContent = tA;
-    document.getElementById('th-b').textContent = tB;
-
-    const rows = [
-      { label: 'KenPom',    proj: data.kenpom,    cls: '' },
-      { label: 'BartTorvik', proj: data.trank,    cls: '' },
-      { label: 'Consensus', proj: data.consensus, cls: 'consensus' },
-    ];
-
-    const tbody = document.getElementById('proj-tbody');
-    tbody.innerHTML = rows.map(({ label, proj, cls }) => {
-      if (!proj) {
-        return '<tr class="' + cls + '"><td class="src-label">' + label + '</td><td colspan="4" style="color:var(--muted)">Data unavailable</td></tr>';
-      }
-      const diff    = Math.abs(proj.spread).toFixed(1);
-      const winTeam = proj.spread > 0.05 ? tA : (proj.spread < -0.05 ? tB : null);
-      const winCls  = proj.spread > 0.05 ? '' : 'b';
-      const winCell = winTeam
-        ? '<span class="winner-badge ' + winCls + '">' + esc(winTeam) + '</span>'
-        : 'Pick \'em';
-      return '<tr class="' + cls + '">'
-        + '<td class="src-label">' + label + '</td>'
-        + '<td class="score">' + proj.teamAScore.toFixed(1) + '</td>'
-        + '<td class="score">' + proj.teamBScore.toFixed(1) + '</td>'
-        + '<td>' + diff + '</td>'
-        + '<td>' + winCell + '</td>'
-        + '</tr>';
-    }).join('');
-  }
-
-  // ── Section 5: Histogram ───────────────────────────────────────
-  function renderHistogram(sortedMargins, finalSpread, teamAName, teamBName) {
-    const histData = buildHistData(sortedMargins, 2);
-    document.getElementById('histogram-wrap').innerHTML =
-      renderHistSVG(histData, finalSpread, teamAName, teamBName);
-  }
-
-  // ── Section 6: Spread Evaluator ────────────────────────────────
-  function renderEvaluator() {
-    const data = state.baseData;
-    if (!data) return;
-
-    const spreadVal = parseFloat(document.getElementById('ev-spread').value);
-    const evResult  = document.getElementById('ev-result');
-    const evPlaceholder = document.getElementById('ev-placeholder');
-
-    if (isNaN(spreadVal)) {
-      evResult.style.display = 'none';
-      evPlaceholder.style.display = 'block';
-      renderLeanBadge(null);
-      return;
-    }
-
-    evResult.style.display    = 'block';
-    evPlaceholder.style.display = 'none';
-
-    const finalSpread = computeFinalSpread();
-    if (finalSpread === null) return;
-
-    const spreadTeam = document.getElementById('ev-team').value;
-    // Convert to Team A margin perspective:
-    // "Team A -5.5" = Team A wins by 5.5 → userSpreadA = +5.5
-    // "Team B -3"   = Team B wins by 3   → userSpreadA = -3
-    const userSpreadA = (spreadTeam === 'A') ? -spreadVal : spreadVal;
-    const edge        = finalSpread - userSpreadA;
-
-    const tA = data.teamA, tB = data.teamB;
-    const lean = leanLabel(edge, tA, tB);
-
-    // Display model spread from Team A perspective
-    document.getElementById('ev-model-spread').textContent  = fmtSpread(finalSpread, tA, tB);
-    document.getElementById('ev-market-spread').textContent =
-      (spreadTeam === 'A' ? tA : tB) + ' ' + (spreadVal > 0 ? '+' : '') + spreadVal.toFixed(1);
-    const edgeAbs = Math.abs(edge);
-    document.getElementById('ev-edge').textContent =
-      (edge > 0.05 ? '+' : (edge < -0.05 ? '' : '±')) + edge.toFixed(1) + ' pts (' + (edge > 0.05 ? tA : (edge < -0.05 ? tB : 'even')) + ')';
-
-    const lb = document.getElementById('ev-lean-badge');
-    lb.textContent = lean.label;
-    lb.className   = 'badge ' + lean.cls;
-
-    renderLeanBadge(lean);
-  }
-
-  // ── Error display ───────────────────────────────────────────────
-  function showError(msg, isWarning) {
-    const el = document.getElementById('builder-error');
-    el.innerHTML = '<div class="' + (isWarning ? 'error-state" style="background:var(--amber-d);border-color:rgba(251,191,36,.3);color:var(--amber)' : 'error-state') + '">' + esc(msg) + '</div>';
-  }
-  function clearError() {
-    document.getElementById('builder-error').innerHTML = '';
-  }
-
-})();
+// ── Boot ──────────────────────────────────────────────────────────────────────
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 </script>
 </body>
 </html>`;

@@ -2,7 +2,7 @@ import gamesData from "../data/games-by-date.json";
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
 import { toLocalIsoDate } from "./date";
-import { buildOddsLookupForDate, fetchOddsApiEventsForDate, getGameLookupKey, lineUnavailable, PREFERRED_BOOKMAKERS, type VegasInfo } from "./odds";
+import { buildOddsLookupForDate, fetchOddsForDate, getGameLookupKey, lineUnavailable, PREFERRED_BOOKMAKERS, type VegasInfo } from "./odds";
 
 type ModelProjection = {
   homeScore: number | null;
@@ -283,33 +283,35 @@ const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[]
         vegas: {
           spread: pick.vegas?.spread ?? null,
           total: pick.vegas?.total ?? null,
-          vegasSource: pick.vegas?.vegasSource ?? "none",
-          vegasStatus: pick.vegas?.spread !== null && pick.vegas?.total !== null ? "available" : "unavailable",
+          source: pick.vegas?.source ?? null,
+          status: pick.vegas?.spread !== null && pick.vegas?.total !== null ? "ok" : pick.vegas?.spread !== null || pick.vegas?.total !== null ? "partial" : "unavailable",
         },
       }),
     );
   }
 
-  const needsHydration = picks.some((pick) => pick.vegas?.spread === null || pick.vegas?.total === null);
+  const needsHydration = picks.some((pick) => pick.vegas?.status === "unavailable" || pick.vegas?.spread === null || pick.vegas?.total === null);
   if (onlyMissing && !needsHydration) {
-    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: pick.vegas?.vegasSource ?? "none", vegasStatus: "available" } }));
+    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, source: pick.vegas?.source ?? null, status: pick.vegas?.status ?? "unavailable" } }));
   }
 
-  const oddsEvents = await fetchOddsApiEventsForDate(selectedDate, env.ODDS_API_KEY);
+  const oddsEvents = await fetchOddsForDate(selectedDate, env.ODDS_API_KEY);
   const oddsLookup = buildOddsLookupForDate(selectedDate, picks, oddsEvents);
 
   return picks.map((pick) => {
     const key = getGameLookupKey(pick.homeTeam, pick.awayTeam);
     const fromOdds = oddsLookup.get(key) ?? lineUnavailable();
-    const hasCompleteCachedLine = pick.vegas?.spread !== null && pick.vegas?.total !== null;
+    const hasAnyCachedLine = pick.vegas?.spread !== null || pick.vegas?.total !== null;
+    const hasUsableCachedLine = pick.vegas?.status === "ok" || pick.vegas?.status === "partial" || hasAnyCachedLine;
 
-    if (onlyMissing && hasCompleteCachedLine) {
+    if (onlyMissing && hasUsableCachedLine) {
       return recalculateEdges({
         ...pick,
         vegas: {
-          ...pick.vegas,
-          vegasSource: pick.vegas?.vegasSource ?? "none",
-          vegasStatus: "available",
+          spread: pick.vegas?.spread ?? null,
+          total: pick.vegas?.total ?? null,
+          source: pick.vegas?.source ?? null,
+          status: pick.vegas?.status ?? (pick.vegas?.spread !== null && pick.vegas?.total !== null ? "ok" : hasAnyCachedLine ? "partial" : "unavailable"),
         },
       });
     }
@@ -319,8 +321,8 @@ const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[]
       vegas: {
         spread: fromOdds.spread,
         total: fromOdds.total,
-        vegasSource: fromOdds.vegasSource ?? "none",
-        vegasStatus: fromOdds.spread !== null && fromOdds.total !== null ? "available" : "unavailable",
+        source: fromOdds.source,
+        status: fromOdds.status,
       },
     });
   });
@@ -358,7 +360,7 @@ const buildLiveGamesForDate = async (selectedDate: string, env: Env): Promise<Pi
   const withOdds = await hydrateVegasForDate(selectedDate, picks, env, false);
 
   for (const game of withOdds) {
-    if (game.vegas.vegasStatus === "unavailable") {
+    if (game.vegas.status === "unavailable") {
       console.log(`Preferred sportsbook odds unavailable: ${selectedDate} ${game.awayTeam} @ ${game.homeTeam}`);
     }
   }
@@ -393,7 +395,10 @@ const renderHomePage = () => `<!doctype html><html lang="en"><head><meta charset
 const cardsContainer=document.getElementById('cards');const dateInput=document.getElementById('pick-date');const spreadThresholdInput=document.getElementById('spread-threshold');const totalThresholdInput=document.getElementById('total-threshold');const statusLine=document.getElementById('status-line');const emptyState=document.getElementById('empty-state');const apiStatus=document.getElementById('api-status');const espnStatus=document.getElementById('espn-status');const oddsStatus=document.getElementById('odds-status');
 let currentGames=[];let currentSource='cache';let currentReason='';
 const localToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
-const formatSpread=(spread)=>spread==null?'N/A':(spread<0?'Home ':'Away +')+spread;
+const formatSpread=(spread)=>spread==null?'N/A':(spread>0?'+':'')+spread;
+const BOOK_NAMES={'fanduel': 'FanDuel', 'bovada': 'Bovada', 'draftkings': 'DraftKings', 'betmgm': 'BetMGM', 'caesars': 'Caesars', 'espnbet': 'ESPN BET', 'bet365': 'bet365'};
+const formatBook=(key)=>key&&BOOK_NAMES[key]?BOOK_NAMES[key]:'N/A';
+const formatVegas=(vegas)=>vegas.status==='unavailable'?'Vegas: N/A':'Vegas ('+formatBook(vegas.source)+'): Spread '+formatSpread(vegas.spread)+' | Total '+(vegas.total??'N/A');
 const modelScore=(m,away,home)=>m.awayScore==null||m.homeScore==null?'N/A':away+' '+m.awayScore+' - '+home+' '+m.homeScore;
 const sideSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'home':'away');
 const totalSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'over':'under');
@@ -403,7 +408,7 @@ function edgeText(prefix,e){if(!e.reasons.length)return prefix+': no qualifying 
 function renderCards(games){const spreadT=Number(spreadThresholdInput.value)||0;const totalT=Number(totalThresholdInput.value)||0;let highlighted=0;cardsContainer.innerHTML=games.map((g)=>{const side=calcSideEdge(g,spreadT);const total=calcTotalEdge(g,totalT);const hot=side.highlight||total.highlight;if(hot)highlighted++;const time=g.gameTimeEt||'TBD ET';return '<article class="card'+(hot?' highlight':'')+'"><h2 class="line1">'+g.awayTeam+' @ '+g.homeTeam+' | '+time+'</h2>'+
 '<div class="row"><span class="label">KenPom predicted score</span><span>'+modelScore(g.kenpom,g.awayTeam,g.homeTeam)+'</span></div>'+
 '<div class="row"><span class="label">T-Rank predicted score</span><span>'+modelScore(g.trank,g.awayTeam,g.homeTeam)+'</span></div>'+
-'<div class="row"><span class="label">Vegas line</span><span>Spread: '+formatSpread(g.vegas.spread)+' | Total: '+(g.vegas.total??'N/A')+' | Book: '+(g.vegas.vegasSource&&g.vegas.vegasSource!=="none"?g.vegas.vegasSource:'N/A')+'</span></div>'+
+'<div class="row"><span class="label">Vegas line</span><span>'+formatVegas(g.vegas)+'</span></div>'+
 '<div class="row"><span class="label">EDGE</span><div style="width:100%"><div class="edgeBox '+(side.highlight?'hot':'')+'">'+edgeText('Side',side)+'</div><div class="edgeBox '+(total.highlight?'hot':'')+'">'+edgeText('Total',total)+'</div></div></div></article>'}).join('');
 if(!games.length){emptyState.textContent=currentReason==='upstream_unavailable'?'No games shown because live schedule fetch is currently unavailable.':'No games scheduled for this date.';emptyState.style.display='block'}else{emptyState.style.display='none'}
 statusLine.textContent='Date: '+dateInput.value+' • Source: '+currentSource+' • Games: '+games.length+' • Highlighted: '+highlighted;

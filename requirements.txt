@@ -6,3 +6,4 @@ pytrends>=4.9.2
 geopy>=2.4.0
 googlesearch-python>=1.2.3
 python-dotenv>=1.0.0
+beautifulsoup4>=4.12.0

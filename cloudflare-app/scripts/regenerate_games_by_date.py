@@ -24,7 +24,10 @@ PREFERRED_BOOKMAKERS = [
 TEAM_ALIASES = {
     "nc state": "north carolina state",
     "n c state": "north carolina state",
-    "state john": "saint johns",
+    "st johns": "saint johns",
+    "st john": "saint johns",
+    "saint johns": "saint johns",
+    "saint john": "saint johns",
     "usc": "southern california",
     "usc trojans": "southern california",
     "u conn": "connecticut",
@@ -91,7 +94,7 @@ def team_keys_match(key_a: str, key_b: str) -> bool:
 
 
 def line_unavailable() -> dict:
-    return {"spread": None, "total": None, "vegasSource": "none", "vegasStatus": "unavailable"}
+    return {"spread": None, "total": None, "source": None, "status": "unavailable"}
 
 
 def to_eastern_iso_date(iso_dt: str) -> str | None:
@@ -102,7 +105,7 @@ def to_eastern_iso_date(iso_dt: str) -> str | None:
     return dt.astimezone(ZoneInfo("America/New_York")).date().isoformat()
 
 
-def fetch_odds_events_for_date(selected_date: str, api_key: str | None) -> list[dict]:
+def fetch_odds_for_date(selected_date: str, api_key: str | None) -> list[dict]:
     if not api_key:
         return []
 
@@ -145,37 +148,45 @@ def extract_total(market: dict | None):
     return None
 
 
-def extract_preferred_line(event: dict) -> dict:
-    bookmakers = event.get("bookmakers") or []
+def extract_spread(event: dict, market: dict | None):
+    if not market:
+        return None
     home_key = normalize_team_name(str(event.get("home_team") or ""))
+    for outcome in market.get("outcomes") or []:
+        if normalize_team_name(str(outcome.get("name") or "")) == home_key:
+            point = outcome.get("point")
+            if isinstance(point, (int, float)):
+                # App convention: spread is the home team's line.
+                return float(point)
+    return None
+
+
+def extract_preferred_vegas_line(event: dict) -> dict:
+    bookmakers = event.get("bookmakers") or []
 
     for preferred in PREFERRED_BOOKMAKERS:
-        bookmaker = next(
-            (candidate for candidate in bookmakers if normalize_team_name(str(candidate.get("key") or candidate.get("title") or "")) == preferred),
-            None,
-        )
+        bookmaker = next((candidate for candidate in bookmakers if str(candidate.get("key") or "").strip().lower() == preferred), None)
         if not bookmaker:
+            print(f"[Vegas] Book {preferred} missing for {event.get('away_team')} @ {event.get('home_team')}")
             continue
 
         markets = bookmaker.get("markets") or []
         spread_market = next((market for market in markets if market.get("key") == "spreads"), None)
         total_market = next((market for market in markets if market.get("key") == "totals"), None)
 
-        spread = None
-        for outcome in (spread_market or {}).get("outcomes") or []:
-            if normalize_team_name(str(outcome.get("name") or "")) == home_key:
-                point = outcome.get("point")
-                spread = float(point) if isinstance(point, (int, float)) else None
-                break
-
+        spread = extract_spread(event, spread_market)
         total = extract_total(total_market)
-        if spread is not None and total is not None:
-            return {
-                "spread": spread,
-                "total": total,
-                "vegasSource": preferred,
-                "vegasStatus": "available",
-            }
+
+        if spread is None and total is None:
+            print(f"[Vegas] Book {preferred} had no usable markets for {event.get('away_team')} @ {event.get('home_team')}")
+            continue
+
+        status = "ok" if spread is not None and total is not None else "partial"
+        print(
+            f"[Vegas] Selected {preferred} for {event.get('away_team')} @ {event.get('home_team')} "
+            f"(spread={spread if spread is not None else 'N/A'}, total={total if total is not None else 'N/A'}, status={status})"
+        )
+        return {"spread": spread, "total": total, "source": preferred, "status": status}
 
     return line_unavailable()
 
@@ -187,11 +198,14 @@ def match_event_to_game(selected_date: str, game: dict, event: dict) -> bool:
     game_away = normalize_team_name(game["awayTeam"])
     event_home = normalize_team_name(str(event.get("home_team") or ""))
     event_away = normalize_team_name(str(event.get("away_team") or ""))
-    return team_keys_match(game_home, event_home) and team_keys_match(game_away, event_away)
+    home_match = team_keys_match(game_home, event_home)
+    away_match = team_keys_match(game_away, event_away)
+    print(f"[Vegas] Compare game '{game_away} @ {game_home}' vs odds '{event_away} @ {event_home}' => home={home_match} away={away_match}")
+    return home_match and away_match
 
 
 def build_odds_lookup(selected_date: str, games: list[dict], api_key: str | None) -> dict[str, dict]:
-    events = fetch_odds_events_for_date(selected_date, api_key)
+    events = fetch_odds_for_date(selected_date, api_key)
     date_events = [event for event in events if to_eastern_iso_date(str(event.get("commence_time") or "")) == selected_date]
     events_by_key: dict[str, dict] = {}
     for event in date_events:
@@ -204,7 +218,12 @@ def build_odds_lookup(selected_date: str, games: list[dict], api_key: str | None
         event = events_by_key.get(key)
         if not event:
             event = next((candidate for candidate in date_events if match_event_to_game(selected_date, game, candidate)), None)
-        lookup[key] = extract_preferred_line(event) if event else line_unavailable()
+            if event:
+                odds_key = game_key(str(event.get("home_team") or ""), str(event.get("away_team") or ""))
+                print(f"[Vegas] Matched '{key}' -> '{odds_key}'")
+            else:
+                print(f"[Vegas] Unmatched game '{key}' for {selected_date}")
+        lookup[key] = extract_preferred_vegas_line(event) if event else line_unavailable()
     return lookup
 
 

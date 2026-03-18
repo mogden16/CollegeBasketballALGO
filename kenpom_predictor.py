@@ -340,8 +340,8 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
 
     Prefers ODDS_BOOK (draftkings) when available; falls back to any US book.
     """
-    if ODDS_API_KEY == "YOUR_API_KEY_HERE":
-        print("WARNING: No Odds API key set. Skipping lines -- set ODDS_API_KEY in config.")
+    if not ODDS_API_KEY or ODDS_API_KEY == "YOUR_API_KEY_HERE":
+        print("WARNING: No Odds API key set. Skipping lines -- set ODDS_API_KEY in .env")
         return matchups
 
     # Don't filter by bookmaker — fetch all US-region books so we get data

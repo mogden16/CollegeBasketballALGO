@@ -1,468 +1,930 @@
-import gamesData from "../data/games-by-date.json";
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
-import { toLocalIsoDate } from "./date";
-import { buildOddsLookupForDate, fetchOddsForDate, getGameLookupKey, lineUnavailable, PREFERRED_BOOKMAKERS, type VegasInfo } from "./odds";
+import { predictGame, buildConsensus, type TeamRatings, type MatchupResult } from "./matchup";
 
-type ModelProjection = {
-  homeScore: number | null;
-  awayScore: number | null;
-  total: number | null;
-  spread: number | null;
-  spreadEdge: number | null;
-  totalEdge: number | null;
+// ── Types ────────────────────────────────────────────────────────────────────
+type TeamModelsPayload = {
+  kenpom: Record<string, TeamRatings>;
+  trank  : Record<string, TeamRatings>;
+  teams  : string[];
 };
 
-type DistanceInfo = { homeMiles: number | null; awayMiles: number | null };
-
-type GamePrediction = {
-  homeTeam: string;
-  awayTeam: string;
-  neutral: boolean;
-  gameTimeEt?: string | null;
-  kenpom: ModelProjection;
-  trank: ModelProjection;
-  vegas: VegasInfo;
-  distance?: DistanceInfo | null;
-  isEdge: boolean;
-  confidence: string | null;
+type QuickMatchupBody = {
+  teamA       : string;
+  teamB       : string;
+  neutral     : boolean;
+  useDampening: boolean;
 };
 
-type PicksResponse = {
-  selectedDate: string;
-  picks: GamePrediction[];
-  source: "cache" | "live";
-  reason?: "no_games_scheduled" | "no_cached_data" | "upstream_unavailable";
-};
-
-type TeamRatings = { adjO: number; adjD: number; adjT: number; sourceName: string };
-type TeamModelsPayload = { kenpom: Record<string, TeamRatings>; trank: Record<string, TeamRatings>; teams: string[] };
-type GamesByDatePayload = { dates: Record<string, GamePrediction[]> };
-type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean; gameTimeEt: string | null };
-type Env = { ODDS_API_KEY?: string };
-type UpstreamTestResult = {
-  name: "espn" | "odds";
-  ok: boolean;
-  status: number | null;
-  statusText: string;
-  durationMs: number;
-  details: string;
-};
-
-const payload = gamesData as GamesByDatePayload;
-const teamModels = modelsData as TeamModelsPayload;
-const jsonHeaders = { "content-type": "application/json; charset=utf-8" };
-
-const todayDate = new Date();
-const today = toLocalIsoDate(todayDate);
-const minDate = new Date(todayDate);
-minDate.setFullYear(minDate.getFullYear() - 2);
-const maxDate = new Date(todayDate);
-maxDate.setFullYear(maxDate.getFullYear() + 1);
+// ── Constants ────────────────────────────────────────────────────────────────
+const teamModels  = modelsData as TeamModelsPayload;
+const jsonHeaders = { "content-type": "application/json; charset=utf-8" } as const;
 
 const TEAM_ALIASES: Record<string, string> = {
-  uconn: "Connecticut",
-  "u conn": "Connecticut",
-  unc: "North Carolina",
-  "st johns": "St. John's",
-  "st john": "St. John's",
+  uconn        : "Connecticut",
+  "u conn"     : "Connecticut",
+  unc          : "North Carolina",
+  "st johns"   : "St. John's",
+  "st john"    : "St. John's",
   "saint johns": "St. John's",
-  "saint john": "St. John's",
-  "iowa st": "Iowa St.",
+  "saint john" : "St. John's",
+  "iowa st"    : "Iowa St.",
   "michigan st": "Michigan St.",
-  "texas am": "Texas A&M",
+  "texas am"   : "Texas A&M",
 };
 
-const LAMBDA = 0.8905;
-const AVG_EFFICIENCY = 100;
-const HCA = 1.9895;
-
+// ── Team-name resolution ─────────────────────────────────────────────────────
 const buildNormalizedLookup = (teams: string[]): Map<string, string> => {
-  const lookup = new Map<string, string>();
-  for (const team of teams) lookup.set(normalizeTeamName(team), team);
-  return lookup;
+  const m = new Map<string, string>();
+  for (const t of teams) m.set(normalizeTeamName(t), t);
+  return m;
 };
 
 const kenpomLookup = buildNormalizedLookup(Object.keys(teamModels.kenpom));
-const trankLookup = buildNormalizedLookup(Object.keys(teamModels.trank));
+const trankLookup  = buildNormalizedLookup(Object.keys(teamModels.trank));
 
 const deterministicFallback = (query: string, lookup: Map<string, string>): string | null => {
   if (query.split(" ").length < 2) return null;
-  const candidates = [...lookup.keys()].filter((name) => name.startsWith(query) || query.startsWith(name));
+  const candidates = [...lookup.keys()].filter(n => n.startsWith(query) || query.startsWith(n));
   if (candidates.length !== 1) return null;
   return lookup.get(candidates[0]) ?? null;
 };
 
-const resolveTeamName = (teamName: string, lookup: Map<string, string>): string | null => {
-  const normalized = normalizeTeamName(teamName);
-  const exact = lookup.get(normalized);
+const resolveTeamName = (input: string, lookup: Map<string, string>): string | null => {
+  const norm  = normalizeTeamName(input);
+  const exact = lookup.get(norm);
   if (exact) return exact;
-
-  const alias = TEAM_ALIASES[normalized];
+  const alias = TEAM_ALIASES[norm];
   if (alias) {
     const aliasExact = lookup.get(normalizeTeamName(alias));
     if (aliasExact) return aliasExact;
   }
-
-  return deterministicFallback(normalized, lookup);
+  return deterministicFallback(norm, lookup);
 };
 
-const predictGame = (home: TeamRatings, away: TeamRatings, neutral = false) => {
-  const tempo = (home.adjT + away.adjT) / 2;
-  const effHome = home.adjO + LAMBDA * (away.adjD - AVG_EFFICIENCY);
-  const effAway = away.adjO + LAMBDA * (home.adjD - AVG_EFFICIENCY);
-  const homeScore = Number(((tempo * effHome) / 100).toFixed(1));
-  const awayScore = Number(((tempo * effAway) / 100).toFixed(1));
-  const spread = Number((-((homeScore - awayScore) + (neutral ? 0 : HCA))).toFixed(1));
-  return { homeScore, awayScore, total: Number((homeScore + awayScore).toFixed(1)), spread };
-};
-
-const toEasternTime = (isoDateTime: unknown): string | null => {
-  if (typeof isoDateTime !== "string" || !isoDateTime) return null;
-  const dt = new Date(isoDateTime);
-  if (Number.isNaN(dt.getTime())) return null;
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/New_York",
-    month: "short",
-    day: "numeric",
-  }).format(dt) + " ET";
-};
-
-const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.dates[selectedDate] ?? [];
-
-const getEspnScoreboardUrl = (selectedDate: string): string => {
-  const yyyymmdd = selectedDate.replaceAll("-", "");
-  return `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${yyyymmdd}&groups=50`;
-};
-
-const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
-  const url = getEspnScoreboardUrl(selectedDate);
+// ── Matchup API handler ───────────────────────────────────────────────────────
+const handleMatchup = async (request: Request): Promise<Response> => {
+  let body: Partial<QuickMatchupBody>;
   try {
-    const response = await fetch(url, { cf: { cacheTtl: 120, cacheEverything: false } });
-    if (!response.ok) return null;
-    const data = (await response.json()) as Record<string, unknown>;
-    const events = (data.events as Record<string, unknown>[] | undefined) ?? [];
-    const matchups: EspnMatchup[] = [];
-    for (const event of events) {
-      const competitions = (event.competitions as Record<string, unknown>[] | undefined) ?? [];
-      const comp = competitions[0] ?? {};
-      const competitors = (comp.competitors as Record<string, unknown>[] | undefined) ?? [];
-      if (competitors.length < 2) continue;
-
-      let homeTeam = "";
-      let awayTeam = "";
-      for (const c of competitors) {
-        const team = (c.team as Record<string, unknown> | undefined) ?? {};
-        const teamName = String(team.shortDisplayName ?? team.displayName ?? "").trim();
-        if (String(c.homeAway ?? "") === "home") homeTeam = teamName;
-        else awayTeam = teamName;
-      }
-      if (!homeTeam || !awayTeam) continue;
-
-      matchups.push({
-        homeTeam,
-        awayTeam,
-        neutral: Boolean(comp.neutralSite),
-        gameTimeEt: toEasternTime(event.date),
-      });
-    }
-    return matchups;
+    body = (await request.json()) as Partial<QuickMatchupBody>;
   } catch {
-    return null;
-  }
-};
-
-const testEspnApi = async (selectedDate: string): Promise<UpstreamTestResult> => {
-  const url = getEspnScoreboardUrl(selectedDate);
-  const startedAt = Date.now();
-  try {
-    const response = await fetch(url, { cf: { cacheTtl: 0, cacheEverything: false } });
-    const durationMs = Date.now() - startedAt;
-    let details = 'scoreboard fetch succeeded';
-    if (response.ok) {
-      const data = (await response.json()) as Record<string, unknown>;
-      const events = Array.isArray(data.events) ? data.events : [];
-      details = `${events.length} event(s) returned for ${selectedDate}`;
-    }
-    return {
-      name: 'espn',
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText || (response.ok ? 'OK' : 'Request failed'),
-      durationMs,
-      details,
-    };
-  } catch (error) {
-    return {
-      name: 'espn',
-      ok: false,
-      status: null,
-      statusText: 'Request failed',
-      durationMs: Date.now() - startedAt,
-      details: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-};
-
-const testOddsApi = async (selectedDate: string, env: Env): Promise<UpstreamTestResult> => {
-  const startedAt = Date.now();
-  if (!env.ODDS_API_KEY) {
-    return {
-      name: 'odds',
-      ok: false,
-      status: null,
-      statusText: 'Missing API key',
-      durationMs: 0,
-      details: 'ODDS_API_KEY is not configured in this environment.',
-    };
+    return new Response(JSON.stringify({ error: "Invalid JSON body." }), { status: 400, headers: jsonHeaders });
   }
 
-  const start = `${selectedDate}T00:00:00Z`;
-  const dayEnd = new Date(`${selectedDate}T00:00:00Z`);
-  dayEnd.setUTCDate(dayEnd.getUTCDate() + 2);
-  const end = `${dayEnd.toISOString().slice(0, 10)}T06:00:00Z`;
-  const url = new URL('https://api.the-odds-api.com/v4/sports/basketball_ncaab/odds');
-  url.searchParams.set('apiKey', env.ODDS_API_KEY);
-  url.searchParams.set('regions', 'us');
-  url.searchParams.set('markets', 'spreads,totals');
-  url.searchParams.set('bookmakers', PREFERRED_BOOKMAKERS.join(','));
-  url.searchParams.set('oddsFormat', 'american');
-  url.searchParams.set('dateFormat', 'iso');
-  url.searchParams.set('commenceTimeFrom', start);
-  url.searchParams.set('commenceTimeTo', end);
+  const teamAInput    = String(body.teamA       ?? "").trim();
+  const teamBInput    = String(body.teamB       ?? "").trim();
+  const neutral       = body.neutral       === true;
+  const useDampening  = body.useDampening  !== false; // default true
 
-  try {
-    const response = await fetch(url.toString(), { cf: { cacheTtl: 0, cacheEverything: false } });
-    const durationMs = Date.now() - startedAt;
-    let details = 'odds fetch completed';
-    if (response.ok) {
-      const data = (await response.json()) as unknown;
-      const events = Array.isArray(data) ? data : [];
-      const remaining = response.headers.get('x-requests-remaining');
-      const used = response.headers.get('x-requests-used');
-      const quotaText = remaining || used ? ` • quota remaining=${remaining ?? 'n/a'}, used=${used ?? 'n/a'}` : '';
-      details = `${events.length} event(s) returned for ${selectedDate}${quotaText}`;
-    }
-    return {
-      name: 'odds',
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText || (response.ok ? 'OK' : 'Request failed'),
-      durationMs,
-      details,
-    };
-  } catch (error) {
-    return {
-      name: 'odds',
-      ok: false,
-      status: null,
-      statusText: 'Request failed',
-      durationMs: Date.now() - startedAt,
-      details: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-};
-
-const recalculateEdges = (pick: GamePrediction): GamePrediction => {
-  const next = structuredClone(pick);
-  next.kenpom.spreadEdge = next.vegas.spread !== null && next.kenpom.spread !== null ? Number((next.vegas.spread - next.kenpom.spread).toFixed(1)) : null;
-  next.trank.spreadEdge = next.vegas.spread !== null && next.trank.spread !== null ? Number((next.vegas.spread - next.trank.spread).toFixed(1)) : null;
-  next.kenpom.totalEdge = next.vegas.total !== null && next.kenpom.total !== null ? Number((next.kenpom.total - next.vegas.total).toFixed(1)) : null;
-  next.trank.totalEdge = next.vegas.total !== null && next.trank.total !== null ? Number((next.trank.total - next.vegas.total).toFixed(1)) : null;
-  return next;
-};
-
-const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[], env: Env, onlyMissing: boolean): Promise<GamePrediction[]> => {
-  if (picks.length === 0) return picks;
-  if (!env.ODDS_API_KEY) {
-    return picks.map((pick) =>
-      recalculateEdges({
-        ...pick,
-        vegas: {
-          spread: pick.vegas?.spread ?? null,
-          total: pick.vegas?.total ?? null,
-          source: pick.vegas?.source ?? null,
-          status: pick.vegas?.spread !== null && pick.vegas?.total !== null ? "ok" : pick.vegas?.spread !== null || pick.vegas?.total !== null ? "partial" : "unavailable",
-        },
-      }),
-    );
+  if (!teamAInput || !teamBInput) {
+    return new Response(JSON.stringify({ error: "teamA and teamB are required." }), { status: 400, headers: jsonHeaders });
   }
 
-  const needsHydration = picks.some((pick) => pick.vegas?.status === "unavailable" || pick.vegas?.spread === null || pick.vegas?.total === null);
-  if (onlyMissing && !needsHydration) {
-    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, source: pick.vegas?.source ?? null, status: pick.vegas?.status ?? "unavailable" } }));
-  }
-
-  const oddsEvents = await fetchOddsForDate(selectedDate, env.ODDS_API_KEY);
-  const oddsLookup = buildOddsLookupForDate(selectedDate, picks, oddsEvents);
-
-  return picks.map((pick) => {
-    const key = getGameLookupKey(pick.homeTeam, pick.awayTeam);
-    const fromOdds = oddsLookup.get(key) ?? lineUnavailable();
-    const hasAnyCachedLine = pick.vegas?.spread !== null || pick.vegas?.total !== null;
-    const hasUsableCachedLine = pick.vegas?.status === "ok" || pick.vegas?.status === "partial" || hasAnyCachedLine;
-
-    if (onlyMissing && hasUsableCachedLine) {
-      return recalculateEdges({
-        ...pick,
-        vegas: {
-          spread: pick.vegas?.spread ?? null,
-          total: pick.vegas?.total ?? null,
-          source: pick.vegas?.source ?? null,
-          status: pick.vegas?.status ?? (pick.vegas?.spread !== null && pick.vegas?.total !== null ? "ok" : hasAnyCachedLine ? "partial" : "unavailable"),
-        },
-      });
-    }
-
-    return recalculateEdges({
-      ...pick,
-      vegas: {
-        spread: fromOdds.spread,
-        total: fromOdds.total,
-        source: fromOdds.source,
-        status: fromOdds.status,
-      },
-    });
-  });
-};
-
-const buildLiveGamesForDate = async (selectedDate: string, env: Env): Promise<PicksResponse> => {
-  const schedule = await fetchEspnSchedule(selectedDate);
-  if (schedule === null) return { selectedDate, picks: [], source: "live", reason: "upstream_unavailable" };
-  const picks: GamePrediction[] = [];
-  for (const game of schedule) {
-    const resolvedHomeKenpom = resolveTeamName(game.homeTeam, kenpomLookup);
-    const resolvedAwayKenpom = resolveTeamName(game.awayTeam, kenpomLookup);
-    const resolvedHomeTrank = resolveTeamName(game.homeTeam, trankLookup);
-    const resolvedAwayTrank = resolveTeamName(game.awayTeam, trankLookup);
-
-    const kenpomProjection: ModelProjection = { homeScore: null, awayScore: null, total: null, spread: null, spreadEdge: null, totalEdge: null };
-    const trankProjection: ModelProjection = { homeScore: null, awayScore: null, total: null, spread: null, spreadEdge: null, totalEdge: null };
-
-    if (resolvedHomeKenpom && resolvedAwayKenpom) Object.assign(kenpomProjection, predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], game.neutral));
-    if (resolvedHomeTrank && resolvedAwayTrank) Object.assign(trankProjection, predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], game.neutral));
-
-    picks.push({
-      homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? game.homeTeam,
-      awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? game.awayTeam,
-      neutral: game.neutral,
-      gameTimeEt: game.gameTimeEt,
-      kenpom: kenpomProjection,
-      trank: trankProjection,
-      vegas: lineUnavailable(),
-      isEdge: false,
-      confidence: null,
-    });
-  }
-
-  const withOdds = await hydrateVegasForDate(selectedDate, picks, env, false);
-
-  for (const game of withOdds) {
-    if (game.vegas.status === "unavailable") {
-      console.log(`Preferred sportsbook odds unavailable: ${selectedDate} ${game.awayTeam} @ ${game.homeTeam}`);
-    }
-  }
-
-  return { selectedDate, picks: withOdds, source: "live", reason: withOdds.length ? undefined : "no_games_scheduled" };
-};
-
-const getPicksResponse = async (selectedDate: string, env: Env): Promise<PicksResponse> => {
-  const cached = getGamesForDate(selectedDate);
-  if (cached.length > 0) {
-    const hydratedCached = await hydrateVegasForDate(selectedDate, cached, env, true);
-    return { selectedDate, picks: hydratedCached, source: "cache" };
-  }
-  const liveResult = await buildLiveGamesForDate(selectedDate, env);
-  if (liveResult.picks.length > 0 || liveResult.reason === "upstream_unavailable") return liveResult;
-  return { selectedDate, picks: [], source: "cache", reason: "no_cached_data" };
-};
-
-const renderHomePage = () => `<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>College Basketball Dashboard</title>
-<style>
-:root{color-scheme:dark;}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#020617;color:#e2e8f0}main{max-width:1260px;margin:0 auto;padding:1rem}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:1rem}.controls{position:sticky;top:1rem;background:#0b1220;border:1px solid #1f314d;border-radius:12px;padding:.9rem}.content{min-width:0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem}.card{background:#0b1220;border:1px solid #1f314d;border-radius:14px;padding:.9rem}.card.highlight{border-color:#f59e0b;box-shadow:0 0 0 1px rgba(245,158,11,.45)}
-.line1{font-size:1rem;font-weight:700;margin:0 0 .7rem}.row{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;border-top:1px solid #1e293b;padding-top:.5rem;margin-top:.5rem}.label{color:#93c5fd;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
-.edgeBox{margin-top:.4rem;padding:.45rem .55rem;border-radius:10px;border:1px solid #334155;background:#111827}.edgeBox.hot{border-color:#14532d;background:rgba(22,101,52,.2);color:#dcfce7;font-weight:700}
-.control-group{margin-bottom:.7rem}.control-group label{display:block;font-size:.78rem;text-transform:uppercase;margin-bottom:.2rem}input,button{width:100%;padding:.58rem .66rem;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0}
-.btn-row{display:flex;gap:.5rem}button{background:#22c55e;border-color:#22c55e;color:#052e16;font-weight:700;cursor:pointer}.today{background:#0f172a;color:#93c5fd;border-color:#334155}
-.api-status{margin:.4rem 0 0;font-size:.82rem;color:#cbd5e1;word-break:break-word}
-@media (max-width:980px){.layout{grid-template-columns:1fr}.controls{position:static;order:-1}}
-</style></head><body><main><h1>Picks of the Day</h1><div class="layout"><aside class="controls"><h3>Filters</h3><div class="control-group"><label for="pick-date">Selected Date</label><input id="pick-date" type="date" value="${today}" min="${toLocalIsoDate(minDate)}" max="${toLocalIsoDate(maxDate)}"/></div><div class="btn-row"><button id="today-btn" type="button" class="today">Today</button><button id="refresh-btn" type="button">Refresh</button></div><div class="control-group"><button id="test-upstreams-btn" type="button">Test ESPN + Odds APIs</button></div><div id="api-status" class="api-status">Upstream API status: not tested yet.</div><div id="espn-status" class="api-status">ESPN: not tested yet.</div><div id="odds-status" class="api-status">The Odds API: not tested yet.</div><div class="control-group"><label for="spread-threshold">Spread threshold</label><input id="spread-threshold" type="number" value="3" step="0.5" min="0"/></div><div class="control-group"><label for="total-threshold">Total threshold</label><input id="total-threshold" type="number" value="5" step="0.5" min="0"/></div><p id="status-line"></p></aside><section class="content"><section id="cards" class="grid"></section><p id="empty-state" style="display:none;color:#94a3b8"></p></section></div></main>
-<script>
-const cardsContainer=document.getElementById('cards');const dateInput=document.getElementById('pick-date');const spreadThresholdInput=document.getElementById('spread-threshold');const totalThresholdInput=document.getElementById('total-threshold');const statusLine=document.getElementById('status-line');const emptyState=document.getElementById('empty-state');const apiStatus=document.getElementById('api-status');const espnStatus=document.getElementById('espn-status');const oddsStatus=document.getElementById('odds-status');
-let currentGames=[];let currentSource='cache';let currentReason='';
-const localToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
-const formatSpread=(spread)=>spread==null?'N/A':(spread>0?'+':'')+spread;
-const BOOK_NAMES={'fanduel': 'FanDuel', 'bovada': 'Bovada', 'draftkings': 'DraftKings', 'betmgm': 'BetMGM', 'caesars': 'Caesars', 'espnbet': 'ESPN BET', 'bet365': 'bet365'};
-const formatBook=(key)=>key&&BOOK_NAMES[key]?BOOK_NAMES[key]:'N/A';
-const formatVegas=(vegas)=>vegas.status==='unavailable'?'Vegas: N/A':'Vegas ('+formatBook(vegas.source)+'): Spread '+formatSpread(vegas.spread)+' | Total '+(vegas.total??'N/A');
-const modelScore=(m,away,home)=>m.awayScore==null||m.homeScore==null?'N/A':away+' '+m.awayScore+' - '+home+' '+m.homeScore;
-const sideSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'home':'away');
-const totalSignal=(edge,t)=>edge==null||Math.abs(edge)<t?null:(edge>0?'over':'under');
-function calcSideEdge(game,t){const pts={home:0,away:0};const reasons=[];const kp=sideSignal(game.kenpom.spreadEdge,t);if(kp){pts[kp]++;reasons.push('KenPom→'+kp)}const tr=sideSignal(game.trank.spreadEdge,t);if(tr){pts[tr]++;reasons.push('T-Rank→'+tr)}if(game.distance&&game.distance.homeMiles!=null&&game.distance.awayMiles!=null&&game.distance.homeMiles!==game.distance.awayMiles){const c=game.distance.homeMiles<game.distance.awayMiles?'home':'away';pts[c]++;reasons.push('Distance→'+c)}const side=pts.home===pts.away?null:(pts.home>pts.away?'home':'away');const score=Math.max(pts.home,pts.away);return {score,side,reasons,highlight:score>1};}
-function calcTotalEdge(game,t){const pts={over:0,under:0};const reasons=[];const kp=totalSignal(game.kenpom.totalEdge,t);if(kp){pts[kp]++;reasons.push('KenPom→'+kp)}const tr=totalSignal(game.trank.totalEdge,t);if(tr){pts[tr]++;reasons.push('T-Rank→'+tr)}const side=pts.over===pts.under?null:(pts.over>pts.under?'over':'under');const score=Math.max(pts.over,pts.under);return {score,side,reasons,highlight:score>1};}
-function edgeText(prefix,e){if(!e.reasons.length)return prefix+': no qualifying signals';return prefix+': '+(e.side||'split')+' ('+e.score+') • '+e.reasons.join(', ')}
-function renderCards(games){const spreadT=Number(spreadThresholdInput.value)||0;const totalT=Number(totalThresholdInput.value)||0;let highlighted=0;cardsContainer.innerHTML=games.map((g)=>{const side=calcSideEdge(g,spreadT);const total=calcTotalEdge(g,totalT);const hot=side.highlight||total.highlight;if(hot)highlighted++;const time=g.gameTimeEt||'TBD ET';return '<article class="card'+(hot?' highlight':'')+'"><h2 class="line1">'+g.awayTeam+' @ '+g.homeTeam+' | '+time+'</h2>'+
-'<div class="row"><span class="label">KenPom predicted score</span><span>'+modelScore(g.kenpom,g.awayTeam,g.homeTeam)+'</span></div>'+
-'<div class="row"><span class="label">T-Rank predicted score</span><span>'+modelScore(g.trank,g.awayTeam,g.homeTeam)+'</span></div>'+
-'<div class="row"><span class="label">Vegas line</span><span>'+formatVegas(g.vegas)+'</span></div>'+
-'<div class="row"><span class="label">EDGE</span><div style="width:100%"><div class="edgeBox '+(side.highlight?'hot':'')+'">'+edgeText('Side',side)+'</div><div class="edgeBox '+(total.highlight?'hot':'')+'">'+edgeText('Total',total)+'</div></div></div></article>'}).join('');
-if(!games.length){emptyState.textContent=currentReason==='upstream_unavailable'?'No games shown because live schedule fetch is currently unavailable.':'No games scheduled for this date.';emptyState.style.display='block'}else{emptyState.style.display='none'}
-statusLine.textContent='Date: '+dateInput.value+' • Source: '+currentSource+' • Games: '+games.length+' • Highlighted: '+highlighted;
-}
-async function loadPicks(){if(!dateInput.value)dateInput.value=localToday();const r=await fetch('/api/picks?date='+encodeURIComponent(dateInput.value));const data=await r.json();currentGames=data.picks||[];currentSource=data.source||'cache';currentReason=data.reason||'';renderCards(currentGames)}
-function renderUpstreamStatus(label,result,target){const code=result.status==null?'no-status':String(result.status);target.textContent=label+': '+code+' '+result.statusText+' ('+result.durationMs+'ms) • '+result.details;}
-async function testUpstreams(){if(!dateInput.value)dateInput.value=localToday();apiStatus.textContent='Upstream API status: testing ESPN and The Odds API...';espnStatus.textContent='ESPN: testing...';oddsStatus.textContent='The Odds API: testing...';try{const response=await fetch('/api/test-upstreams?date='+encodeURIComponent(dateInput.value));const data=await response.json();if(!response.ok){apiStatus.textContent='Upstream API status: dashboard test failed with '+response.status+' '+response.statusText;const message=data&&data.error?data.error:'Unable to test upstream APIs.';espnStatus.textContent='ESPN: '+message;oddsStatus.textContent='The Odds API: '+message;return;}apiStatus.textContent='Upstream API status: completed for '+(data.selectedDate||dateInput.value)+'.';renderUpstreamStatus('ESPN',data.espn,espnStatus);renderUpstreamStatus('The Odds API',data.odds,oddsStatus);}catch(err){const message=err&&err.message?err.message:'unknown error';apiStatus.textContent='Upstream API status: request failed - '+message;espnStatus.textContent='ESPN: request failed - '+message;oddsStatus.textContent='The Odds API: request failed - '+message;}}
-document.getElementById('today-btn').addEventListener('click',()=>{dateInput.value=localToday();loadPicks()});
-document.getElementById('refresh-btn').addEventListener('click',loadPicks);
-document.getElementById('test-upstreams-btn').addEventListener('click',testUpstreams);
-dateInput.addEventListener('change',loadPicks);spreadThresholdInput.addEventListener('input',()=>renderCards(currentGames));totalThresholdInput.addEventListener('input',()=>renderCards(currentGames));
-if(!dateInput.value)dateInput.value=localToday();loadPicks();
-</script></body></html>`;
-
-const quickPredict = async (request: Request) => {
-  const body = (await request.json()) as Record<string, string>;
-  const homeTeamInput = String(body.homeTeam || "").trim();
-  const awayTeamInput = String(body.awayTeam || "").trim();
-  const neutral = String(body.neutral || "false") === "true";
-  if (!homeTeamInput || !awayTeamInput) return new Response(JSON.stringify({ error: "homeTeam and awayTeam are required." }), { status: 400, headers: jsonHeaders });
-
-  const resolvedHomeKenpom = resolveTeamName(homeTeamInput, kenpomLookup);
-  const resolvedAwayKenpom = resolveTeamName(awayTeamInput, kenpomLookup);
-  const resolvedHomeTrank = resolveTeamName(homeTeamInput, trankLookup);
-  const resolvedAwayTrank = resolveTeamName(awayTeamInput, trankLookup);
+  const resolvedAKp = resolveTeamName(teamAInput, kenpomLookup);
+  const resolvedBKp = resolveTeamName(teamBInput, kenpomLookup);
+  const resolvedATr = resolveTeamName(teamAInput, trankLookup);
+  const resolvedBTr = resolveTeamName(teamBInput, trankLookup);
 
   const notes: string[] = [];
-  let kenpomResult: ReturnType<typeof predictGame> | null = null;
-  let trankResult: ReturnType<typeof predictGame> | null = null;
-  if (resolvedHomeKenpom && resolvedAwayKenpom) kenpomResult = predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], neutral);
-  else notes.push("KenPom projection unavailable for one or both teams.");
-  if (resolvedHomeTrank && resolvedAwayTrank) trankResult = predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], neutral);
-  else notes.push("T-Rank projection unavailable for one or both teams.");
+  let kenpomProj  = null;
+  let trankProj   = null;
 
-  return new Response(JSON.stringify({ homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? homeTeamInput, awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? awayTeamInput, kenpom: kenpomResult, trank: trankResult, notes }), { headers: jsonHeaders });
+  if (resolvedAKp && resolvedBKp) {
+    kenpomProj = predictGame(teamModels.kenpom[resolvedAKp], teamModels.kenpom[resolvedBKp], neutral, useDampening);
+  } else {
+    notes.push(`KenPom data unavailable for: ${!resolvedAKp ? teamAInput : teamBInput}.`);
+  }
+
+  if (resolvedATr && resolvedBTr) {
+    trankProj = predictGame(teamModels.trank[resolvedATr], teamModels.trank[resolvedBTr], neutral, useDampening);
+  } else {
+    notes.push(`T-Rank data unavailable for: ${!resolvedATr ? teamAInput : teamBInput}.`);
+  }
+
+  const consensusProj = kenpomProj && trankProj
+    ? buildConsensus(kenpomProj, trankProj)
+    : kenpomProj ?? trankProj ?? null;
+
+  const result: MatchupResult = {
+    teamA       : resolvedAKp ?? resolvedATr ?? teamAInput,
+    teamB       : resolvedBKp ?? resolvedBTr ?? teamBInput,
+    neutral,
+    useDampening,
+    kenpom      : kenpomProj,
+    trank       : trankProj,
+    consensus   : consensusProj,
+    notes,
+  };
+
+  return new Response(JSON.stringify(result), { headers: jsonHeaders });
 };
 
+// ── Home page ─────────────────────────────────────────────────────────────────
+const renderHomePage = (teams: string[]): string => {
+  const teamsJson = JSON.stringify(teams);
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CBB Matchup Analyzer</title>
+<style>
+:root{
+  --bg:#060d1c;--card:#0c1628;--card2:#101e34;
+  --border:#1a2e4a;--border2:#243d5e;
+  --text:#dce8f5;--muted:#7a93b0;--dim:#3d5470;
+  --blue:#4a90e2;--blue-d:rgba(74,144,226,.13);
+  --red:#f07070;--red-d:rgba(240,112,112,.13);
+  --green:#38d9a9;--amber:#fbbf24;--amber-d:rgba(251,191,36,.13);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:3rem}
+a{color:var(--blue)}
+h1{font-size:1.7rem;font-weight:800;letter-spacing:-.03em}
+h2{font-size:1.1rem;font-weight:700;letter-spacing:-.01em}
+h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+/* ── Layout ───────────────────────────────── */
+.app{max-width:1080px;margin:0 auto;padding:1.5rem 1rem}
+.header{display:flex;flex-direction:column;gap:.25rem;margin-bottom:1.75rem}
+.header .sub{color:var(--muted);font-size:.88rem}
+.section+.section{margin-top:1rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.two-col{grid-template-columns:1fr}}
+
+/* ── Cards ───────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem}
+.card-title{margin-bottom:1rem}
+
+/* ── Builder ─────────────────────────────── */
+.builder-teams{display:flex;align-items:flex-end;gap:.75rem;flex-wrap:wrap}
+.team-field{flex:1;min-width:160px;display:flex;flex-direction:column;gap:.35rem}
+.team-field label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.team-field input{width:100%;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border2);background:#0a1525;color:var(--text);font-size:.95rem;outline:none;transition:border-color .15s}
+.team-field input:focus{border-color:var(--blue)}
+.at-sep{font-size:1.5rem;font-weight:700;color:var(--dim);padding-bottom:.1rem;align-self:flex-end;padding-bottom:.7rem}
+.builder-options{display:flex;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:.9rem}
+.toggle-group{display:flex;flex-direction:column;gap:.35rem}
+.toggle-group label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.toggle-btn{display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border2)}
+.toggle-btn button{padding:.42rem .85rem;border:none;background:#0a1525;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s}
+.toggle-btn button.active{background:var(--blue);color:#fff}
+.builder-actions{display:flex;gap:.6rem;margin-top:1.1rem}
+.btn{padding:.6rem 1.4rem;border-radius:10px;border:none;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.01em}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#5a9fe8}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-secondary{background:var(--card2);color:var(--muted);border:1px solid var(--border2)}
+.btn-secondary:hover{color:var(--text)}
+
+/* ── Summary card ────────────────────────── */
+.summary-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem}
+.matchup-label{font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
+.win-prob-bar-wrap{margin-bottom:1.25rem}
+.win-prob-teams{display:flex;justify-content:space-between;margin-bottom:.4rem}
+.win-prob-team{display:flex;flex-direction:column;gap:.15rem}
+.win-prob-team .team-name{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.win-prob-team .pct{font-size:2rem;font-weight:800;letter-spacing:-.04em}
+.win-prob-team.a .pct{color:var(--blue)}
+.win-prob-team.b .pct{color:var(--red);text-align:right}
+.win-prob-bar{height:10px;border-radius:6px;overflow:hidden;background:var(--card2);display:flex}
+.win-prob-bar .seg-a{background:var(--blue);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.win-prob-bar .seg-b{background:var(--red);flex:1}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-top:.9rem}
+@media(max-width:600px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem}
+.stat-box .s-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+.stat-box .s-value{font-size:1.15rem;font-weight:700}
+.confidence-row{display:flex;align-items:center;gap:.75rem;margin-top:1rem;flex-wrap:wrap}
+.badge{display:inline-block;padding:.28rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.badge.toss-up{background:rgba(123,146,175,.15);color:#7b92af;border:1px solid rgba(123,146,175,.3)}
+.badge.lean{background:var(--amber-d);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
+.badge.strong-lean{background:rgba(251,140,36,.15);color:#fb8c24;border:1px solid rgba(251,140,36,.3)}
+.badge.model-lean-a{background:var(--blue-d);color:var(--blue);border:1px solid rgba(74,144,226,.3)}
+.badge.model-lean-b{background:var(--red-d);color:var(--red);border:1px solid rgba(240,112,112,.3)}
+.badge.pass{background:rgba(100,116,139,.12);color:#8fa0b4;border:1px solid rgba(100,116,139,.25)}
+
+/* ── Projections table ───────────────────── */
+.proj-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.proj-table th{text-align:left;padding:.45rem .7rem;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border)}
+.proj-table td{padding:.6rem .7rem;border-bottom:1px solid var(--border)}
+.proj-table tr:last-child td{border-bottom:none}
+.proj-table .src-label{font-weight:700;color:var(--text)}
+.proj-table .score{font-weight:600;font-size:.95rem}
+.proj-table .winner-badge{background:var(--blue-d);color:var(--blue);border:1px solid rgba(74,144,226,.25);border-radius:6px;padding:.15rem .45rem;font-size:.72rem;font-weight:700}
+.proj-table .winner-badge.b{background:var(--red-d);color:var(--red);border-color:rgba(240,112,112,.25)}
+.proj-table tr.consensus td{background:rgba(255,255,255,.025)}
+
+/* ── Sliders ─────────────────────────────── */
+.slider-group{display:flex;flex-direction:column;gap:.85rem}
+.slider-item{display:flex;flex-direction:column;gap:.4rem}
+.slider-row{display:flex;align-items:center;gap:.65rem}
+.slider-item label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.slider-item input[type=range]{flex:1;-webkit-appearance:none;height:5px;border-radius:4px;background:var(--border2);outline:none;cursor:pointer}
+.slider-item input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);cursor:pointer}
+.slider-item input[type=range]:disabled{opacity:.35;cursor:not-allowed}
+.slider-val{min-width:38px;text-align:right;font-size:.88rem;font-weight:700;color:var(--blue)}
+.slider-item .adj-hint{font-size:.7rem;color:var(--dim)}
+
+/* ── Histogram ───────────────────────────── */
+.histogram-wrap{overflow:hidden;border-radius:8px;background:var(--card2);padding:.75rem .5rem .25rem}
+.histogram-legend{display:flex;gap:1rem;margin-top:.6rem;justify-content:center}
+.hist-leg-item{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--muted)}
+.hist-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* ── Spread evaluator ────────────────────── */
+.spread-row{display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
+.spread-field{display:flex;flex-direction:column;gap:.35rem}
+.spread-field label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.spread-field select,.spread-field input{padding:.6rem .8rem;border-radius:10px;border:1px solid var(--border2);background:#0a1525;color:var(--text);font-size:.9rem;outline:none}
+.spread-field select{min-width:130px}
+.spread-field input{width:110px}
+.spread-result{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem}
+.spread-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+@media(max-width:500px){.spread-result-grid{grid-template-columns:1fr 1fr}}
+.sr-item .sr-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.25rem}
+.sr-item .sr-value{font-size:1rem;font-weight:700}
+.lean-result{margin-top:.85rem;display:flex;align-items:center;gap:.65rem}
+.lean-result .lean-label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* ── Empty/loading states ────────────────── */
+#results{display:none}
+.loading-state{text-align:center;padding:2.5rem;color:var(--muted);font-size:.95rem}
+.error-state{background:rgba(240,112,112,.1);border:1px solid rgba(240,112,112,.3);border-radius:12px;padding:1rem 1.25rem;color:var(--red);font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <h1>CBB Matchup Analyzer</h1>
+    <p class="sub">KenPom &amp; BartTorvik model analysis &mdash; not betting advice</p>
+  </header>
+
+  <!-- SECTION 1: Matchup Builder -->
+  <section class="card section" id="builder">
+    <h3 class="card-title">Matchup Builder</h3>
+    <div class="builder-teams">
+      <div class="team-field">
+        <label for="ta-input">Team A (Away)</label>
+        <input id="ta-input" list="teams-dl" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+      </div>
+      <span class="at-sep">@</span>
+      <div class="team-field">
+        <label for="tb-input">Team B (Home)</label>
+        <input id="tb-input" list="teams-dl" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+      </div>
+    </div>
+    <datalist id="teams-dl"></datalist>
+    <div class="builder-options">
+      <div class="toggle-group">
+        <label>Neutral Court?</label>
+        <div class="toggle-btn">
+          <button id="neutral-yes" type="button">Yes</button>
+          <button id="neutral-no"  type="button" class="active">No</button>
+        </div>
+      </div>
+      <div class="toggle-group">
+        <label>Dampening Factors?</label>
+        <div class="toggle-btn">
+          <button id="damp-yes" type="button" class="active">Yes</button>
+          <button id="damp-no"  type="button">No</button>
+        </div>
+      </div>
+    </div>
+    <div class="builder-actions">
+      <button class="btn btn-primary" id="predict-btn" type="button">Predict</button>
+      <button class="btn btn-secondary" id="reset-btn"  type="button">Reset</button>
+    </div>
+    <div id="builder-error"></div>
+  </section>
+
+  <!-- Results (shown after prediction) -->
+  <div id="results">
+
+    <!-- SECTION 2: Quick Summary Card -->
+    <section class="summary-card section" id="summary-section">
+      <div class="matchup-label" id="summary-title"></div>
+      <div class="win-prob-bar-wrap">
+        <div class="win-prob-teams">
+          <div class="win-prob-team a">
+            <span class="team-name" id="wp-name-a">Team A</span>
+            <span class="pct" id="wp-pct-a">—</span>
+          </div>
+          <div class="win-prob-team b">
+            <span class="team-name" id="wp-name-b">Team B</span>
+            <span class="pct" id="wp-pct-b">—</span>
+          </div>
+        </div>
+        <div class="win-prob-bar">
+          <div class="seg-a" id="wp-bar-a" style="width:50%"></div>
+          <div class="seg-b" id="wp-bar-b"></div>
+        </div>
+      </div>
+      <div class="summary-grid">
+        <div class="stat-box"><div class="s-label">Median Margin</div><div class="s-value" id="stat-margin">—</div></div>
+        <div class="stat-box"><div class="s-label">Projected Total</div><div class="s-value" id="stat-total">—</div></div>
+        <div class="stat-box"><div class="s-label">Confidence</div><div class="s-value" id="stat-confidence">—</div></div>
+        <div class="stat-box"><div class="s-label">Model Spread</div><div class="s-value" id="stat-model-spread">—</div></div>
+      </div>
+      <div class="confidence-row">
+        <span id="confidence-badge" class="badge toss-up">Toss-up</span>
+        <span id="lean-badge" class="badge pass">Model Lean: —</span>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Source Projections Table -->
+    <section class="card section" id="projections-section">
+      <h3 class="card-title">Source Projections</h3>
+      <table class="proj-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th id="th-a">Team A</th>
+            <th id="th-b">Team B</th>
+            <th>Diff</th>
+            <th>Model Winner</th>
+          </tr>
+        </thead>
+        <tbody id="proj-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 4 + 5: Adjustments & Histogram side-by-side -->
+    <div class="two-col section">
+
+      <!-- SECTION 4: Manual Adjustments -->
+      <section class="card" id="adjustments-section">
+        <h3 class="card-title">Manual Adjustments</h3>
+        <div class="slider-group">
+          <div class="slider-item">
+            <label>Injury / Rest / Feel</label>
+            <div class="slider-row">
+              <input type="range" id="sl-injury" min="-5" max="5" step="0.5" value="0"/>
+              <span class="slider-val" id="sv-injury">0</span>
+            </div>
+            <span class="adj-hint">Positive shifts model toward Team A</span>
+          </div>
+          <div class="slider-item">
+            <label>Home Court / Crowd</label>
+            <div class="slider-row">
+              <input type="range" id="sl-hca" min="0" max="4" step="0.5" value="0"/>
+              <span class="slider-val" id="sv-hca">0</span>
+            </div>
+            <span class="adj-hint" id="hca-hint">Adds to Team B home advantage</span>
+          </div>
+          <div class="slider-item">
+            <label>Tempo Adjustment</label>
+            <div class="slider-row">
+              <input type="range" id="sl-tempo" min="-8" max="8" step="1" value="0"/>
+              <span class="slider-val" id="sv-tempo">0</span>
+            </div>
+            <span class="adj-hint">Shifts projected total up/down</span>
+          </div>
+          <div class="slider-item">
+            <label>Volatility</label>
+            <div class="slider-row">
+              <input type="range" id="sl-vol" min="-3" max="3" step="0.5" value="0"/>
+              <span class="slider-val" id="sv-vol">0</span>
+            </div>
+            <span class="adj-hint">Widens/narrows outcome distribution</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: Margin Distribution -->
+      <section class="card" id="histogram-section">
+        <h3 class="card-title">Margin Distribution</h3>
+        <div class="histogram-wrap" id="histogram-wrap"></div>
+        <div class="histogram-legend">
+          <div class="hist-leg-item"><div class="hist-dot" style="background:var(--blue)"></div><span id="hist-leg-a">Team A wins</span></div>
+          <div class="hist-leg-item"><div class="hist-dot" style="background:var(--red)"></div><span id="hist-leg-b">Team B wins</span></div>
+          <div class="hist-leg-item"><div class="hist-dot" style="background:var(--amber)"></div>Model spread</div>
+        </div>
+      </section>
+
+    </div><!-- /.two-col -->
+
+    <!-- SECTION 6: Spread Evaluator -->
+    <section class="card section" id="evaluator-section">
+      <h3 class="card-title">Spread Evaluator</h3>
+      <div class="spread-row">
+        <div class="spread-field">
+          <label>Market Favors</label>
+          <select id="ev-team">
+            <option value="A">Team A</option>
+            <option value="B">Team B</option>
+          </select>
+        </div>
+        <div class="spread-field">
+          <label>Spread (e.g. -5.5)</label>
+          <input type="number" id="ev-spread" step="0.5" placeholder="-5.5"/>
+        </div>
+      </div>
+      <div class="spread-result" id="ev-result" style="display:none">
+        <div class="spread-result-grid">
+          <div class="sr-item"><div class="sr-label">Model Spread</div><div class="sr-value" id="ev-model-spread">—</div></div>
+          <div class="sr-item"><div class="sr-label">Market Spread</div><div class="sr-value" id="ev-market-spread">—</div></div>
+          <div class="sr-item"><div class="sr-label">Edge</div><div class="sr-value" id="ev-edge">—</div></div>
+        </div>
+        <div class="lean-result">
+          <span class="lean-label">Model Lean:</span>
+          <span id="ev-lean-badge" class="badge pass">—</span>
+        </div>
+      </div>
+      <div id="ev-placeholder" style="color:var(--muted);font-size:.85rem;margin-top:.25rem">
+        Enter the market spread above to see the model lean.
+      </div>
+    </section>
+
+  </div><!-- /#results -->
+</div><!-- /.app -->
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Teams datalist ─────────────────────────────────────────
+  const TEAMS = ${teamsJson};
+  const dl = document.getElementById('teams-dl');
+  TEAMS.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    dl.appendChild(opt);
+  });
+
+  // ── App state ──────────────────────────────────────────────
+  const state = {
+    neutral     : false,
+    useDampening: true,
+    baseData    : null,
+    sliders     : { injury: 0, hca: 0, tempo: 0, vol: 0 },
+    simResult   : null,
+  };
+
+  // ── Toggle helpers ──────────────────────────────────────────
+  function setToggle(yesId, noId, value) {
+    document.getElementById(yesId).classList.toggle('active', value);
+    document.getElementById(noId ).classList.toggle('active', !value);
+  }
+
+  document.getElementById('neutral-yes').addEventListener('click', () => {
+    state.neutral = true;
+    setToggle('neutral-yes','neutral-no', true);
+    syncNeutralUI();
+    if (state.baseData) recompute();
+  });
+  document.getElementById('neutral-no').addEventListener('click', () => {
+    state.neutral = false;
+    setToggle('neutral-yes','neutral-no', false);
+    syncNeutralUI();
+    if (state.baseData) recompute();
+  });
+  document.getElementById('damp-yes').addEventListener('click', () => {
+    state.useDampening = true;
+    setToggle('damp-yes','damp-no', true);
+    if (state.baseData) predict();
+  });
+  document.getElementById('damp-no').addEventListener('click', () => {
+    state.useDampening = false;
+    setToggle('damp-yes','damp-no', false);
+    if (state.baseData) predict();
+  });
+
+  function syncNeutralUI() {
+    const hcaInput = document.getElementById('sl-hca');
+    const hcaHint  = document.getElementById('hca-hint');
+    if (state.neutral) {
+      hcaInput.disabled = true;
+      hcaInput.value = '0';
+      state.sliders.hca = 0;
+      document.getElementById('sv-hca').textContent = '0';
+      hcaHint.textContent = 'Disabled — neutral site';
+    } else {
+      hcaInput.disabled = false;
+      hcaHint.textContent = 'Adds to Team B home advantage';
+    }
+  }
+
+  // ── Slider wiring ───────────────────────────────────────────
+  function wireSlider(inputId, valId, key) {
+    const el = document.getElementById(inputId);
+    const vl = document.getElementById(valId);
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      state.sliders[key] = v;
+      vl.textContent = v > 0 ? '+' + v : String(v);
+      if (state.baseData) recompute();
+    });
+  }
+  wireSlider('sl-injury','sv-injury','injury');
+  wireSlider('sl-hca',   'sv-hca',   'hca');
+  wireSlider('sl-tempo', 'sv-tempo', 'tempo');
+  wireSlider('sl-vol',   'sv-vol',   'vol');
+
+  // ── Spread evaluator wiring ─────────────────────────────────
+  function onSpreadChange() { if (state.baseData) renderEvaluator(); }
+  document.getElementById('ev-team')  .addEventListener('change', onSpreadChange);
+  document.getElementById('ev-spread').addEventListener('input',  onSpreadChange);
+
+  // ── Reset ───────────────────────────────────────────────────
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.getElementById('ta-input').value = '';
+    document.getElementById('tb-input').value = '';
+    state.neutral      = false;
+    state.useDampening = true;
+    state.baseData     = null;
+    state.simResult    = null;
+    setToggle('neutral-yes','neutral-no', false);
+    setToggle('damp-yes',   'damp-no',    true);
+    syncNeutralUI();
+    ['sl-injury','sl-hca','sl-tempo','sl-vol'].forEach(id => { document.getElementById(id).value = '0'; });
+    ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(id => { document.getElementById(id).textContent = '0'; });
+    state.sliders = { injury: 0, hca: 0, tempo: 0, vol: 0 };
+    document.getElementById('ev-spread').value = '';
+    document.getElementById('results').style.display = 'none';
+    clearError();
+  });
+
+  // ── Predict ─────────────────────────────────────────────────
+  document.getElementById('predict-btn').addEventListener('click', predict);
+
+  async function predict() {
+    const taInput = document.getElementById('ta-input').value.trim();
+    const tbInput = document.getElementById('tb-input').value.trim();
+    if (!taInput || !tbInput) {
+      showError('Please enter both Team A and Team B.');
+      return;
+    }
+    clearError();
+    const btn = document.getElementById('predict-btn');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    try {
+      const res = await fetch('/api/matchup', {
+        method : 'POST',
+        headers: { 'content-type': 'application/json' },
+        body   : JSON.stringify({
+          teamA       : taInput,
+          teamB       : tbInput,
+          neutral     : state.neutral,
+          useDampening: state.useDampening,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showError(err.error || ('Server error ' + res.status));
+        return;
+      }
+      const data = await res.json();
+      if (!data.kenpom && !data.trank) {
+        showError('No model data found for one or both teams. Check the team names.');
+        return;
+      }
+      if (data.notes && data.notes.length) {
+        showError(data.notes.join(' '), true);
+      }
+      state.baseData = data;
+      recompute();
+      document.getElementById('results').style.display = 'block';
+    } catch (e) {
+      showError('Network error — could not reach the prediction API.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Predict';
+    }
+  }
+
+  // ── Core computation ─────────────────────────────────────────
+  function computeFinalSpread() {
+    const c = state.baseData && state.baseData.consensus;
+    if (!c) return null;
+    let s = c.spread;
+    s += state.sliders.injury;
+    if (!state.neutral) s -= state.sliders.hca;
+    return s;
+  }
+
+  function computeFinalTotal() {
+    const c = state.baseData && state.baseData.consensus;
+    if (!c) return null;
+    return c.total + state.sliders.tempo;
+  }
+
+  // ── Simulation ────────────────────────────────────────────────
+  function randn() {
+    const u1 = Math.max(1e-14, Math.random());
+    const u2 = Math.random();
+    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  }
+
+  function simulate(finalSpread, stdAdj, n) {
+    n = n || 5000;
+    const STD_BASE = 11.0;
+    const std = Math.max(3, STD_BASE + stdAdj);
+    const margins = new Float32Array(n);
+    let winsA = 0;
+    for (let i = 0; i < n; i++) {
+      const m = finalSpread + std * randn();
+      margins[i] = m;
+      if (m > 0) winsA++;
+    }
+    // Sort margins for median
+    const sorted = Array.from(margins).sort((a, b) => a - b);
+    const median = sorted[Math.floor(n / 2)];
+    return { margins: sorted, median, winProbA: winsA / n, winProbB: 1 - winsA / n };
+  }
+
+  function buildHistData(sorted, bucketW) {
+    bucketW = bucketW || 2;
+    const MIN = -42, MAX = 42;
+    const buckets = {};
+    for (let v = MIN; v <= MAX; v += bucketW) buckets[v] = 0;
+    for (const m of sorted) {
+      if (m >= MIN && m <= MAX) {
+        const b = Math.floor(m / bucketW) * bucketW;
+        buckets[b] = (buckets[b] || 0) + 1;
+      }
+    }
+    return Object.keys(buckets).map(k => ({ x: +k, count: buckets[k] }));
+  }
+
+  // ── Confidence & lean labels ──────────────────────────────────
+  function confidenceLabel(probA) {
+    const p = Math.max(probA, 1 - probA);
+    if (p >= 0.70) return { label: 'Strong Lean',  cls: 'strong-lean' };
+    if (p >= 0.60) return { label: 'Lean',         cls: 'lean' };
+    if (p >= 0.55) return { label: 'Slight Lean',  cls: 'lean' };
+    return              { label: 'Toss-up',         cls: 'toss-up' };
+  }
+
+  function leanLabel(edge, teamAName, teamBName) {
+    const abs = Math.abs(edge);
+    let tier, cls;
+    if (abs < 1.0) {
+      return { label: 'Pass',             cls: 'pass', teamName: null };
+    } else if (abs < 2.5) {
+      tier = 'Small Lean';
+    } else if (abs < 4.0) {
+      tier = 'Strong Lean';
+    } else {
+      tier = 'Very Strong Lean';
+    }
+    if (edge > 0) {
+      cls = 'model-lean-a';
+      return { label: tier + ' — ' + teamAName, cls, teamName: teamAName };
+    } else {
+      cls = 'model-lean-b';
+      return { label: tier + ' — ' + teamBName, cls, teamName: teamBName };
+    }
+  }
+
+  // ── Histogram SVG renderer ────────────────────────────────────
+  function renderHistSVG(histData, finalSpread, teamAName, teamBName) {
+    const W = 800, H = 190;
+    const PL = 8, PR = 8, PT = 14, PB = 28;
+    const plotW = W - PL - PR;
+    const plotH = H - PT - PB;
+    const maxCount = Math.max(1, ...histData.map(d => d.count));
+    const xs = histData.map(d => d.x);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const xRange = maxX - minX || 1;
+    const bucketW = histData.length > 1 ? histData[1].x - histData[0].x : 2;
+
+    const toX  = x => PL + (x - minX) / xRange * plotW;
+    const toH  = c => (c / maxCount) * plotH;
+    const bpx  = (bucketW / xRange) * plotW;
+
+    let bars = '';
+    for (const { x, count } of histData) {
+      if (!count) continue;
+      const px = toX(x);
+      const bh = toH(count);
+      const py = PT + plotH - bh;
+      const fill = x >= 0 ? '#4a90e2' : '#f07070';
+      bars += '<rect x="' + px.toFixed(1) + '" y="' + py.toFixed(1) + '" width="' + Math.max(1, bpx - 1).toFixed(1) + '" height="' + bh.toFixed(1) + '" fill="' + fill + '" opacity=".82"/>';
+    }
+
+    const z  = toX(0);
+    const md = toX(Math.max(minX, Math.min(maxX, finalSpread)));
+
+    let ticks = '';
+    for (let v = -40; v <= 40; v += 10) {
+      if (v < minX || v > maxX) continue;
+      const tx = toX(v);
+      const lbl = v > 0 ? '+' + v : String(v);
+      ticks += '<line x1="' + tx.toFixed(1) + '" y1="' + (PT+plotH) + '" x2="' + tx.toFixed(1) + '" y2="' + (PT+plotH+4) + '" stroke="#3d5470" stroke-width="1"/>';
+      ticks += '<text x="' + tx.toFixed(1) + '" y="' + (H - 2) + '" fill="#4a6080" font-size="10" text-anchor="middle">' + lbl + '</text>';
+    }
+
+    return '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="display:block">'
+      + '<line x1="' + PL + '" y1="' + PT + '" x2="' + PL + '" y2="' + (PT+plotH) + '" stroke="#1a2e4a" stroke-width="1"/>'
+      + '<line x1="' + PL + '" y1="' + (PT+plotH) + '" x2="' + (PL+plotW) + '" y2="' + (PT+plotH) + '" stroke="#1a2e4a" stroke-width="1"/>'
+      + bars
+      + '<line x1="' + z.toFixed(1) + '" y1="' + PT + '" x2="' + z.toFixed(1) + '" y2="' + (PT+plotH) + '" stroke="#7a93b0" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>'
+      + '<line x1="' + md.toFixed(1) + '" y1="' + PT + '" x2="' + md.toFixed(1) + '" y2="' + (PT+plotH) + '" stroke="#fbbf24" stroke-width="2"/>'
+      + ticks
+      + '<text x="' + (PL + 3) + '" y="' + (PT + 11) + '" fill="#f07070" font-size="10">\u2190 ' + esc(teamBName) + ' wins</text>'
+      + '<text x="' + (PL + plotW - 3) + '" y="' + (PT + 11) + '" fill="#4a90e2" font-size="10" text-anchor="end">' + esc(teamAName) + ' wins \u2192</text>'
+      + '</svg>';
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fmtSpread(s, teamAName, teamBName) {
+    if (s === null || s === undefined) return '—';
+    const abs = Math.abs(s).toFixed(1);
+    if (s > 0.05) return teamAName + ' -' + abs;
+    if (s < -0.05) return teamBName + ' -' + abs;
+    return 'Pick \'em';
+  }
+
+  // ── Full recompute (sliders changed or initial render) ─────────
+  function recompute() {
+    const data = state.baseData;
+    if (!data) return;
+
+    const finalSpread = computeFinalSpread();
+    const finalTotal  = computeFinalTotal();
+    if (finalSpread === null || finalTotal === null) return;
+
+    const sim = simulate(finalSpread, state.sliders.vol, 5000);
+    state.simResult = sim;
+
+    renderSummary(data, sim, finalSpread, finalTotal);
+    renderProjections(data);
+    renderHistogram(sim.margins, finalSpread, data.teamA, data.teamB);
+    renderEvaluator();
+  }
+
+  // ── Section 2: Summary ─────────────────────────────────────────
+  function renderSummary(data, sim, finalSpread, finalTotal) {
+    const tA = data.teamA, tB = data.teamB;
+    document.getElementById('summary-title').textContent = tA + '  @  ' + tB + (data.neutral ? '  (Neutral)' : '');
+    document.getElementById('wp-name-a').textContent = tA;
+    document.getElementById('wp-name-b').textContent = tB;
+    document.getElementById('hist-leg-a').textContent = tA + ' wins';
+    document.getElementById('hist-leg-b').textContent = tB + ' wins';
+
+    const pA = (sim.winProbA * 100).toFixed(1);
+    const pB = (sim.winProbB * 100).toFixed(1);
+    document.getElementById('wp-pct-a').textContent = pA + '%';
+    document.getElementById('wp-pct-b').textContent = pB + '%';
+    document.getElementById('wp-bar-a').style.width = pA + '%';
+
+    // Median margin display
+    const med = sim.median;
+    const medStr = fmtSpread(med, tA, tB);
+    document.getElementById('stat-margin').textContent = medStr;
+    document.getElementById('stat-total').textContent  = finalTotal.toFixed(1);
+    document.getElementById('stat-model-spread').textContent = fmtSpread(finalSpread, tA, tB);
+
+    const conf = confidenceLabel(sim.winProbA);
+    document.getElementById('stat-confidence').textContent = conf.label;
+    const cb = document.getElementById('confidence-badge');
+    cb.textContent = conf.label;
+    cb.className   = 'badge ' + conf.cls;
+
+    // Lean badge stays as-is until evaluator computes it
+    renderLeanBadge(null, tA, tB);
+  }
+
+  function renderLeanBadge(lean) {
+    const lb = document.getElementById('lean-badge');
+    if (!lean) {
+      lb.textContent = 'Model Lean: —';
+      lb.className   = 'badge pass';
+      return;
+    }
+    lb.textContent = 'Model Lean: ' + lean.label;
+    lb.className   = 'badge ' + lean.cls;
+  }
+
+  // ── Section 3: Projections table ───────────────────────────────
+  function renderProjections(data) {
+    const tA = data.teamA, tB = data.teamB;
+    document.getElementById('th-a').textContent = tA;
+    document.getElementById('th-b').textContent = tB;
+
+    const rows = [
+      { label: 'KenPom',    proj: data.kenpom,    cls: '' },
+      { label: 'BartTorvik', proj: data.trank,    cls: '' },
+      { label: 'Consensus', proj: data.consensus, cls: 'consensus' },
+    ];
+
+    const tbody = document.getElementById('proj-tbody');
+    tbody.innerHTML = rows.map(({ label, proj, cls }) => {
+      if (!proj) {
+        return '<tr class="' + cls + '"><td class="src-label">' + label + '</td><td colspan="4" style="color:var(--muted)">Data unavailable</td></tr>';
+      }
+      const diff    = Math.abs(proj.spread).toFixed(1);
+      const winTeam = proj.spread > 0.05 ? tA : (proj.spread < -0.05 ? tB : null);
+      const winCls  = proj.spread > 0.05 ? '' : 'b';
+      const winCell = winTeam
+        ? '<span class="winner-badge ' + winCls + '">' + esc(winTeam) + '</span>'
+        : 'Pick \'em';
+      return '<tr class="' + cls + '">'
+        + '<td class="src-label">' + label + '</td>'
+        + '<td class="score">' + proj.teamAScore.toFixed(1) + '</td>'
+        + '<td class="score">' + proj.teamBScore.toFixed(1) + '</td>'
+        + '<td>' + diff + '</td>'
+        + '<td>' + winCell + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  // ── Section 5: Histogram ───────────────────────────────────────
+  function renderHistogram(sortedMargins, finalSpread, teamAName, teamBName) {
+    const histData = buildHistData(sortedMargins, 2);
+    document.getElementById('histogram-wrap').innerHTML =
+      renderHistSVG(histData, finalSpread, teamAName, teamBName);
+  }
+
+  // ── Section 6: Spread Evaluator ────────────────────────────────
+  function renderEvaluator() {
+    const data = state.baseData;
+    if (!data) return;
+
+    const spreadVal = parseFloat(document.getElementById('ev-spread').value);
+    const evResult  = document.getElementById('ev-result');
+    const evPlaceholder = document.getElementById('ev-placeholder');
+
+    if (isNaN(spreadVal)) {
+      evResult.style.display = 'none';
+      evPlaceholder.style.display = 'block';
+      renderLeanBadge(null);
+      return;
+    }
+
+    evResult.style.display    = 'block';
+    evPlaceholder.style.display = 'none';
+
+    const finalSpread = computeFinalSpread();
+    if (finalSpread === null) return;
+
+    const spreadTeam = document.getElementById('ev-team').value;
+    // Convert to Team A margin perspective:
+    // "Team A -5.5" = Team A wins by 5.5 → userSpreadA = +5.5
+    // "Team B -3"   = Team B wins by 3   → userSpreadA = -3
+    const userSpreadA = (spreadTeam === 'A') ? -spreadVal : spreadVal;
+    const edge        = finalSpread - userSpreadA;
+
+    const tA = data.teamA, tB = data.teamB;
+    const lean = leanLabel(edge, tA, tB);
+
+    // Display model spread from Team A perspective
+    document.getElementById('ev-model-spread').textContent  = fmtSpread(finalSpread, tA, tB);
+    document.getElementById('ev-market-spread').textContent =
+      (spreadTeam === 'A' ? tA : tB) + ' ' + (spreadVal > 0 ? '+' : '') + spreadVal.toFixed(1);
+    const edgeAbs = Math.abs(edge);
+    document.getElementById('ev-edge').textContent =
+      (edge > 0.05 ? '+' : (edge < -0.05 ? '' : '±')) + edge.toFixed(1) + ' pts (' + (edge > 0.05 ? tA : (edge < -0.05 ? tB : 'even')) + ')';
+
+    const lb = document.getElementById('ev-lean-badge');
+    lb.textContent = lean.label;
+    lb.className   = 'badge ' + lean.cls;
+
+    renderLeanBadge(lean);
+  }
+
+  // ── Error display ───────────────────────────────────────────────
+  function showError(msg, isWarning) {
+    const el = document.getElementById('builder-error');
+    el.innerHTML = '<div class="' + (isWarning ? 'error-state" style="background:var(--amber-d);border-color:rgba(251,191,36,.3);color:var(--amber)' : 'error-state') + '">' + esc(msg) + '</div>';
+  }
+  function clearError() {
+    document.getElementById('builder-error').innerHTML = '';
+  }
+
+})();
+</script>
+</body>
+</html>`;
+};
+
+// ── Worker entry point ─────────────────────────────────────────────────────────
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === "GET" && url.pathname === "/api/picks") {
-      const selectedDate = url.searchParams.get("date") || today;
-      const result = await getPicksResponse(selectedDate, env);
-      return new Response(JSON.stringify(result), { headers: jsonHeaders });
+
+    if (request.method === "GET" && url.pathname === "/") {
+      return new Response(renderHomePage(teamModels.teams), {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
-    if (request.method === "GET" && url.pathname === "/api/test-upstreams") {
-      const selectedDate = url.searchParams.get("date") || today;
-      const [espn, odds] = await Promise.all([testEspnApi(selectedDate), testOddsApi(selectedDate, env)]);
-      return new Response(JSON.stringify({ selectedDate, espn, odds }), { headers: jsonHeaders });
+
+    if (request.method === "GET" && url.pathname === "/api/teams") {
+      return new Response(JSON.stringify({ teams: teamModels.teams }), { headers: jsonHeaders });
     }
-    if (request.method === "GET" && url.pathname === "/api/dates") return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
-    if (request.method === "GET" && url.pathname === "/api/teams") return new Response(JSON.stringify({ teams: teamModels.teams }), { headers: jsonHeaders });
-    if (request.method === "POST" && url.pathname === "/api/quick-predict") return quickPredict(request);
-    if (request.method === "GET" && url.pathname === "/") return new Response(renderHomePage(), { headers: { "content-type": "text/html; charset=utf-8" } });
+
+    if (request.method === "POST" && url.pathname === "/api/matchup") {
+      return handleMatchup(request);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };

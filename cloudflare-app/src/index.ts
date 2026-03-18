@@ -2,6 +2,7 @@ import gamesData from "../data/games-by-date.json";
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
 import { toLocalIsoDate } from "./date";
+import { buildFanDuelLookupForDate, fetchOddsApiEventsForDate, getGameLookupKey, type VegasInfo } from "./odds";
 
 type ModelProjection = {
   homeScore: number | null;
@@ -12,7 +13,6 @@ type ModelProjection = {
   totalEdge: number | null;
 };
 
-type LineProjection = { spread: number | null; total: number | null };
 type DistanceInfo = { homeMiles: number | null; awayMiles: number | null };
 
 type GamePrediction = {
@@ -22,7 +22,7 @@ type GamePrediction = {
   gameTimeEt?: string | null;
   kenpom: ModelProjection;
   trank: ModelProjection;
-  vegas: LineProjection;
+  vegas: VegasInfo;
   distance?: DistanceInfo | null;
   isEdge: boolean;
   confidence: string | null;
@@ -38,7 +38,8 @@ type PicksResponse = {
 type TeamRatings = { adjO: number; adjD: number; adjT: number; sourceName: string };
 type TeamModelsPayload = { kenpom: Record<string, TeamRatings>; trank: Record<string, TeamRatings>; teams: string[] };
 type GamesByDatePayload = { dates: Record<string, GamePrediction[]> };
-type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean; gameTimeEt: string | null; vegas: LineProjection };
+type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean; gameTimeEt: string | null };
+type Env = { ODDS_API_KEY?: string };
 
 const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
@@ -108,50 +109,6 @@ const predictGame = (home: TeamRatings, away: TeamRatings, neutral = false) => {
   return { homeScore, awayScore, total: Number((homeScore + awayScore).toFixed(1)), spread };
 };
 
-const toNullableNumber = (value: unknown): number | null => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number(value.trim());
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-};
-
-const parseSpreadFromDetails = (details: string, homeTeam: string, awayTeam: string): number | null => {
-  const normalized = details.toLowerCase();
-  if (normalized.includes("pick") || normalized.includes("pk")) return 0;
-  const spreadMatch = details.match(/([+-]?\d+(?:\.\d+)?)/);
-  if (!spreadMatch) return null;
-  const lineValue = Number(spreadMatch[1]);
-  if (!Number.isFinite(lineValue)) return null;
-
-  const homeLower = normalizeTeamName(homeTeam);
-  const awayLower = normalizeTeamName(awayTeam);
-  if (normalizeTeamName(normalized).includes(homeLower)) return lineValue;
-  if (normalizeTeamName(normalized).includes(awayLower)) return -lineValue;
-  return null;
-};
-
-const parseVegasLine = (competition: Record<string, unknown>, homeTeam: string, awayTeam: string): LineProjection => {
-  const odds = ((competition.odds as Record<string, unknown>[] | undefined) ?? [])[0] ?? null;
-  if (!odds) return { spread: null, total: null };
-  let spread = toNullableNumber((odds.homeTeamOdds as Record<string, unknown> | undefined)?.spread);
-  if (spread === null) {
-    const awaySpread = toNullableNumber((odds.awayTeamOdds as Record<string, unknown> | undefined)?.spread);
-    spread = awaySpread === null ? null : -awaySpread;
-  }
-
-  const details = String(odds.details ?? "").trim();
-  if (spread === null && details) spread = parseSpreadFromDetails(details, homeTeam, awayTeam);
-
-  let total = toNullableNumber(odds.overUnder);
-  if (total === null && details) {
-    const ouMatch = details.match(/(?:o\/u|total)\s*([+-]?\d+(?:\.\d+)?)/i);
-    if (ouMatch) total = Number(ouMatch[1]);
-  }
-  return { spread, total };
-};
-
 const toEasternTime = (isoDateTime: unknown): string | null => {
   if (typeof isoDateTime !== "string" || !isoDateTime) return null;
   const dt = new Date(isoDateTime);
@@ -197,7 +154,6 @@ const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | 
         awayTeam,
         neutral: Boolean(comp.neutralSite),
         gameTimeEt: toEasternTime(event.date),
-        vegas: parseVegasLine(comp, homeTeam, awayTeam),
       });
     }
     return matchups;
@@ -206,7 +162,59 @@ const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | 
   }
 };
 
-const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksResponse> => {
+const recalculateEdges = (pick: GamePrediction): GamePrediction => {
+  const next = structuredClone(pick);
+  next.kenpom.spreadEdge = next.vegas.spread !== null && next.kenpom.spread !== null ? Number((next.vegas.spread - next.kenpom.spread).toFixed(1)) : null;
+  next.trank.spreadEdge = next.vegas.spread !== null && next.trank.spread !== null ? Number((next.vegas.spread - next.trank.spread).toFixed(1)) : null;
+  next.kenpom.totalEdge = next.vegas.total !== null && next.kenpom.total !== null ? Number((next.kenpom.total - next.vegas.total).toFixed(1)) : null;
+  next.trank.totalEdge = next.vegas.total !== null && next.trank.total !== null ? Number((next.trank.total - next.vegas.total).toFixed(1)) : null;
+  return next;
+};
+
+const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[], env: Env, onlyMissing: boolean): Promise<GamePrediction[]> => {
+  if (picks.length === 0) return picks;
+  if (!env.ODDS_API_KEY) {
+    return picks.map((pick) =>
+      recalculateEdges({
+        ...pick,
+        vegas: {
+          spread: pick.vegas?.spread ?? null,
+          total: pick.vegas?.total ?? null,
+          vegasSource: "fanduel",
+          vegasStatus: pick.vegas?.spread !== null && pick.vegas?.total !== null ? "available" : "unavailable",
+        },
+      }),
+    );
+  }
+
+  const needsHydration = picks.some((pick) => pick.vegas?.spread === null || pick.vegas?.total === null);
+  if (onlyMissing && !needsHydration) {
+    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: "fanduel", vegasStatus: "available" } }));
+  }
+
+  const oddsEvents = await fetchOddsApiEventsForDate(selectedDate, env.ODDS_API_KEY);
+  const oddsLookup = buildFanDuelLookupForDate(selectedDate, picks, oddsEvents);
+
+  return picks.map((pick) => {
+    const key = getGameLookupKey(pick.homeTeam, pick.awayTeam);
+    const fromOdds = oddsLookup.get(key);
+    if (!fromOdds) return recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: "fanduel", vegasStatus: "unavailable" } });
+
+    const spread = onlyMissing && pick.vegas.spread !== null ? pick.vegas.spread : fromOdds.spread;
+    const total = onlyMissing && pick.vegas.total !== null ? pick.vegas.total : fromOdds.total;
+    return recalculateEdges({
+      ...pick,
+      vegas: {
+        spread,
+        total,
+        vegasSource: "fanduel",
+        vegasStatus: spread !== null && total !== null ? "available" : "unavailable",
+      },
+    });
+  });
+};
+
+const buildLiveGamesForDate = async (selectedDate: string, env: Env): Promise<PicksResponse> => {
   const schedule = await fetchEspnSchedule(selectedDate);
   if (schedule === null) return { selectedDate, picks: [], source: "live", reason: "upstream_unavailable" };
   const picks: GamePrediction[] = [];
@@ -222,15 +230,6 @@ const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksRespons
     if (resolvedHomeKenpom && resolvedAwayKenpom) Object.assign(kenpomProjection, predictGame(teamModels.kenpom[resolvedHomeKenpom], teamModels.kenpom[resolvedAwayKenpom], game.neutral));
     if (resolvedHomeTrank && resolvedAwayTrank) Object.assign(trankProjection, predictGame(teamModels.trank[resolvedHomeTrank], teamModels.trank[resolvedAwayTrank], game.neutral));
 
-    if (game.vegas.spread !== null) {
-      if (kenpomProjection.spread !== null) kenpomProjection.spreadEdge = Number((game.vegas.spread - kenpomProjection.spread).toFixed(1));
-      if (trankProjection.spread !== null) trankProjection.spreadEdge = Number((game.vegas.spread - trankProjection.spread).toFixed(1));
-    }
-    if (game.vegas.total !== null) {
-      if (kenpomProjection.total !== null) kenpomProjection.totalEdge = Number((kenpomProjection.total - game.vegas.total).toFixed(1));
-      if (trankProjection.total !== null) trankProjection.totalEdge = Number((trankProjection.total - game.vegas.total).toFixed(1));
-    }
-
     picks.push({
       homeTeam: resolvedHomeKenpom ?? resolvedHomeTrank ?? game.homeTeam,
       awayTeam: resolvedAwayKenpom ?? resolvedAwayTrank ?? game.awayTeam,
@@ -238,19 +237,30 @@ const buildLiveGamesForDate = async (selectedDate: string): Promise<PicksRespons
       gameTimeEt: game.gameTimeEt,
       kenpom: kenpomProjection,
       trank: trankProjection,
-      vegas: game.vegas,
+      vegas: { spread: null, total: null, vegasSource: "fanduel", vegasStatus: "unavailable" },
       isEdge: false,
       confidence: null,
     });
   }
 
-  return { selectedDate, picks, source: "live", reason: picks.length ? undefined : "no_games_scheduled" };
+  const withOdds = await hydrateVegasForDate(selectedDate, picks, env, false);
+
+  for (const game of withOdds) {
+    if (game.vegas.vegasStatus === "unavailable") {
+      console.log(`FanDuel odds unavailable: ${selectedDate} ${game.awayTeam} @ ${game.homeTeam}`);
+    }
+  }
+
+  return { selectedDate, picks: withOdds, source: "live", reason: withOdds.length ? undefined : "no_games_scheduled" };
 };
 
-const getPicksResponse = async (selectedDate: string): Promise<PicksResponse> => {
+const getPicksResponse = async (selectedDate: string, env: Env): Promise<PicksResponse> => {
   const cached = getGamesForDate(selectedDate);
-  if (cached.length > 0) return { selectedDate, picks: cached, source: "cache" };
-  const liveResult = await buildLiveGamesForDate(selectedDate);
+  if (cached.length > 0) {
+    const hydratedCached = await hydrateVegasForDate(selectedDate, cached, env, true);
+    return { selectedDate, picks: hydratedCached, source: "cache" };
+  }
+  const liveResult = await buildLiveGamesForDate(selectedDate, env);
   if (liveResult.picks.length > 0 || liveResult.reason === "upstream_unavailable") return liveResult;
   return { selectedDate, picks: [], source: "cache", reason: "no_cached_data" };
 };
@@ -316,11 +326,11 @@ const quickPredict = async (request: Request) => {
 };
 
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/api/picks") {
       const selectedDate = url.searchParams.get("date") || today;
-      const result = await getPicksResponse(selectedDate);
+      const result = await getPicksResponse(selectedDate, env);
       return new Response(JSON.stringify(result), { headers: jsonHeaders });
     }
     if (request.method === "GET" && url.pathname === "/api/dates") return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });

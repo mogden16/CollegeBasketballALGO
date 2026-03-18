@@ -21,33 +21,67 @@ type MatchableGame = { homeTeam: string; awayTeam: string; gameTimeEt?: string |
 
 const SPORT_KEY = "basketball_ncaab";
 
+// Post-normalization aliases: keys are looked up AFTER normalizeTeamName + regex expansions.
+// The "st" → "state" regex runs first, so keys must use the post-expansion form.
+// E.g. "nc state" (not "n.c. state") and "state john" (not "st john").
 const TEAM_ALIASES: Record<string, string> = {
   "nc state": "north carolina state",
   "n c state": "north carolina state",
-  "st johns": "saint johns",
-  "st john": "saint johns",
-  "st marys": "saint marys",
-  "saint josephs": "st josephs",
+  // "st john" → (st→state regex) → "state john"; alias to canonical plural
+  "state john": "saint johns",
   usc: "southern california",
   "usc trojans": "southern california",
   uconn: "connecticut",
   "u conn": "connecticut",
   "miami fl": "miami",
   "ole miss": "mississippi",
-  smu: "southern methodist",
-  uab: "alabama birmingham",
 };
 
+// Schools whose names start with "Saint" / "St." (not "X State").
+// The general "st" → "state" expansion would wrongly turn "St. John's" into "state johns".
+// After expansion, these prefixes are converted back to "saint".
+const SAINT_SCHOOL_RE = /^state (bonaventure|francis|johns|josephs|louis|marys|peters|thomas)\b/;
+
 const toCanonicalTeamKey = (name: string): string => {
-  const normalized = normalizeTeamName(name)
+  let normalized = normalizeTeamName(name)
+    .replace(/\s*\([^)]*\)/g, "") // remove parenthetical disambiguation e.g. "(OH)", "(NY)", "(CA)"
     .replace(/\buniversity\b/g, "")
     .replace(/\bthe\b/g, "")
-    .replace(/\bstate\b/g, "state")
-    .replace(/\bsaint\b/g, "saint")
-    .replace(/\bst\b/g, "saint")
+    // Expand ALL standalone "st" → "state".
+    // This correctly handles "Iowa St." → "iowa state", "Cal St. Bakersfield" → "cal state bakersfield",
+    // "Arizona St." → "arizona state", etc.  Does NOT affect "state", "eastern", "boston", etc.
+    .replace(/\bst\b/g, "state")
     .replace(/\s+/g, " ")
     .trim();
+
+  // Re-apply "saint" for schools whose name genuinely starts with "Saint" / "St."
+  // (e.g. "St. John's" → after expansion "state johns" → re-map → "saint johns")
+  if (SAINT_SCHOOL_RE.test(normalized)) {
+    normalized = "saint" + normalized.slice("state".length);
+  }
+
   return TEAM_ALIASES[normalized] ?? normalized;
+};
+
+/**
+ * Returns true if two canonical team keys refer to the same team.
+ *
+ * Handles the ESPN-short-name vs Odds-API-full-name mismatch by checking whether
+ * the shorter key is a word-boundary-aligned prefix of the longer one.
+ * Examples:
+ *   "duke"                 matches "duke blue devils"
+ *   "iowa state"           matches "iowa state cyclones"
+ *   "north carolina state" matches "north carolina state wolfpack"
+ *   "saint johns"          matches "saint johns red storm"
+ *   "umbc"                 matches "umbc retrievers"
+ *
+ * Both directions are checked so either side can be the shorter/longer name.
+ */
+const teamKeysMatch = (keyA: string, keyB: string): boolean => {
+  if (keyA === keyB) return true;
+  const [shorter, longer] = keyA.length <= keyB.length ? [keyA, keyB] : [keyB, keyA];
+  // The next character after the prefix must be a space (word boundary), not a letter.
+  return longer.startsWith(shorter) && longer[shorter.length] === " ";
 };
 
 const toEasternIsoDate = (isoDateTime: string): string | null => {
@@ -111,7 +145,11 @@ const gameLookupKey = (homeTeam: string, awayTeam: string): string => `${toCanon
 export const matchOddsEventToGame = (selectedDate: string, game: MatchableGame, event: OddsEvent): boolean => {
   const eventDate = event.commence_time ? toEasternIsoDate(event.commence_time) : null;
   if (eventDate !== selectedDate) return false;
-  return gameLookupKey(game.homeTeam, game.awayTeam) === gameLookupKey(String(event.home_team ?? ""), String(event.away_team ?? ""));
+  const gameHomeKey = toCanonicalTeamKey(game.homeTeam);
+  const gameAwayKey = toCanonicalTeamKey(game.awayTeam);
+  const eventHomeKey = toCanonicalTeamKey(String(event.home_team ?? ""));
+  const eventAwayKey = toCanonicalTeamKey(String(event.away_team ?? ""));
+  return teamKeysMatch(gameHomeKey, eventHomeKey) && teamKeysMatch(gameAwayKey, eventAwayKey);
 };
 
 export const fetchOddsApiEventsForDate = async (
@@ -142,24 +180,46 @@ export const fetchOddsApiEventsForDate = async (
 };
 
 export const buildFanDuelLookupForDate = (selectedDate: string, games: MatchableGame[], events: OddsEvent[]): Map<string, VegasInfo> => {
-  const eventByKey = new Map<string, OddsEvent>();
-  for (const event of events) {
+  // Filter to events that fall on the selected Eastern date.
+  // The fetch window spans +2 days UTC to capture late-night games that tip after midnight UTC.
+  const dateEvents = events.filter((event) => {
     const eventDate = event.commence_time ? toEasternIsoDate(event.commence_time) : null;
-    if (eventDate !== selectedDate) continue;
+    return eventDate === selectedDate;
+  });
+
+  console.log(`[Vegas] ${dateEvents.length} odds events for ${selectedDate}, matching against ${games.length} games`);
+
+  // Build exact-match map keyed by the Odds API canonical game key.
+  // Exact matches are O(1) and cover cases where both sides already canonicalize identically.
+  const eventByKey = new Map<string, OddsEvent>();
+  for (const event of dateEvents) {
     const key = gameLookupKey(String(event.home_team ?? ""), String(event.away_team ?? ""));
     if (!eventByKey.has(key)) eventByKey.set(key, event);
   }
 
   const lookup = new Map<string, VegasInfo>();
   for (const game of games) {
-    const key = gameLookupKey(game.homeTeam, game.awayTeam);
-    const event = eventByKey.get(key) ?? events.find((candidate) => matchOddsEventToGame(selectedDate, game, candidate));
-    if (!event) {
-      lookup.set(key, lineUnavailable());
-      continue;
+    const espnKey = gameLookupKey(game.homeTeam, game.awayTeam);
+
+    // 1. Try exact canonical key match (fast path)
+    let matchedEvent = eventByKey.get(espnKey);
+
+    // 2. Fall back to fuzzy prefix match.
+    //    This resolves the ESPN-short-name vs Odds-API-full-name mismatch:
+    //    e.g. ESPN "Duke" (→ "duke") vs Odds API "Duke Blue Devils" (→ "duke blue devils").
+    if (!matchedEvent) {
+      matchedEvent = dateEvents.find((candidate) => matchOddsEventToGame(selectedDate, game, candidate));
+      if (matchedEvent) {
+        const oddsKey = gameLookupKey(String(matchedEvent.home_team ?? ""), String(matchedEvent.away_team ?? ""));
+        console.log(`[Vegas] Matched: ESPN '${espnKey}' -> Odds API '${oddsKey}'`);
+      } else {
+        console.log(`[Vegas] No odds match: '${espnKey}' (tried against ${dateEvents.length} events)`);
+      }
     }
-    lookup.set(key, extractFanDuelLineFromEvent(event));
+
+    lookup.set(espnKey, matchedEvent ? extractFanDuelLineFromEvent(matchedEvent) : lineUnavailable());
   }
+
   return lookup;
 };
 

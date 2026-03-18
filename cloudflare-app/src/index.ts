@@ -40,6 +40,14 @@ type TeamModelsPayload = { kenpom: Record<string, TeamRatings>; trank: Record<st
 type GamesByDatePayload = { dates: Record<string, GamePrediction[]> };
 type EspnMatchup = { homeTeam: string; awayTeam: string; neutral: boolean; gameTimeEt: string | null };
 type Env = { ODDS_API_KEY?: string };
+type UpstreamTestResult = {
+  name: "espn" | "odds";
+  ok: boolean;
+  status: number | null;
+  statusText: string;
+  durationMs: number;
+  details: string;
+};
 
 const payload = gamesData as GamesByDatePayload;
 const teamModels = modelsData as TeamModelsPayload;
@@ -124,9 +132,13 @@ const toEasternTime = (isoDateTime: unknown): string | null => {
 
 const getGamesForDate = (selectedDate: string): GamePrediction[] => payload.dates[selectedDate] ?? [];
 
-const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
+const getEspnScoreboardUrl = (selectedDate: string): string => {
   const yyyymmdd = selectedDate.replaceAll("-", "");
-  const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${yyyymmdd}&groups=50`;
+  return `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${yyyymmdd}&groups=50`;
+};
+
+const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | null> => {
+  const url = getEspnScoreboardUrl(selectedDate);
   try {
     const response = await fetch(url, { cf: { cacheTtl: 120, cacheEverything: false } });
     if (!response.ok) return null;
@@ -159,6 +171,97 @@ const fetchEspnSchedule = async (selectedDate: string): Promise<EspnMatchup[] | 
     return matchups;
   } catch {
     return null;
+  }
+};
+
+const testEspnApi = async (selectedDate: string): Promise<UpstreamTestResult> => {
+  const url = getEspnScoreboardUrl(selectedDate);
+  const startedAt = Date.now();
+  try {
+    const response = await fetch(url, { cf: { cacheTtl: 0, cacheEverything: false } });
+    const durationMs = Date.now() - startedAt;
+    let details = 'scoreboard fetch succeeded';
+    if (response.ok) {
+      const data = (await response.json()) as Record<string, unknown>;
+      const events = Array.isArray(data.events) ? data.events : [];
+      details = `${events.length} event(s) returned for ${selectedDate}`;
+    }
+    return {
+      name: 'espn',
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText || (response.ok ? 'OK' : 'Request failed'),
+      durationMs,
+      details,
+    };
+  } catch (error) {
+    return {
+      name: 'espn',
+      ok: false,
+      status: null,
+      statusText: 'Request failed',
+      durationMs: Date.now() - startedAt,
+      details: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+const testOddsApi = async (selectedDate: string, env: Env): Promise<UpstreamTestResult> => {
+  const startedAt = Date.now();
+  if (!env.ODDS_API_KEY) {
+    return {
+      name: 'odds',
+      ok: false,
+      status: null,
+      statusText: 'Missing API key',
+      durationMs: 0,
+      details: 'ODDS_API_KEY is not configured in this environment.',
+    };
+  }
+
+  const start = `${selectedDate}T00:00:00Z`;
+  const dayEnd = new Date(`${selectedDate}T00:00:00Z`);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 2);
+  const end = `${dayEnd.toISOString().slice(0, 10)}T06:00:00Z`;
+  const url = new URL('https://api.the-odds-api.com/v4/sports/basketball_ncaab/odds');
+  url.searchParams.set('apiKey', env.ODDS_API_KEY);
+  url.searchParams.set('regions', 'us');
+  url.searchParams.set('markets', 'spreads,totals');
+  url.searchParams.set('bookmakers', 'fanduel');
+  url.searchParams.set('oddsFormat', 'american');
+  url.searchParams.set('dateFormat', 'iso');
+  url.searchParams.set('commenceTimeFrom', start);
+  url.searchParams.set('commenceTimeTo', end);
+
+  try {
+    const response = await fetch(url.toString(), { cf: { cacheTtl: 0, cacheEverything: false } });
+    const durationMs = Date.now() - startedAt;
+    let details = 'odds fetch completed';
+    if (response.ok) {
+      const data = (await response.json()) as unknown;
+      const events = Array.isArray(data) ? data : [];
+      const remaining = response.headers.get('x-requests-remaining');
+      const used = response.headers.get('x-requests-used');
+      const quotaText = remaining || used ? ` • quota remaining=${remaining ?? 'n/a'}, used=${used ?? 'n/a'}` : '';
+      details = `${events.length} event(s) returned for ${selectedDate}${quotaText}`;
+    }
+    return {
+      name: 'odds',
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText || (response.ok ? 'OK' : 'Request failed'),
+      durationMs,
+      details,
+    };
+  } catch (error) {
+    return {
+      name: 'odds',
+      ok: false,
+      status: null,
+      statusText: 'Request failed',
+      durationMs: Date.now() - startedAt,
+      details: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 };
 
@@ -274,10 +377,11 @@ const renderHomePage = () => `<!doctype html><html lang="en"><head><meta charset
 .edgeBox{margin-top:.4rem;padding:.45rem .55rem;border-radius:10px;border:1px solid #334155;background:#111827}.edgeBox.hot{border-color:#14532d;background:rgba(22,101,52,.2);color:#dcfce7;font-weight:700}
 .control-group{margin-bottom:.7rem}.control-group label{display:block;font-size:.78rem;text-transform:uppercase;margin-bottom:.2rem}input,button{width:100%;padding:.58rem .66rem;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0}
 .btn-row{display:flex;gap:.5rem}button{background:#22c55e;border-color:#22c55e;color:#052e16;font-weight:700;cursor:pointer}.today{background:#0f172a;color:#93c5fd;border-color:#334155}
+.api-status{margin:.4rem 0 0;font-size:.82rem;color:#cbd5e1;word-break:break-word}
 @media (max-width:980px){.layout{grid-template-columns:1fr}.controls{position:static;order:-1}}
-</style></head><body><main><h1>Picks of the Day</h1><div class="layout"><aside class="controls"><h3>Filters</h3><div class="control-group"><label for="pick-date">Selected Date</label><input id="pick-date" type="date" value="${today}" min="${toLocalIsoDate(minDate)}" max="${toLocalIsoDate(maxDate)}"/></div><div class="btn-row"><button id="today-btn" type="button" class="today">Today</button><button id="refresh-btn" type="button">Refresh</button></div><div class="control-group"><label for="spread-threshold">Spread threshold</label><input id="spread-threshold" type="number" value="3" step="0.5" min="0"/></div><div class="control-group"><label for="total-threshold">Total threshold</label><input id="total-threshold" type="number" value="5" step="0.5" min="0"/></div><p id="status-line"></p></aside><section class="content"><section id="cards" class="grid"></section><p id="empty-state" style="display:none;color:#94a3b8"></p></section></div></main>
+</style></head><body><main><h1>Picks of the Day</h1><div class="layout"><aside class="controls"><h3>Filters</h3><div class="control-group"><label for="pick-date">Selected Date</label><input id="pick-date" type="date" value="${today}" min="${toLocalIsoDate(minDate)}" max="${toLocalIsoDate(maxDate)}"/></div><div class="btn-row"><button id="today-btn" type="button" class="today">Today</button><button id="refresh-btn" type="button">Refresh</button></div><div class="control-group"><button id="test-upstreams-btn" type="button">Test ESPN + Odds APIs</button></div><div id="api-status" class="api-status">Upstream API status: not tested yet.</div><div id="espn-status" class="api-status">ESPN: not tested yet.</div><div id="odds-status" class="api-status">The Odds API: not tested yet.</div><div class="control-group"><label for="spread-threshold">Spread threshold</label><input id="spread-threshold" type="number" value="3" step="0.5" min="0"/></div><div class="control-group"><label for="total-threshold">Total threshold</label><input id="total-threshold" type="number" value="5" step="0.5" min="0"/></div><p id="status-line"></p></aside><section class="content"><section id="cards" class="grid"></section><p id="empty-state" style="display:none;color:#94a3b8"></p></section></div></main>
 <script>
-const cardsContainer=document.getElementById('cards');const dateInput=document.getElementById('pick-date');const spreadThresholdInput=document.getElementById('spread-threshold');const totalThresholdInput=document.getElementById('total-threshold');const statusLine=document.getElementById('status-line');const emptyState=document.getElementById('empty-state');
+const cardsContainer=document.getElementById('cards');const dateInput=document.getElementById('pick-date');const spreadThresholdInput=document.getElementById('spread-threshold');const totalThresholdInput=document.getElementById('total-threshold');const statusLine=document.getElementById('status-line');const emptyState=document.getElementById('empty-state');const apiStatus=document.getElementById('api-status');const espnStatus=document.getElementById('espn-status');const oddsStatus=document.getElementById('odds-status');
 let currentGames=[];let currentSource='cache';let currentReason='';
 const localToday=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
 const formatSpread=(spread)=>spread==null?'N/A':(spread<0?'Home ':'Away +')+spread;
@@ -296,8 +400,11 @@ if(!games.length){emptyState.textContent=currentReason==='upstream_unavailable'?
 statusLine.textContent='Date: '+dateInput.value+' • Source: '+currentSource+' • Games: '+games.length+' • Highlighted: '+highlighted;
 }
 async function loadPicks(){if(!dateInput.value)dateInput.value=localToday();const r=await fetch('/api/picks?date='+encodeURIComponent(dateInput.value));const data=await r.json();currentGames=data.picks||[];currentSource=data.source||'cache';currentReason=data.reason||'';renderCards(currentGames)}
+function renderUpstreamStatus(label,result,target){const code=result.status==null?'no-status':String(result.status);target.textContent=label+': '+code+' '+result.statusText+' ('+result.durationMs+'ms) • '+result.details;}
+async function testUpstreams(){if(!dateInput.value)dateInput.value=localToday();apiStatus.textContent='Upstream API status: testing ESPN and The Odds API...';espnStatus.textContent='ESPN: testing...';oddsStatus.textContent='The Odds API: testing...';try{const response=await fetch('/api/test-upstreams?date='+encodeURIComponent(dateInput.value));const data=await response.json();if(!response.ok){apiStatus.textContent='Upstream API status: dashboard test failed with '+response.status+' '+response.statusText;const message=data&&data.error?data.error:'Unable to test upstream APIs.';espnStatus.textContent='ESPN: '+message;oddsStatus.textContent='The Odds API: '+message;return;}apiStatus.textContent='Upstream API status: completed for '+(data.selectedDate||dateInput.value)+'.';renderUpstreamStatus('ESPN',data.espn,espnStatus);renderUpstreamStatus('The Odds API',data.odds,oddsStatus);}catch(err){const message=err&&err.message?err.message:'unknown error';apiStatus.textContent='Upstream API status: request failed - '+message;espnStatus.textContent='ESPN: request failed - '+message;oddsStatus.textContent='The Odds API: request failed - '+message;}}
 document.getElementById('today-btn').addEventListener('click',()=>{dateInput.value=localToday();loadPicks()});
 document.getElementById('refresh-btn').addEventListener('click',loadPicks);
+document.getElementById('test-upstreams-btn').addEventListener('click',testUpstreams);
 dateInput.addEventListener('change',loadPicks);spreadThresholdInput.addEventListener('input',()=>renderCards(currentGames));totalThresholdInput.addEventListener('input',()=>renderCards(currentGames));
 if(!dateInput.value)dateInput.value=localToday();loadPicks();
 </script></body></html>`;
@@ -332,6 +439,11 @@ export default {
       const selectedDate = url.searchParams.get("date") || today;
       const result = await getPicksResponse(selectedDate, env);
       return new Response(JSON.stringify(result), { headers: jsonHeaders });
+    }
+    if (request.method === "GET" && url.pathname === "/api/test-upstreams") {
+      const selectedDate = url.searchParams.get("date") || today;
+      const [espn, odds] = await Promise.all([testEspnApi(selectedDate), testOddsApi(selectedDate, env)]);
+      return new Response(JSON.stringify({ selectedDate, espn, odds }), { headers: jsonHeaders });
     }
     if (request.method === "GET" && url.pathname === "/api/dates") return new Response(JSON.stringify({ dates: Object.keys(payload.dates).sort() }), { headers: jsonHeaders });
     if (request.method === "GET" && url.pathname === "/api/teams") return new Response(JSON.stringify({ teams: teamModels.teams }), { headers: jsonHeaders });

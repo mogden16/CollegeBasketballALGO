@@ -163,7 +163,14 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .team-field label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .team-field input{width:100%;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border2);background:#0a1525;color:var(--text);font-size:.95rem;outline:none;transition:border-color .15s}
 .team-field input:focus{border-color:var(--blue)}
-.at-sep{font-size:1.5rem;font-weight:700;color:var(--dim);padding-bottom:.1rem;align-self:flex-end;padding-bottom:.7rem}
+.at-sep{font-size:1.5rem;font-weight:700;color:var(--dim);align-self:flex-end;padding-bottom:.7rem}
+/* ── Autocomplete ────────────────────────── */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;background:#0d1e38;border:1px solid var(--border2);border-radius:10px;max-height:220px;overflow-y:auto;display:none;list-style:none;padding:.3rem 0;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.ac-list.open{display:block}
+.ac-list li{padding:.48rem .8rem;cursor:pointer;font-size:.9rem;color:var(--text);border-bottom:1px solid rgba(255,255,255,.04)}
+.ac-list li:last-child{border-bottom:none}
+.ac-list li:hover,.ac-list li.ac-hi{background:var(--blue-d);color:var(--blue)}
 .builder-options{display:flex;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:.9rem}
 .toggle-group{display:flex;flex-direction:column;gap:.35rem}
 .toggle-group label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -269,15 +276,20 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
     <div class="builder-teams">
       <div class="team-field">
         <label for="ta-input">Team A (Away)</label>
-        <input id="ta-input" list="teams-dl" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+        <div class="ac-wrap">
+          <input id="ta-input" type="text" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+          <ul class="ac-list" id="ta-list"></ul>
+        </div>
       </div>
       <span class="at-sep">@</span>
       <div class="team-field">
         <label for="tb-input">Team B (Home)</label>
-        <input id="tb-input" list="teams-dl" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+        <div class="ac-wrap">
+          <input id="tb-input" type="text" autocomplete="off" placeholder="Search team…" spellcheck="false"/>
+          <ul class="ac-list" id="tb-list"></ul>
+        </div>
       </div>
     </div>
-    <datalist id="teams-dl"></datalist>
     <div class="builder-options">
       <div class="toggle-group">
         <label>Neutral Court?</label>
@@ -446,17 +458,56 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 (function() {
   'use strict';
 
-  // ── Teams datalist ─────────────────────────────────────────
-  const TEAMS = ${teamsJson};
-  const dl = document.getElementById('teams-dl');
-  TEAMS.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    dl.appendChild(opt);
-  });
+  // ── Teams & custom autocomplete ────────────────────────────
+  var TEAMS = ${teamsJson};
+
+  function setupAutocomplete(inputId, listId) {
+    var input   = document.getElementById(inputId);
+    var listEl  = document.getElementById(listId);
+    var hiIndex = -1;
+
+    function getMatches(query) {
+      if (!query) return TEAMS.slice(0, 80);
+      var q = query.toLowerCase();
+      return TEAMS.filter(function(t) { return t.toLowerCase().indexOf(q) !== -1; }).slice(0, 80);
+    }
+    function renderList(matches) {
+      listEl.innerHTML = '';
+      hiIndex = -1;
+      if (!matches.length) { listEl.classList.remove('open'); return; }
+      matches.forEach(function(team) {
+        var li = document.createElement('li');
+        li.textContent = team;
+        li.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          input.value = team;
+          listEl.classList.remove('open');
+        });
+        listEl.appendChild(li);
+      });
+      listEl.classList.add('open');
+    }
+    function highlight(idx) {
+      var items = listEl.querySelectorAll('li');
+      items.forEach(function(li) { li.classList.remove('ac-hi'); });
+      if (idx >= 0 && idx < items.length) { items[idx].classList.add('ac-hi'); items[idx].scrollIntoView({ block: 'nearest' }); }
+    }
+    input.addEventListener('focus', function() { renderList(getMatches(input.value)); });
+    input.addEventListener('input', function() { renderList(getMatches(input.value)); });
+    input.addEventListener('keydown', function(e) {
+      var items = listEl.querySelectorAll('li');
+      if (e.key === 'ArrowDown') { e.preventDefault(); hiIndex = Math.min(hiIndex + 1, items.length - 1); highlight(hiIndex); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); hiIndex = Math.max(hiIndex - 1, 0); highlight(hiIndex); }
+      else if (e.key === 'Enter' && hiIndex >= 0) { e.preventDefault(); input.value = items[hiIndex].textContent; listEl.classList.remove('open'); }
+      else if (e.key === 'Escape') { listEl.classList.remove('open'); }
+    });
+    input.addEventListener('blur', function() { setTimeout(function() { listEl.classList.remove('open'); }, 160); });
+  }
+  setupAutocomplete('ta-input', 'ta-list');
+  setupAutocomplete('tb-input', 'tb-list');
 
   // ── App state ──────────────────────────────────────────────
-  const state = {
+  var state = {
     neutral     : false,
     useDampening: true,
     baseData    : null,
@@ -467,53 +518,43 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
   // ── Toggle helpers ──────────────────────────────────────────
   function setToggle(yesId, noId, value) {
     document.getElementById(yesId).classList.toggle('active', value);
-    document.getElementById(noId ).classList.toggle('active', !value);
+    document.getElementById(noId).classList.toggle('active', !value);
   }
 
-  document.getElementById('neutral-yes').addEventListener('click', () => {
-    state.neutral = true;
-    setToggle('neutral-yes','neutral-no', true);
-    syncNeutralUI();
-    if (state.baseData) recompute();
-  });
-  document.getElementById('neutral-no').addEventListener('click', () => {
-    state.neutral = false;
-    setToggle('neutral-yes','neutral-no', false);
-    syncNeutralUI();
-    if (state.baseData) recompute();
-  });
-  document.getElementById('damp-yes').addEventListener('click', () => {
-    state.useDampening = true;
-    setToggle('damp-yes','damp-no', true);
-    if (state.baseData) predict();
-  });
-  document.getElementById('damp-no').addEventListener('click', () => {
-    state.useDampening = false;
-    setToggle('damp-yes','damp-no', false);
-    if (state.baseData) predict();
-  });
-
   function syncNeutralUI() {
-    const hcaInput = document.getElementById('sl-hca');
-    const hcaHint  = document.getElementById('hca-hint');
+    var hcaInput = document.getElementById('sl-hca');
+    var hcaHint  = document.getElementById('hca-hint');
     if (state.neutral) {
       hcaInput.disabled = true;
       hcaInput.value = '0';
       state.sliders.hca = 0;
       document.getElementById('sv-hca').textContent = '0';
-      hcaHint.textContent = 'Disabled — neutral site';
+      hcaHint.textContent = 'Disabled \u2014 neutral site';
     } else {
       hcaInput.disabled = false;
       hcaHint.textContent = 'Adds to Team B home advantage';
     }
   }
 
+  document.getElementById('neutral-yes').addEventListener('click', function() {
+    state.neutral = true; setToggle('neutral-yes','neutral-no', true); syncNeutralUI(); if (state.baseData) recompute();
+  });
+  document.getElementById('neutral-no').addEventListener('click', function() {
+    state.neutral = false; setToggle('neutral-yes','neutral-no', false); syncNeutralUI(); if (state.baseData) recompute();
+  });
+  document.getElementById('damp-yes').addEventListener('click', function() {
+    state.useDampening = true; setToggle('damp-yes','damp-no', true); if (state.baseData) runPredict();
+  });
+  document.getElementById('damp-no').addEventListener('click', function() {
+    state.useDampening = false; setToggle('damp-yes','damp-no', false); if (state.baseData) runPredict();
+  });
+
   // ── Slider wiring ───────────────────────────────────────────
   function wireSlider(inputId, valId, key) {
-    const el = document.getElementById(inputId);
-    const vl = document.getElementById(valId);
-    el.addEventListener('input', () => {
-      const v = parseFloat(el.value);
+    var el = document.getElementById(inputId);
+    var vl = document.getElementById(valId);
+    el.addEventListener('input', function() {
+      var v = parseFloat(el.value);
       state.sliders[key] = v;
       vl.textContent = v > 0 ? '+' + v : String(v);
       if (state.baseData) recompute();
@@ -525,23 +566,19 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
   wireSlider('sl-vol',   'sv-vol',   'vol');
 
   // ── Spread evaluator wiring ─────────────────────────────────
-  function onSpreadChange() { if (state.baseData) renderEvaluator(); }
-  document.getElementById('ev-team')  .addEventListener('change', onSpreadChange);
-  document.getElementById('ev-spread').addEventListener('input',  onSpreadChange);
+  document.getElementById('ev-team').addEventListener('change',   function() { if (state.baseData) renderEvaluator(); });
+  document.getElementById('ev-spread').addEventListener('input',  function() { if (state.baseData) renderEvaluator(); });
 
   // ── Reset ───────────────────────────────────────────────────
-  document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('reset-btn').addEventListener('click', function() {
     document.getElementById('ta-input').value = '';
     document.getElementById('tb-input').value = '';
-    state.neutral      = false;
-    state.useDampening = true;
-    state.baseData     = null;
-    state.simResult    = null;
+    state.neutral = false; state.useDampening = true; state.baseData = null; state.simResult = null;
     setToggle('neutral-yes','neutral-no', false);
-    setToggle('damp-yes',   'damp-no',    true);
+    setToggle('damp-yes','damp-no', true);
     syncNeutralUI();
-    ['sl-injury','sl-hca','sl-tempo','sl-vol'].forEach(id => { document.getElementById(id).value = '0'; });
-    ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(id => { document.getElementById(id).textContent = '0'; });
+    ['sl-injury','sl-hca','sl-tempo','sl-vol'].forEach(function(id) { document.getElementById(id).value = '0'; });
+    ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(function(id) { document.getElementById(id).textContent = '0'; });
     state.sliders = { injury: 0, hca: 0, tempo: 0, vol: 0 };
     document.getElementById('ev-spread').value = '';
     document.getElementById('results').style.display = 'none';
@@ -549,52 +586,34 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
   });
 
   // ── Predict ─────────────────────────────────────────────────
-  document.getElementById('predict-btn').addEventListener('click', predict);
+  document.getElementById('predict-btn').addEventListener('click', function() { runPredict(); });
 
-  async function predict() {
-    const taInput = document.getElementById('ta-input').value.trim();
-    const tbInput = document.getElementById('tb-input').value.trim();
-    if (!taInput || !tbInput) {
-      showError('Please enter both Team A and Team B.');
-      return;
-    }
+  function runPredict() {
+    var taInput = document.getElementById('ta-input').value.trim();
+    var tbInput = document.getElementById('tb-input').value.trim();
+    if (!taInput || !tbInput) { showError('Please enter both Team A and Team B.'); return; }
     clearError();
-    const btn = document.getElementById('predict-btn');
+    var btn = document.getElementById('predict-btn');
     btn.disabled = true;
-    btn.textContent = 'Loading…';
-    try {
-      const res = await fetch('/api/matchup', {
-        method : 'POST',
-        headers: { 'content-type': 'application/json' },
-        body   : JSON.stringify({
-          teamA       : taInput,
-          teamB       : tbInput,
-          neutral     : state.neutral,
-          useDampening: state.useDampening,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showError(err.error || ('Server error ' + res.status));
-        return;
-      }
-      const data = await res.json();
-      if (!data.kenpom && !data.trank) {
-        showError('No model data found for one or both teams. Check the team names.');
-        return;
-      }
-      if (data.notes && data.notes.length) {
-        showError(data.notes.join(' '), true);
-      }
+    btn.textContent = 'Loading\u2026';
+    fetch('/api/matchup', {
+      method : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body   : JSON.stringify({ teamA: taInput, teamB: tbInput, neutral: state.neutral, useDampening: state.useDampening })
+    })
+    .then(function(res) {
+      if (!res.ok) return res.json().catch(function() { return {}; }).then(function(e) { throw new Error(e.error || 'Server error ' + res.status); });
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data.kenpom && !data.trank) { showError('No model data found for one or both teams. Check team names.'); return; }
+      if (data.notes && data.notes.length) showError(data.notes.join(' '), true);
       state.baseData = data;
       recompute();
       document.getElementById('results').style.display = 'block';
-    } catch (e) {
-      showError('Network error — could not reach the prediction API.');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Predict';
-    }
+    })
+    .catch(function(err) { showError(err.message || 'Network error \u2014 could not reach the prediction API.'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Predict'; });
   }
 
   // ── Core computation ─────────────────────────────────────────

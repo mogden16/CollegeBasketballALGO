@@ -9,6 +9,9 @@ This Worker app hosts:
 ## Environment variables
 
 - `ODDS_API_KEY` (required for The Odds API vegas hydration in live responses and cache regeneration)
+- `REDDIT_CLIENT_ID` (required for server-side Reddit OAuth client credentials)
+- `REDDIT_CLIENT_SECRET` (required for server-side Reddit OAuth client credentials)
+- `REDDIT_USER_AGENT` (recommended custom Reddit API user agent string for this app)
 
 ## Run locally
 
@@ -69,6 +72,7 @@ Notes:
   - cached picks are returned first; if cached games are missing or unavailable for vegas data, the Worker rehydrates that game from the prioritized sportsbook pipeline before returning.
 - `GET /api/dates` – returns available cached dates.
 - `GET /api/teams` – returns team options for Quick Predict.
+- `POST /api/reddit-sentiment` – accepts JSON `{ "teamA": "Duke", "teamB": "North Carolina" }` and returns a normalized Reddit sentiment summary.
 - `POST /api/quick-predict` – accepts JSON:
 
 ```json

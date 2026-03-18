@@ -13,6 +13,8 @@ Dependencies:
 """
 
 import os
+import sys
+import json
 import csv
 import re
 import requests
@@ -33,6 +35,7 @@ ODDS_API_KEY    = os.getenv("ODDS_API_KEY")   # Free at the-odds-api.com
 ODDS_BOOK       = "draftkings"          # draftkings, fanduel, betmgm, etc.
 EDGE_THRESHOLD  = 3.0                   # Flag if model vs line differs >= this
 FUZZY_THRESHOLD = 75                    # Min fuzzy match score (0-100)
+DEBUG           = os.getenv("DEBUG", "").lower() in ("1", "true", "yes") or "--debug" in sys.argv
 
 TEAM_ALIASES = {
     "uconn": "Connecticut",
@@ -334,32 +337,55 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
     Fetch live NCAAB lines from The Odds API (free tier).
     Attaches vegas_spread and vegas_total to each matchup via fuzzy team match.
     Free tier: 500 requests/month. This uses 1 request.
+
+    Prefers ODDS_BOOK (draftkings) when available; falls back to any US book.
     """
     if ODDS_API_KEY == "YOUR_API_KEY_HERE":
         print("WARNING: No Odds API key set. Skipping lines -- set ODDS_API_KEY in config.")
         return matchups
 
+    # Don't filter by bookmaker — fetch all US-region books so we get data
+    # even when the preferred book hasn't posted lines yet.
     url = (
         "https://api.the-odds-api.com/v4/sports/basketball_ncaab/odds/"
-        f"?apiKey={ODDS_API_KEY}&regions=us&markets=spreads,totals&bookmakers={ODDS_BOOK}"
+        f"?apiKey={ODDS_API_KEY}&regions=us&markets=spreads,totals"
     )
 
     try:
         resp = requests.get(url, timeout=10)
+        remaining = resp.headers.get("x-requests-remaining", "?")
+        used = resp.headers.get("x-requests-used", "?")
+        print(f"  Odds API: status {resp.status_code}, requests used={used}, remaining={remaining}")
         resp.raise_for_status()
         odds_data = resp.json()
+    except requests.exceptions.HTTPError as e:
+        print(f"ERROR: Odds API HTTP error -- {e}")
+        return matchups
     except Exception as e:
         print(f"ERROR: Could not fetch odds -- {e}")
         return matchups
 
+    games_with_books = sum(1 for g in odds_data if g.get("bookmakers"))
+    print(f"  Odds API: {len(odds_data)} games returned, {games_with_books} with bookmaker data")
+
+    if DEBUG and odds_data:
+        print(f"  [DEBUG] First game raw response:\n{json.dumps(odds_data[0], indent=2)}")
+
     # Build odds lookup: (home_team, away_team) -> {spread_home, spread_away, total}
+    # Prefer ODDS_BOOK; fall back to first available bookmaker.
     odds_lookup = {}
     for game in odds_data:
         h = game.get("home_team", "")
         a = game.get("away_team", "")
+        bookmakers = game.get("bookmakers", [])
+
+        # Pick preferred bookmaker, fall back to first available
+        preferred = [b for b in bookmakers if b.get("key") == ODDS_BOOK]
+        chosen = preferred[0] if preferred else (bookmakers[0] if bookmakers else None)
+
         spread_home = spread_away = total = None
-        for bookie in game.get("bookmakers", []):
-            for market in bookie.get("markets", []):
+        if chosen:
+            for market in chosen.get("markets", []):
                 if market["key"] == "spreads":
                     for outcome in market["outcomes"]:
                         if outcome["name"] == h:
@@ -386,6 +412,7 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         team_to_game[h] = (h, a)
         team_to_game[a] = (h, a)
 
+    matched = 0
     for m in matchups:
         if not api_team_names:
             break
@@ -396,6 +423,8 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         if home_match is None:
             home_match, home_score = process.extractOne(m.home, api_team_names)
             if home_score < FUZZY_THRESHOLD:
+                if DEBUG:
+                    print(f"  [DEBUG] No match for home '{m.home}' (best: '{home_match}' @ {home_score})")
                 continue
 
         game_key = team_to_game[home_match]
@@ -408,6 +437,8 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         if normalize_team_name(other_api_team) != away_norm:
             _, away_score = process.extractOne(m.away, [other_api_team])
             if away_score < FUZZY_THRESHOLD:
+                if DEBUG:
+                    print(f"  [DEBUG] Away mismatch: '{m.away}' vs API '{other_api_team}' (score {away_score})")
                 continue
 
         # Step 3: assign spread from ESPN home team's perspective
@@ -419,6 +450,9 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
             m.vegas_spread = entry["spread_away"]
 
         m.vegas_total = entry["total"]
+        matched += 1
+
+    print(f"  Odds API: matched {matched}/{len(matchups)} games to lines")
 
     return matchups
 

@@ -1,6 +1,6 @@
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
-import { predictGame, buildConsensus, type TeamRatings, type MatchupResult } from "./matchup";
+import { predictGame, buildConsensus, type TeamRatings, type MatchupResult, type KenPomTeamInfo } from "./matchup";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type TeamModelsPayload = {
@@ -19,6 +19,14 @@ type QuickMatchupBody = {
 // ── Constants ────────────────────────────────────────────────────────────────
 const teamModels  = modelsData as TeamModelsPayload;
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" } as const;
+const KP_INFO_LABELS = [
+  { key: "record", label: "Record", format: "record" },
+  { key: "netRating", label: "Net Rating", format: "signed1" },
+  { key: "offRating", label: "Off Rating", format: "fixed1" },
+  { key: "defRating", label: "Def Rating", format: "fixed1" },
+  { key: "adjTempo", label: "Adj Tempo", format: "fixed1" },
+  { key: "luck", label: "Luck", format: "signed3" },
+] as const;
 
 const TEAM_ALIASES: Record<string, string> = {
   uconn        : "Connecticut",
@@ -60,6 +68,24 @@ const resolveTeamName = (input: string, lookup: Map<string, string>): string | n
     if (aliasExact) return aliasExact;
   }
   return deterministicFallback(norm, lookup);
+};
+
+
+const toFiniteNumber = (value: unknown): number | null => {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
+
+const buildKenPomTeamInfo = (teamName: string | null, team: TeamRatings | undefined): KenPomTeamInfo | null => {
+  if (!teamName || !team) return null;
+  return {
+    team      : teamName,
+    record    : typeof team.record === "string" ? team.record : null,
+    netRating : toFiniteNumber(team.netRtg),
+    offRating : toFiniteNumber(team.ortg ?? team.adjO),
+    defRating : toFiniteNumber(team.drtg ?? team.adjD),
+    adjTempo  : toFiniteNumber(team.adjT),
+    luck      : toFiniteNumber(team.luck),
+  };
 };
 
 // ── Matchup API handler ───────────────────────────────────────────────────────
@@ -113,6 +139,10 @@ const handleMatchup = async (request: Request): Promise<Response> => {
     kenpom      : kenpomProj,
     trank       : trankProj,
     consensus   : consensusProj,
+    kenpomTeamInfo: {
+      teamA: buildKenPomTeamInfo(resolvedAKp, resolvedAKp ? teamModels.kenpom[resolvedAKp] : undefined),
+      teamB: buildKenPomTeamInfo(resolvedBKp, resolvedBKp ? teamModels.kenpom[resolvedBKp] : undefined),
+    },
     notes,
   };
 
@@ -122,6 +152,7 @@ const handleMatchup = async (request: Request): Promise<Response> => {
 // ── Home page ─────────────────────────────────────────────────────────────────
 const renderHomePage = (teams: string[]): string => {
   const teamsJson = JSON.stringify(teams);
+  const kpInfoLabelsJson = JSON.stringify(KP_INFO_LABELS);
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -185,6 +216,17 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .btn-secondary{background:var(--card2);color:var(--muted);border:1px solid var(--border2)}
 .btn-secondary:hover{color:var(--text)}
 
+/* ── KenPom team info ───────────────────── */
+.kenpom-compare-card{background:linear-gradient(180deg,rgba(16,30,52,.95),rgba(12,22,40,.95));border:1px solid var(--border2);border-radius:16px;padding:1.2rem}
+.kenpom-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+@media(max-width:700px){.kenpom-compare-grid{grid-template-columns:1fr}}
+.kenpom-team-panel{background:rgba(10,21,37,.88);border:1px solid var(--border);border-radius:14px;padding:1rem}
+.kenpom-team-name{font-size:1rem;font-weight:700;margin-bottom:.85rem}
+.kenpom-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+.kp-metric{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:.65rem .75rem}
+.kp-metric-label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.25rem}
+.kp-metric-value{font-size:1rem;font-weight:700}
+
 /* ── Summary card ────────────────────────── */
 .summary-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem}
 .matchup-label{font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
@@ -233,6 +275,8 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .slider-item input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 .slider-val{min-width:38px;text-align:right;font-size:.88rem;font-weight:700;color:var(--blue)}
 .slider-item .adj-hint{font-size:.7rem;color:var(--dim)}
+.slider-polarity{display:flex;justify-content:space-between;align-items:center;font-size:.68rem;color:var(--muted);gap:.75rem}
+.slider-polarity .neutral{color:var(--text)}
 
 /* ── Histogram ───────────────────────────── */
 .histogram-wrap{overflow:hidden;border-radius:8px;background:var(--card2);padding:.75rem .5rem .25rem}
@@ -316,6 +360,11 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
   <!-- Results (shown after prediction) -->
   <div id="results">
 
+    <section class="kenpom-compare-card section" id="kenpom-team-info-section">
+      <h3 class="card-title">KenPom Team Info</h3>
+      <div class="kenpom-compare-grid" id="kenpom-team-info"></div>
+    </section>
+
     <!-- SECTION 2: Quick Summary Card -->
     <section class="summary-card section" id="summary-section">
       <div class="matchup-label" id="summary-title"></div>
@@ -377,15 +426,17 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
               <input type="range" id="sl-injury" min="-5" max="5" step="0.5" value="0"/>
               <span class="slider-val" id="sv-injury">0</span>
             </div>
-            <span class="adj-hint">Positive shifts model toward Team A</span>
+            <div class="slider-polarity"><span id="pol-injury-left">← Team A</span><span class="neutral">Neutral</span><span id="pol-injury-right">Team B →</span></div>
+            <span class="adj-hint">Move left to help Team A. Move right to help Team B.</span>
           </div>
           <div class="slider-item">
             <label>Home Court / Crowd</label>
             <div class="slider-row">
-              <input type="range" id="sl-hca" min="0" max="4" step="0.5" value="0"/>
+              <input type="range" id="sl-hca" min="-4" max="4" step="0.5" value="0"/>
               <span class="slider-val" id="sv-hca">0</span>
             </div>
-            <span class="adj-hint" id="hca-hint">Adds to Team B home advantage</span>
+            <div class="slider-polarity"><span id="pol-hca-left">← Team A crowd edge</span><span class="neutral">Neutral</span><span id="pol-hca-right">Team B crowd edge →</span></div>
+            <span class="adj-hint" id="hca-hint">Move left to help Team A. Move right to help Team B.</span>
           </div>
           <div class="slider-item">
             <label>Tempo Adjustment</label>
@@ -464,6 +515,7 @@ window.addEventListener('error', function(ev) {
 });
 
 var TEAMS = ${teamsJson};
+var KP_INFO_LABELS = ${kpInfoLabelsJson};
 
 // ── Autocomplete ──────────────────────────────────────────────────────────────
 function setupAC(inputId, listId) {
@@ -556,7 +608,7 @@ function syncNeutral() {
     ht.textContent = 'Disabled \u2014 neutral site';
   } else {
     el.disabled = false;
-    ht.textContent = 'Adds to Team B home advantage';
+    ht.textContent = 'Move left to help Team A. Move right to help Team B.';
   }
 }
 function wireSlider(inId, valId, key) {
@@ -580,6 +632,8 @@ function resetAll() {
   ['sv-injury','sv-hca','sv-tempo','sv-vol'].forEach(function(id) { document.getElementById(id).textContent = '0'; });
   appSliders = { injury: 0, hca: 0, tempo: 0, vol: 0 };
   document.getElementById('ev-spread').value = '';
+  document.getElementById('ev-team').innerHTML = '<option value="A">Team A</option><option value="B">Team B</option>';
+  document.getElementById('kenpom-team-info').innerHTML = '';
   document.getElementById('results').style.display = 'none';
   clearErr();
 }
@@ -596,6 +650,33 @@ function fmtMargin(s, tA, tB) {
 }
 function htmlEsc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function formatKenPomValue(value, format) {
+  if (value == null || value === '') return '\u2014';
+  if (format === 'record') return String(value);
+  var num = typeof value === 'number' ? value : parseFloat(value);
+  if (!isFinite(num)) return '\u2014';
+  if (format === 'signed3') return (num >= 0 ? '+' : '') + num.toFixed(3);
+  if (format === 'signed1') return (num >= 0 ? '+' : '') + num.toFixed(1);
+  return num.toFixed(1);
+}
+function renderKenPomTeamPanel(info) {
+  if (!info) {
+    return '<div class="kenpom-team-panel"><div class="kenpom-team-name">\u2014</div><div style="color:var(--muted);font-size:.84rem">KenPom details unavailable.</div></div>';
+  }
+  var metrics = KP_INFO_LABELS.map(function(item) {
+    return '<div class="kp-metric"><div class="kp-metric-label">' + item.label + '</div><div class="kp-metric-value">' + formatKenPomValue(info[item.key], item.format) + '</div></div>';
+  }).join('');
+  return '<div class="kenpom-team-panel"><div class="kenpom-team-name">' + htmlEsc(info.team) + '</div><div class="kenpom-metrics">' + metrics + '</div></div>';
+}
+function syncSpreadEvaluatorOptions() {
+  var sel = document.getElementById('ev-team');
+  if (!sel || !appData) return;
+  var current = sel.value || 'A';
+  sel.innerHTML = ''
+    + '<option value="A">' + htmlEsc(appData.teamA) + '</option>'
+    + '<option value="B">' + htmlEsc(appData.teamB) + '</option>';
+  sel.value = current === 'B' ? 'B' : 'A';
 }
 function showErr(msg, warn) {
   var bg = warn ? 'background:var(--amber-d);border-color:rgba(251,191,36,.3);color:var(--amber)'
@@ -637,7 +718,7 @@ function runPredict() {
 function getSpread() {
   var c = appData && appData.consensus;
   if (!c) return null;
-  var s = c.spread + appSliders.injury;
+  var s = c.spread - appSliders.injury;
   if (!appNeutral) s -= appSliders.hca;
   return s;
 }
@@ -702,11 +783,15 @@ function recompute() {
 // ── Render: Summary ───────────────────────────────────────────────────────────
 function renderSummary(sim, fs, ft) {
   var tA = appData.teamA, tB = appData.teamB;
+  document.getElementById('kenpom-team-info').innerHTML =
+    renderKenPomTeamPanel(appData.kenpomTeamInfo && appData.kenpomTeamInfo.teamA) +
+    renderKenPomTeamPanel(appData.kenpomTeamInfo && appData.kenpomTeamInfo.teamB);
+  syncSpreadEvaluatorOptions();
   document.getElementById('summary-title').textContent = tA + '  @  ' + tB + (appData.neutral ? '  (Neutral)' : '');
   document.getElementById('wp-name-a').textContent = tA;
   document.getElementById('wp-name-b').textContent = tB;
-  document.getElementById('hist-leg-a').textContent = tA + ' wins';
-  document.getElementById('hist-leg-b').textContent = tB + ' wins';
+  document.getElementById('hist-leg-a').textContent = tA + ' wins (left)';
+  document.getElementById('hist-leg-b').textContent = tB + ' wins (right)';
   var pA = (sim.pA * 100).toFixed(1), pB = (sim.pB * 100).toFixed(1);
   document.getElementById('wp-pct-a').textContent = pA + '%';
   document.getElementById('wp-pct-b').textContent = pB + '%';
@@ -756,16 +841,21 @@ function renderHist(margins, fs) {
   var xr = maxX - minX || 1;
   var bw = bkts.length > 1 ? bkts[1].x - bkts[0].x : 2;
   var bpx = (bw / xr) * pw;
+  function toDisplayMargin(v) { return -v; }
   function toX(v) { return PL + (v - minX) / xr * pw; }
   var bars = '';
   bkts.forEach(function(b) {
     if (!b.n) return;
     var bh = (b.n / maxN) * ph;
-    bars += '<rect x="' + toX(b.x).toFixed(1) + '" y="' + (PT + ph - bh).toFixed(1)
+    var displayMargin = toDisplayMargin(b.x);
+    var barX = toX(displayMargin);
+    var hoverLabel = displayMargin < -0.05 ? tA : (displayMargin > 0.05 ? tB : 'Either team');
+    bars += '<rect x="' + barX.toFixed(1) + '" y="' + (PT + ph - bh).toFixed(1)
       + '" width="' + Math.max(1, bpx - 1).toFixed(1) + '" height="' + bh.toFixed(1)
-      + '" fill="' + (b.x >= 0 ? '#4a90e2' : '#f07070') + '" opacity=".82"/>';
+      + '" fill="' + (displayMargin <= 0 ? '#4a90e2' : '#f07070') + '" opacity=".82">'
+      + '<title>' + htmlEsc(hoverLabel) + ' outcome range: ' + (displayMargin > 0 ? '+' : '') + displayMargin.toFixed(0) + '</title></rect>';
   });
-  var z = toX(0), md = toX(Math.max(minX, Math.min(maxX, fs)));
+  var z = toX(0), md = toX(Math.max(minX, Math.min(maxX, toDisplayMargin(fs))));
   var ticks = '';
   for (var v = -40; v <= 40; v += 10) {
     if (v < minX || v > maxX) continue;
@@ -780,8 +870,8 @@ function renderHist(margins, fs) {
     + '<line x1="' + z.toFixed(1) + '" y1="' + PT + '" x2="' + z.toFixed(1) + '" y2="' + (PT+ph) + '" stroke="#7a93b0" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>'
     + '<line x1="' + md.toFixed(1) + '" y1="' + PT + '" x2="' + md.toFixed(1) + '" y2="' + (PT+ph) + '" stroke="#fbbf24" stroke-width="2"/>'
     + ticks
-    + '<text x="' + (PL+3) + '" y="' + (PT+11) + '" fill="#f07070" font-size="10">\u2190 ' + htmlEsc(tB) + ' wins</text>'
-    + '<text x="' + (PL+pw-3) + '" y="' + (PT+11) + '" fill="#4a90e2" font-size="10" text-anchor="end">' + htmlEsc(tA) + ' wins \u2192</text>'
+    + '<text x="' + (PL+3) + '" y="' + (PT+11) + '" fill="#4a90e2" font-size="10">\u2190 ' + htmlEsc(tA) + ' wins</text>'
+    + '<text x="' + (PL+pw-3) + '" y="' + (PT+11) + '" fill="#f07070" font-size="10" text-anchor="end">' + htmlEsc(tB) + ' wins \u2192</text>'
     + '</svg>';
 }
 

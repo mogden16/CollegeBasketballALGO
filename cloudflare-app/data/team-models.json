@@ -5,2191 +5,4016 @@
       "adjO": 127.7,
       "adjD": 88.1,
       "adjT": 65.4,
-      "sourceName": "Duke"
+      "sourceName": "Duke",
+      "record": "32-2",
+      "netRtg": 38.88,
+      "ortg": 128.0,
+      "drtg": 89.1,
+      "luck": 0.049
     },
     "Michigan": {
       "adjO": 128.4,
       "adjD": 89.0,
-      "adjT": 71.4,
-      "sourceName": "Michigan"
+      "adjT": 71.0,
+      "sourceName": "Michigan",
+      "record": "31-3",
+      "netRtg": 37.58,
+      "ortg": 126.6,
+      "drtg": 89.0,
+      "luck": 0.045
     },
     "Arizona": {
       "adjO": 126.8,
       "adjD": 89.7,
-      "adjT": 70.1,
-      "sourceName": "Arizona"
+      "adjT": 69.8,
+      "sourceName": "Arizona",
+      "record": "32-2",
+      "netRtg": 37.6,
+      "ortg": 127.6,
+      "drtg": 90.0,
+      "luck": 0.023
     },
     "Florida": {
       "adjO": 125.7,
       "adjD": 90.7,
-      "adjT": 70.7,
-      "sourceName": "Florida"
+      "adjT": 70.6,
+      "sourceName": "Florida",
+      "record": "26-7",
+      "netRtg": 33.75,
+      "ortg": 125.5,
+      "drtg": 91.8,
+      "luck": -0.036
     },
     "Illinois": {
       "adjO": 132.2,
       "adjD": 99.1,
-      "adjT": 65.2,
-      "sourceName": "Illinois"
+      "adjT": 65.6,
+      "sourceName": "Illinois",
+      "record": "24-8",
+      "netRtg": 32.09,
+      "ortg": 131.2,
+      "drtg": 99.1,
+      "luck": -0.05
     },
     "Houston": {
       "adjO": 125.1,
       "adjD": 92.5,
-      "adjT": 63.2,
-      "sourceName": "Houston"
+      "adjT": 63.3,
+      "sourceName": "Houston",
+      "record": "28-6",
+      "netRtg": 33.37,
+      "ortg": 124.8,
+      "drtg": 91.5,
+      "luck": -0.006
     },
     "Purdue": {
       "adjO": 129.7,
       "adjD": 98.5,
-      "adjT": 65.1,
-      "sourceName": "Purdue"
+      "adjT": 64.4,
+      "sourceName": "Purdue",
+      "record": "27-8",
+      "netRtg": 31.18,
+      "ortg": 131.6,
+      "drtg": 100.5,
+      "luck": -0.006
     },
     "Iowa St.": {
       "adjO": 123.8,
       "adjD": 93.5,
       "adjT": 66.6,
-      "sourceName": "Iowa St."
+      "sourceName": "Iowa St.",
+      "record": "27-7",
+      "netRtg": 32.37,
+      "ortg": 123.8,
+      "drtg": 91.4,
+      "luck": -0.012
     },
     "Connecticut": {
       "adjO": 123.4,
       "adjD": 94.1,
-      "adjT": 64.8,
-      "sourceName": "Connecticut"
+      "adjT": 64.5,
+      "sourceName": "Connecticut",
+      "record": "29-5",
+      "netRtg": 27.84,
+      "ortg": 122.0,
+      "drtg": 94.2,
+      "luck": 0.055
     },
     "Michigan St.": {
       "adjO": 121.4,
       "adjD": 92.3,
-      "adjT": 65.6,
-      "sourceName": "Michigan St."
+      "adjT": 66.1,
+      "sourceName": "Michigan St.",
+      "record": "25-7",
+      "netRtg": 28.3,
+      "ortg": 123.0,
+      "drtg": 94.7,
+      "luck": 0.005
     },
     "Nebraska": {
       "adjO": 120.4,
       "adjD": 92.1,
-      "adjT": 66.7,
-      "sourceName": "Nebraska"
+      "adjT": 66.8,
+      "sourceName": "Nebraska",
+      "record": "26-6",
+      "netRtg": 26.15,
+      "ortg": 118.5,
+      "drtg": 92.4,
+      "luck": 0.034
     },
     "Gonzaga": {
       "adjO": 122.3,
       "adjD": 94.0,
-      "adjT": 69.0,
-      "sourceName": "Gonzaga"
+      "adjT": 68.6,
+      "sourceName": "Gonzaga",
+      "record": "30-3",
+      "netRtg": 28.19,
+      "ortg": 122.1,
+      "drtg": 93.9,
+      "luck": 0.072
     },
     "Texas Tech": {
       "adjO": 126.5,
       "adjD": 98.8,
-      "adjT": 66.6,
-      "sourceName": "Texas Tech"
+      "adjT": 66.2,
+      "sourceName": "Texas Tech",
+      "record": "22-10",
+      "netRtg": 25.19,
+      "ortg": 125.0,
+      "drtg": 99.9,
+      "luck": 0.006
     },
     "Alabama": {
       "adjO": 129.5,
       "adjD": 102.9,
       "adjT": 73.1,
-      "sourceName": "Alabama"
+      "sourceName": "Alabama",
+      "record": "23-9",
+      "netRtg": 25.68,
+      "ortg": 129.0,
+      "drtg": 103.3,
+      "luck": 0.019
     },
     "Vanderbilt": {
       "adjO": 125.3,
       "adjD": 98.7,
-      "adjT": 69.2,
-      "sourceName": "Vanderbilt"
+      "adjT": 68.9,
+      "sourceName": "Vanderbilt",
+      "record": "26-8",
+      "netRtg": 27.48,
+      "ortg": 126.8,
+      "drtg": 99.3,
+      "luck": 0.018
     },
     "Kansas": {
       "adjO": 120.3,
       "adjD": 93.9,
-      "adjT": 67.1,
-      "sourceName": "Kansas"
+      "adjT": 67.7,
+      "sourceName": "Kansas",
+      "record": "23-10",
+      "netRtg": 24.4,
+      "ortg": 118.3,
+      "drtg": 93.9,
+      "luck": 0.053
     },
     "Virginia": {
       "adjO": 122.3,
       "adjD": 96.1,
-      "adjT": 65.6,
-      "sourceName": "Virginia"
+      "adjT": 65.8,
+      "sourceName": "Virginia",
+      "record": "29-5",
+      "netRtg": 26.69,
+      "ortg": 122.6,
+      "drtg": 95.9,
+      "luck": 0.056
     },
     "Tennessee": {
       "adjO": 120.9,
       "adjD": 95.0,
       "adjT": 65.0,
-      "sourceName": "Tennessee"
+      "sourceName": "Tennessee",
+      "record": "22-11",
+      "netRtg": 25.98,
+      "ortg": 121.0,
+      "drtg": 95.1,
+      "luck": -0.06
     },
     "Louisville": {
       "adjO": 124.7,
       "adjD": 98.8,
-      "adjT": 70.5,
-      "sourceName": "Louisville"
+      "adjT": 69.7,
+      "sourceName": "Louisville",
+      "record": "23-10",
+      "netRtg": 25.4,
+      "ortg": 124.0,
+      "drtg": 98.7,
+      "luck": -0.02
     },
     "Arkansas": {
       "adjO": 128.0,
       "adjD": 102.5,
-      "adjT": 70.8,
-      "sourceName": "Arkansas"
+      "adjT": 71.0,
+      "sourceName": "Arkansas",
+      "record": "26-8",
+      "netRtg": 26.01,
+      "ortg": 127.7,
+      "drtg": 101.6,
+      "luck": 0.051
     },
     "St. John's": {
       "adjO": 119.6,
       "adjD": 94.8,
-      "adjT": 69.8,
-      "sourceName": "St. John's"
+      "adjT": 69.6,
+      "sourceName": "St. John's",
+      "record": "28-6",
+      "netRtg": 25.87,
+      "ortg": 120.0,
+      "drtg": 94.2,
+      "luck": 0.061
     },
     "Saint Mary's": {
       "adjO": 120.5,
       "adjD": 96.9,
       "adjT": 65.2,
-      "sourceName": "Saint Mary's"
+      "sourceName": "Saint Mary's",
+      "record": "27-5",
+      "netRtg": 23.15,
+      "ortg": 120.4,
+      "drtg": 97.2,
+      "luck": 0.011
     },
     "BYU": {
       "adjO": 125.9,
       "adjD": 102.6,
-      "adjT": 69.9,
-      "sourceName": "BYU"
+      "adjT": 70.0,
+      "sourceName": "BYU",
+      "record": "23-11",
+      "netRtg": 23.21,
+      "ortg": 125.4,
+      "drtg": 102.2,
+      "luck": -0.017
     },
     "Iowa": {
       "adjO": 122.0,
       "adjD": 99.7,
-      "adjT": 62.8,
-      "sourceName": "Iowa"
+      "adjT": 63.0,
+      "sourceName": "Iowa",
+      "record": "21-12",
+      "netRtg": 22.44,
+      "ortg": 121.7,
+      "drtg": 99.3,
+      "luck": -0.061
     },
     "Kentucky": {
       "adjO": 121.1,
       "adjD": 99.0,
-      "adjT": 67.8,
-      "sourceName": "Kentucky"
+      "adjT": 68.4,
+      "sourceName": "Kentucky",
+      "record": "21-13",
+      "netRtg": 21.45,
+      "ortg": 120.5,
+      "drtg": 99.1,
+      "luck": -0.019
     },
     "Utah St.": {
       "adjO": 123.4,
       "adjD": 101.6,
       "adjT": 67.7,
-      "sourceName": "Utah St."
+      "sourceName": "Utah St.",
+      "record": "28-6",
+      "netRtg": 20.84,
+      "ortg": 122.2,
+      "drtg": 101.4,
+      "luck": 0.065
     },
     "Saint Louis": {
       "adjO": 120.8,
       "adjD": 99.1,
-      "adjT": 71.3,
-      "sourceName": "Saint Louis"
+      "adjT": 71.0,
+      "sourceName": "Saint Louis",
+      "record": "28-5",
+      "netRtg": 18.27,
+      "ortg": 119.5,
+      "drtg": 101.2,
+      "luck": 0.03
     },
     "North Carolina": {
       "adjO": 122.3,
       "adjD": 101.1,
-      "adjT": 67.6,
-      "sourceName": "North Carolina"
+      "adjT": 68.0,
+      "sourceName": "North Carolina",
+      "record": "24-8",
+      "netRtg": 20.82,
+      "ortg": 121.4,
+      "drtg": 100.6,
+      "luck": 0.057
     },
     "Texas": {
       "adjO": 127.3,
       "adjD": 106.3,
-      "adjT": 66.2,
-      "sourceName": "Texas"
+      "adjT": 66.9,
+      "sourceName": "Texas",
+      "record": "19-14",
+      "netRtg": 19.13,
+      "ortg": 124.2,
+      "drtg": 105.0,
+      "luck": -0.068
     },
     "Wisconsin": {
       "adjO": 123.7,
       "adjD": 102.7,
-      "adjT": 69.3,
-      "sourceName": "Wisconsin"
+      "adjT": 68.8,
+      "sourceName": "Wisconsin",
+      "record": "24-10",
+      "netRtg": 23.39,
+      "ortg": 125.3,
+      "drtg": 102.0,
+      "luck": 0.041
     },
     "N.C. State": {
       "adjO": 123.0,
       "adjD": 102.1,
-      "adjT": 69.0,
-      "sourceName": "N.C. State"
+      "adjT": 69.1,
+      "sourceName": "N.C. State",
+      "record": "20-14",
+      "netRtg": 19.49,
+      "ortg": 123.2,
+      "drtg": 103.7,
+      "luck": -0.043
     },
     "Miami FL": {
       "adjO": 120.6,
       "adjD": 100.1,
-      "adjT": 68.0,
-      "sourceName": "Miami FL"
+      "adjT": 67.6,
+      "sourceName": "Miami FL",
+      "record": "25-8",
+      "netRtg": 20.67,
+      "ortg": 121.4,
+      "drtg": 100.7,
+      "luck": 0.021
     },
     "Georgia": {
       "adjO": 124.8,
       "adjD": 104.3,
-      "adjT": 71.0,
-      "sourceName": "Georgia"
+      "adjT": 71.4,
+      "sourceName": "Georgia",
+      "record": "22-10",
+      "netRtg": 20.45,
+      "ortg": 124.7,
+      "drtg": 104.3,
+      "luck": -0.005
     },
     "Villanova": {
       "adjO": 120.6,
       "adjD": 100.4,
-      "adjT": 64.7,
-      "sourceName": "Villanova"
+      "adjT": 65.2,
+      "sourceName": "Villanova",
+      "record": "24-8",
+      "netRtg": 19.94,
+      "ortg": 120.4,
+      "drtg": 100.4,
+      "luck": 0.067
     },
     "Clemson": {
       "adjO": 116.4,
       "adjD": 96.9,
-      "adjT": 64.1,
-      "sourceName": "Clemson"
+      "adjT": 64.3,
+      "sourceName": "Clemson",
+      "record": "24-10",
+      "netRtg": 19.21,
+      "ortg": 116.5,
+      "drtg": 97.3,
+      "luck": 0.011
     },
     "Santa Clara": {
       "adjO": 122.8,
       "adjD": 103.3,
-      "adjT": 69.9,
-      "sourceName": "Santa Clara"
+      "adjT": 69.2,
+      "sourceName": "Santa Clara",
+      "record": "26-8",
+      "netRtg": 19.48,
+      "ortg": 123.7,
+      "drtg": 104.2,
+      "luck": 0.015
     },
     "Texas A&M": {
       "adjO": 120.4,
       "adjD": 101.1,
       "adjT": 70.5,
-      "sourceName": "Texas A&M"
+      "sourceName": "Texas A&M",
+      "record": "21-11",
+      "netRtg": 18.63,
+      "ortg": 119.7,
+      "drtg": 101.1,
+      "luck": -0.002
     },
     "Ohio St.": {
       "adjO": 122.3,
       "adjD": 103.0,
-      "adjT": 66.2,
-      "sourceName": "Ohio St."
+      "adjT": 66.1,
+      "sourceName": "Ohio St.",
+      "record": "21-12",
+      "netRtg": 22.23,
+      "ortg": 124.3,
+      "drtg": 102.1,
+      "luck": -0.031
     },
     "Auburn": {
       "adjO": 125.6,
       "adjD": 106.9,
-      "adjT": 67.1,
-      "sourceName": "Auburn"
+      "adjT": 67.2,
+      "sourceName": "Auburn",
+      "record": "18-16",
+      "netRtg": 18.68,
+      "ortg": 124.6,
+      "drtg": 105.9,
+      "luck": -0.045
     },
     "SMU": {
       "adjO": 124.9,
       "adjD": 106.2,
-      "adjT": 68.8,
-      "sourceName": "SMU"
+      "adjT": 68.6,
+      "sourceName": "SMU",
+      "record": "20-13",
+      "netRtg": 18.07,
+      "ortg": 122.9,
+      "drtg": 104.8,
+      "luck": -0.043
     },
     "UCLA": {
       "adjO": 122.2,
       "adjD": 103.7,
       "adjT": 64.7,
-      "sourceName": "UCLA"
+      "sourceName": "UCLA",
+      "record": "23-11",
+      "netRtg": 21.66,
+      "ortg": 123.7,
+      "drtg": 102.1,
+      "luck": 0.017
     },
     "Indiana": {
       "adjO": 120.9,
       "adjD": 103.0,
       "adjT": 66.1,
-      "sourceName": "Indiana"
+      "sourceName": "Indiana",
+      "record": "18-14",
+      "netRtg": 17.17,
+      "ortg": 120.3,
+      "drtg": 103.2,
+      "luck": -0.041
     },
     "San Diego St.": {
       "adjO": 114.4,
       "adjD": 96.6,
       "adjT": 68.8,
-      "sourceName": "San Diego St."
+      "sourceName": "San Diego St.",
+      "record": "22-11",
+      "netRtg": 16.46,
+      "ortg": 113.3,
+      "drtg": 96.9,
+      "luck": 0.015
     },
     "Cincinnati": {
       "adjO": 111.6,
       "adjD": 94.4,
-      "adjT": 67.6,
-      "sourceName": "Cincinnati"
+      "adjT": 67.5,
+      "sourceName": "Cincinnati",
+      "record": "18-15",
+      "netRtg": 17.45,
+      "ortg": 111.2,
+      "drtg": 93.7,
+      "luck": -0.073
     },
     "VCU": {
       "adjO": 120.5,
       "adjD": 103.5,
-      "adjT": 69.3,
-      "sourceName": "VCU"
+      "adjT": 68.5,
+      "sourceName": "VCU",
+      "record": "27-7",
+      "netRtg": 17.13,
+      "ortg": 119.9,
+      "drtg": 102.7,
+      "luck": -0.007
     },
     "New Mexico": {
       "adjO": 117.1,
       "adjD": 100.4,
-      "adjT": 69.7,
-      "sourceName": "New Mexico"
+      "adjT": 69.8,
+      "sourceName": "New Mexico",
+      "record": "23-10",
+      "netRtg": 15.88,
+      "ortg": 117.1,
+      "drtg": 101.2,
+      "luck": -0.035
     },
     "Missouri": {
       "adjO": 120.5,
       "adjD": 104.2,
       "adjT": 66.2,
-      "sourceName": "Missouri"
+      "sourceName": "Missouri",
+      "record": "20-12",
+      "netRtg": 15.36,
+      "ortg": 119.5,
+      "drtg": 104.1,
+      "luck": 0.041
     },
     "UCF": {
       "adjO": 122.5,
       "adjD": 106.2,
-      "adjT": 69.0,
-      "sourceName": "UCF"
+      "adjT": 69.2,
+      "sourceName": "UCF",
+      "record": "21-11",
+      "netRtg": 14.99,
+      "ortg": 120.4,
+      "drtg": 105.4,
+      "luck": 0.097
     },
     "TCU": {
       "adjO": 113.6,
       "adjD": 98.0,
-      "adjT": 67.8,
-      "sourceName": "TCU"
+      "adjT": 67.7,
+      "sourceName": "TCU",
+      "record": "22-11",
+      "netRtg": 17.53,
+      "ortg": 115.3,
+      "drtg": 97.8,
+      "luck": 0.004
     },
     "Oklahoma": {
       "adjO": 123.3,
       "adjD": 107.8,
       "adjT": 66.3,
-      "sourceName": "Oklahoma"
+      "sourceName": "Oklahoma",
+      "record": "19-15",
+      "netRtg": 18.33,
+      "ortg": 124.2,
+      "drtg": 105.9,
+      "luck": -0.07
     },
     "Baylor": {
       "adjO": 122.4,
       "adjD": 106.9,
-      "adjT": 67.7,
-      "sourceName": "Baylor"
+      "adjT": 67.8,
+      "sourceName": "Baylor",
+      "record": "16-16",
+      "netRtg": 15.96,
+      "ortg": 122.9,
+      "drtg": 107.0,
+      "luck": -0.086
     },
     "Seton Hall": {
       "adjO": 109.2,
       "adjD": 94.1,
-      "adjT": 65.3,
-      "sourceName": "Seton Hall"
+      "adjT": 65.1,
+      "sourceName": "Seton Hall",
+      "record": "21-12",
+      "netRtg": 15.69,
+      "ortg": 110.5,
+      "drtg": 94.8,
+      "luck": -0.033
     },
     "Washington": {
       "adjO": 116.5,
       "adjD": 101.8,
-      "adjT": 66.7,
-      "sourceName": "Washington"
+      "adjT": 67.1,
+      "sourceName": "Washington",
+      "record": "16-17",
+      "netRtg": 15.14,
+      "ortg": 117.3,
+      "drtg": 102.1,
+      "luck": -0.101
     },
     "South Florida": {
       "adjO": 117.3,
       "adjD": 102.7,
-      "adjT": 71.4,
-      "sourceName": "South Florida"
+      "adjT": 71.5,
+      "sourceName": "South Florida",
+      "record": "25-8",
+      "netRtg": 16.37,
+      "ortg": 117.3,
+      "drtg": 101.0,
+      "luck": -0.026
     },
     "Belmont": {
       "adjO": 121.2,
       "adjD": 106.8,
       "adjT": 68.9,
-      "sourceName": "Belmont"
+      "sourceName": "Belmont",
+      "record": "26-6",
+      "netRtg": 12.26,
+      "ortg": 120.7,
+      "drtg": 108.4,
+      "luck": 0.035
     },
     "Virginia Tech": {
       "adjO": 117.1,
       "adjD": 103.2,
-      "adjT": 66.8,
-      "sourceName": "Virginia Tech"
+      "adjT": 67.1,
+      "sourceName": "Virginia Tech",
+      "record": "19-13",
+      "netRtg": 13.65,
+      "ortg": 117.2,
+      "drtg": 103.6,
+      "luck": -0.01
     },
     "Tulsa": {
       "adjO": 122.1,
       "adjD": 108.2,
-      "adjT": 67.9,
-      "sourceName": "Tulsa"
+      "adjT": 68.0,
+      "sourceName": "Tulsa",
+      "record": "27-7",
+      "netRtg": 12.86,
+      "ortg": 121.0,
+      "drtg": 108.2,
+      "luck": 0.029
     },
     "LSU": {
       "adjO": 120.1,
       "adjD": 106.5,
-      "adjT": 66.5,
-      "sourceName": "LSU"
+      "adjT": 66.6,
+      "sourceName": "LSU",
+      "record": "15-17",
+      "netRtg": 13.21,
+      "ortg": 119.8,
+      "drtg": 106.6,
+      "luck": -0.092
     },
     "Boise St.": {
       "adjO": 116.8,
       "adjD": 103.5,
-      "adjT": 65.4,
-      "sourceName": "Boise St."
+      "adjT": 65.7,
+      "sourceName": "Boise St.",
+      "record": "20-12",
+      "netRtg": 13.25,
+      "ortg": 117.1,
+      "drtg": 103.9,
+      "luck": 0.028
     },
     "West Virginia": {
       "adjO": 111.6,
       "adjD": 98.2,
-      "adjT": 62.2,
-      "sourceName": "West Virginia"
+      "adjT": 62.3,
+      "sourceName": "West Virginia",
+      "record": "18-14",
+      "netRtg": 13.23,
+      "ortg": 110.0,
+      "drtg": 96.7,
+      "luck": -0.033
     },
     "Akron": {
       "adjO": 121.0,
       "adjD": 107.9,
-      "adjT": 70.7,
-      "sourceName": "Akron"
+      "adjT": 70.3,
+      "sourceName": "Akron",
+      "record": "29-5",
+      "netRtg": 12.79,
+      "ortg": 118.8,
+      "drtg": 106.1,
+      "luck": 0.018
     },
     "Grand Canyon": {
       "adjO": 110.5,
       "adjD": 97.7,
-      "adjT": 67.5,
-      "sourceName": "Grand Canyon"
+      "adjT": 68.0,
+      "sourceName": "Grand Canyon",
+      "record": "20-12",
+      "netRtg": 13.25,
+      "ortg": 111.1,
+      "drtg": 97.8,
+      "luck": -0.068
     },
     "Providence": {
       "adjO": 122.9,
       "adjD": 110.2,
-      "adjT": 71.0,
-      "sourceName": "Providence"
+      "adjT": 71.3,
+      "sourceName": "Providence",
+      "record": "15-18",
+      "netRtg": 11.78,
+      "ortg": 121.0,
+      "drtg": 109.3,
+      "luck": -0.09
     },
     "Minnesota": {
       "adjO": 115.8,
       "adjD": 103.1,
-      "adjT": 62.4,
-      "sourceName": "Minnesota"
+      "adjT": 62.5,
+      "sourceName": "Minnesota",
+      "record": "15-17",
+      "netRtg": 10.91,
+      "ortg": 114.6,
+      "drtg": 103.7,
+      "luck": -0.061
     },
     "Stanford": {
       "adjO": 116.1,
       "adjD": 103.4,
-      "adjT": 66.9,
-      "sourceName": "Stanford"
+      "adjT": 66.8,
+      "sourceName": "Stanford",
+      "record": "20-12",
+      "netRtg": 13.38,
+      "ortg": 117.1,
+      "drtg": 103.7,
+      "luck": 0.03
     },
     "Arizona St.": {
       "adjO": 117.4,
       "adjD": 104.9,
-      "adjT": 68.7,
-      "sourceName": "Arizona St."
+      "adjT": 69.3,
+      "sourceName": "Arizona St.",
+      "record": "17-16",
+      "netRtg": 12.5,
+      "ortg": 115.8,
+      "drtg": 103.3,
+      "luck": 0.062
     },
     "USC": {
       "adjO": 114.3,
       "adjD": 102.0,
-      "adjT": 70.4,
-      "sourceName": "USC"
+      "adjT": 70.6,
+      "sourceName": "USC",
+      "record": "18-14",
+      "netRtg": 10.82,
+      "ortg": 113.5,
+      "drtg": 102.7,
+      "luck": 0.068
     },
     "McNeese": {
       "adjO": 115.0,
       "adjD": 102.8,
       "adjT": 66.2,
-      "sourceName": "McNeese"
+      "sourceName": "McNeese",
+      "record": "28-5",
+      "netRtg": 12.54,
+      "ortg": 114.3,
+      "drtg": 101.8,
+      "luck": 0.084
     },
     "Northwestern": {
       "adjO": 116.4,
       "adjD": 104.3,
-      "adjT": 65.7,
-      "sourceName": "Northwestern"
+      "adjT": 65.1,
+      "sourceName": "Northwestern",
+      "record": "15-19",
+      "netRtg": 13.4,
+      "ortg": 117.5,
+      "drtg": 104.1,
+      "luck": -0.079
     },
     "Nevada": {
       "adjO": 116.5,
       "adjD": 104.6,
-      "adjT": 65.3,
-      "sourceName": "Nevada"
+      "adjT": 66.1,
+      "sourceName": "Nevada",
+      "record": "22-12",
+      "netRtg": 11.38,
+      "ortg": 115.8,
+      "drtg": 104.4,
+      "luck": 0.012
     },
     "Florida St.": {
       "adjO": 116.5,
       "adjD": 104.8,
-      "adjT": 70.4,
-      "sourceName": "Florida St."
+      "adjT": 70.5,
+      "sourceName": "Florida St.",
+      "record": "18-15",
+      "netRtg": 13.46,
+      "ortg": 118.4,
+      "drtg": 104.9,
+      "luck": -0.006
     },
     "Colorado": {
       "adjO": 117.7,
       "adjD": 106.3,
-      "adjT": 68.8,
-      "sourceName": "Colorado"
+      "adjT": 68.7,
+      "sourceName": "Colorado",
+      "record": "17-15",
+      "netRtg": 12.07,
+      "ortg": 118.9,
+      "drtg": 106.8,
+      "luck": 0.024
     },
     "California": {
       "adjO": 114.1,
       "adjD": 102.8,
-      "adjT": 67.6,
-      "sourceName": "California"
+      "adjT": 68.0,
+      "sourceName": "California",
+      "record": "21-11",
+      "netRtg": 11.41,
+      "ortg": 114.0,
+      "drtg": 102.6,
+      "luck": 0.044
     },
     "Oklahoma St.": {
       "adjO": 117.8,
       "adjD": 106.8,
-      "adjT": 71.9,
-      "sourceName": "Oklahoma St."
+      "adjT": 72.2,
+      "sourceName": "Oklahoma St.",
+      "record": "20-14",
+      "netRtg": 12.28,
+      "ortg": 119.9,
+      "drtg": 107.6,
+      "luck": 0.061
     },
     "Dayton": {
       "adjO": 111.8,
       "adjD": 100.8,
-      "adjT": 67.5,
-      "sourceName": "Dayton"
+      "adjT": 66.9,
+      "sourceName": "Dayton",
+      "record": "23-11",
+      "netRtg": 10.87,
+      "ortg": 110.5,
+      "drtg": 99.7,
+      "luck": 0.043
     },
     "George Washington": {
       "adjO": 119.5,
       "adjD": 108.7,
-      "adjT": 69.1,
-      "sourceName": "George Washington"
+      "adjT": 69.2,
+      "sourceName": "George Washington",
+      "record": "18-15",
+      "netRtg": 9.56,
+      "ortg": 117.5,
+      "drtg": 108.0,
+      "luck": -0.141
     },
     "Syracuse": {
       "adjO": 116.0,
       "adjD": 105.3,
-      "adjT": 67.6,
-      "sourceName": "Syracuse"
+      "adjT": 67.4,
+      "sourceName": "Syracuse",
+      "record": "15-17",
+      "netRtg": 9.71,
+      "ortg": 114.6,
+      "drtg": 104.9,
+      "luck": -0.046
     },
     "Wake Forest": {
       "adjO": 117.0,
       "adjD": 106.3,
-      "adjT": 67.9,
-      "sourceName": "Wake Forest"
+      "adjT": 68.1,
+      "sourceName": "Wake Forest",
+      "record": "17-16",
+      "netRtg": 11.37,
+      "ortg": 117.0,
+      "drtg": 105.7,
+      "luck": -0.022
     },
     "Mississippi": {
       "adjO": 115.2,
       "adjD": 104.6,
-      "adjT": 65.9,
-      "sourceName": "Mississippi"
+      "adjT": 66.4,
+      "sourceName": "Mississippi",
+      "record": "15-20",
+      "netRtg": 12.58,
+      "ortg": 114.1,
+      "drtg": 101.5,
+      "luck": -0.07
     },
     "Yale": {
       "adjO": 120.8,
       "adjD": 110.5,
       "adjT": 64.5,
-      "sourceName": "Yale"
+      "sourceName": "Yale",
+      "record": "24-7",
+      "netRtg": 10.19,
+      "ortg": 120.3,
+      "drtg": 110.1,
+      "luck": 0.024
     },
     "Creighton": {
       "adjO": 116.9,
       "adjD": 106.6,
-      "adjT": 67.2,
-      "sourceName": "Creighton"
+      "adjT": 67.6,
+      "sourceName": "Creighton",
+      "record": "15-17",
+      "netRtg": 10.99,
+      "ortg": 116.2,
+      "drtg": 105.2,
+      "luck": -0.029
     },
     "Butler": {
       "adjO": 117.3,
       "adjD": 107.1,
-      "adjT": 68.3,
-      "sourceName": "Butler"
+      "adjT": 68.7,
+      "sourceName": "Butler",
+      "record": "16-16",
+      "netRtg": 9.47,
+      "ortg": 116.1,
+      "drtg": 106.6,
+      "luck": -0.031
     },
     "Notre Dame": {
       "adjO": 115.8,
       "adjD": 106.0,
-      "adjT": 65.5,
-      "sourceName": "Notre Dame"
+      "adjT": 66.0,
+      "sourceName": "Notre Dame",
+      "record": "13-18",
+      "netRtg": 8.86,
+      "ortg": 115.5,
+      "drtg": 106.7,
+      "luck": -0.059
     },
     "Utah Valley": {
       "adjO": 112.4,
       "adjD": 102.8,
-      "adjT": 69.0,
-      "sourceName": "Utah Valley"
+      "adjT": 68.7,
+      "sourceName": "Utah Valley",
+      "record": "25-8",
+      "netRtg": 8.82,
+      "ortg": 112.8,
+      "drtg": 104.0,
+      "luck": 0.033
     },
     "Colorado St.": {
       "adjO": 120.3,
       "adjD": 110.8,
-      "adjT": 62.5,
-      "sourceName": "Colorado St."
+      "adjT": 63.0,
+      "sourceName": "Colorado St.",
+      "record": "21-12",
+      "netRtg": 9.55,
+      "ortg": 119.0,
+      "drtg": 109.5,
+      "luck": 0.04
     },
     "Northern Iowa": {
       "adjO": 108.0,
       "adjD": 98.5,
-      "adjT": 62.1,
-      "sourceName": "Northern Iowa"
+      "adjT": 62.3,
+      "sourceName": "Northern Iowa",
+      "record": "23-12",
+      "netRtg": 11.8,
+      "ortg": 110.0,
+      "drtg": 98.2,
+      "luck": -0.07
     },
     "Miami OH": {
       "adjO": 116.6,
       "adjD": 107.1,
       "adjT": 70.0,
-      "sourceName": "Miami OH"
+      "sourceName": "Miami OH",
+      "record": "31-1",
+      "netRtg": 8.27,
+      "ortg": 116.8,
+      "drtg": 108.5,
+      "luck": 0.099
     },
     "Stephen F. Austin": {
       "adjO": 113.2,
       "adjD": 103.9,
-      "adjT": 66.0,
-      "sourceName": "Stephen F. Austin"
+      "adjT": 65.9,
+      "sourceName": "Stephen F. Austin",
+      "record": "28-6",
+      "netRtg": 8.6,
+      "ortg": 112.6,
+      "drtg": 104.0,
+      "luck": 0.017
     },
     "Georgetown": {
       "adjO": 114.9,
       "adjD": 105.8,
       "adjT": 66.2,
-      "sourceName": "Georgetown"
+      "sourceName": "Georgetown",
+      "record": "16-18",
+      "netRtg": 10.86,
+      "ortg": 114.6,
+      "drtg": 103.7,
+      "luck": -0.049
     },
     "Wichita St.": {
       "adjO": 112.6,
       "adjD": 103.7,
-      "adjT": 66.1,
-      "sourceName": "Wichita St."
+      "adjT": 66.5,
+      "sourceName": "Wichita St.",
+      "record": "23-11",
+      "netRtg": 9.71,
+      "ortg": 112.1,
+      "drtg": 102.4,
+      "luck": -0.028
     },
     "High Point": {
       "adjO": 118.4,
       "adjD": 109.9,
-      "adjT": 69.7,
-      "sourceName": "High Point"
+      "adjT": 69.9,
+      "sourceName": "High Point",
+      "record": "30-4",
+      "netRtg": 8.4,
+      "ortg": 117.0,
+      "drtg": 108.6,
+      "luck": 0.048
     },
     "Hofstra": {
       "adjO": 114.2,
       "adjD": 105.9,
-      "adjT": 65.2,
-      "sourceName": "Hofstra"
+      "adjT": 64.7,
+      "sourceName": "Hofstra",
+      "record": "24-10",
+      "netRtg": 9.53,
+      "ortg": 114.6,
+      "drtg": 105.1,
+      "luck": -0.052
     },
     "Xavier": {
       "adjO": 115.9,
       "adjD": 107.7,
-      "adjT": 70.1,
-      "sourceName": "Xavier"
+      "adjT": 70.3,
+      "sourceName": "Xavier",
+      "record": "15-18",
+      "netRtg": 7.45,
+      "ortg": 116.9,
+      "drtg": 109.4,
+      "luck": 0.016
     },
     "Marquette": {
       "adjO": 112.8,
       "adjD": 104.6,
-      "adjT": 68.7,
-      "sourceName": "Marquette"
+      "adjT": 68.9,
+      "sourceName": "Marquette",
+      "record": "12-20",
+      "netRtg": 9.63,
+      "ortg": 111.8,
+      "drtg": 102.2,
+      "luck": -0.111
     },
     "South Carolina": {
       "adjO": 113.0,
       "adjD": 105.0,
-      "adjT": 66.5,
-      "sourceName": "South Carolina"
+      "adjT": 66.4,
+      "sourceName": "South Carolina",
+      "record": "13-19",
+      "netRtg": 7.51,
+      "ortg": 112.5,
+      "drtg": 105.0,
+      "luck": -0.062
     },
     "Mississippi St.": {
       "adjO": 113.0,
       "adjD": 105.2,
-      "adjT": 69.2,
-      "sourceName": "Mississippi St."
+      "adjT": 69.6,
+      "sourceName": "Mississippi St.",
+      "record": "13-19",
+      "netRtg": 6.96,
+      "ortg": 112.7,
+      "drtg": 105.7,
+      "luck": -0.001
     },
     "Oregon": {
       "adjO": 111.8,
       "adjD": 104.5,
-      "adjT": 65.7,
-      "sourceName": "Oregon"
+      "adjT": 65.9,
+      "sourceName": "Oregon",
+      "record": "12-20",
+      "netRtg": 7.02,
+      "ortg": 111.6,
+      "drtg": 104.6,
+      "luck": -0.036
     },
     "Illinois St.": {
       "adjO": 110.7,
       "adjD": 103.5,
-      "adjT": 66.8,
-      "sourceName": "Illinois St."
+      "adjT": 66.7,
+      "sourceName": "Illinois St.",
+      "record": "20-12",
+      "netRtg": 6.66,
+      "ortg": 110.5,
+      "drtg": 103.9,
+      "luck": -0.009
     },
     "Pittsburgh": {
       "adjO": 113.0,
       "adjD": 105.8,
-      "adjT": 63.8,
-      "sourceName": "Pittsburgh"
+      "adjT": 63.6,
+      "sourceName": "Pittsburgh",
+      "record": "13-20",
+      "netRtg": 7.57,
+      "ortg": 113.7,
+      "drtg": 106.2,
+      "luck": -0.067
     },
     "Wyoming": {
       "adjO": 114.1,
       "adjD": 107.0,
-      "adjT": 66.2,
-      "sourceName": "Wyoming"
+      "adjT": 66.4,
+      "sourceName": "Wyoming",
+      "record": "18-15",
+      "netRtg": 7.53,
+      "ortg": 114.6,
+      "drtg": 107.1,
+      "luck": -0.037
     },
     "DePaul": {
       "adjO": 108.8,
       "adjD": 101.7,
-      "adjT": 65.9,
-      "sourceName": "DePaul"
+      "adjT": 66.2,
+      "sourceName": "DePaul",
+      "record": "16-16",
+      "netRtg": 6.81,
+      "ortg": 107.2,
+      "drtg": 100.3,
+      "luck": -0.014
     },
     "Kansas St.": {
       "adjO": 112.9,
       "adjD": 105.9,
-      "adjT": 72.3,
-      "sourceName": "Kansas St."
+      "adjT": 72.6,
+      "sourceName": "Kansas St.",
+      "record": "12-20",
+      "netRtg": 6.93,
+      "ortg": 113.2,
+      "drtg": 106.3,
+      "luck": -0.074
     },
     "UNC Wilmington": {
       "adjO": 113.0,
       "adjD": 106.1,
-      "adjT": 64.7,
-      "sourceName": "UNC Wilmington"
+      "adjT": 65.2,
+      "sourceName": "UNC Wilmington",
+      "record": "27-6",
+      "netRtg": 6.23,
+      "ortg": 111.6,
+      "drtg": 105.4,
+      "luck": 0.038
     },
     "Sam Houston St.": {
       "adjO": 115.0,
       "adjD": 108.3,
-      "adjT": 70.0,
-      "sourceName": "Sam Houston St."
+      "adjT": 70.1,
+      "sourceName": "Sam Houston St.",
+      "record": "22-11",
+      "netRtg": 5.75,
+      "ortg": 113.6,
+      "drtg": 107.8,
+      "luck": -0.007
     },
     "Illinois Chicago": {
       "adjO": 110.3,
       "adjD": 103.8,
-      "adjT": 66.1,
-      "sourceName": "Illinois Chicago"
+      "adjT": 66.4,
+      "sourceName": "Illinois Chicago",
+      "record": "19-15",
+      "netRtg": 6.16,
+      "ortg": 110.4,
+      "drtg": 104.3,
+      "luck": -0.061
     },
     "Davidson": {
       "adjO": 111.4,
       "adjD": 105.2,
-      "adjT": 63.3,
-      "sourceName": "Davidson"
+      "adjT": 63.8,
+      "sourceName": "Davidson",
+      "record": "20-14",
+      "netRtg": 5.17,
+      "ortg": 109.7,
+      "drtg": 104.5,
+      "luck": 0.019
     },
     "St. Thomas": {
       "adjO": 114.4,
       "adjD": 108.2,
       "adjT": 68.4,
-      "sourceName": "St. Thomas"
+      "sourceName": "St. Thomas",
+      "record": "24-10",
+      "netRtg": 5.12,
+      "ortg": 112.9,
+      "drtg": 107.8,
+      "luck": -0.032
     },
     "George Mason": {
       "adjO": 112.8,
       "adjD": 107.0,
-      "adjT": 63.7,
-      "sourceName": "George Mason"
+      "adjT": 63.5,
+      "sourceName": "George Mason",
+      "record": "23-10",
+      "netRtg": 6.8,
+      "ortg": 112.8,
+      "drtg": 106.0,
+      "luck": 0.042
     },
     "Hawaii": {
       "adjO": 106.8,
       "adjD": 101.2,
-      "adjT": 69.5,
-      "sourceName": "Hawaii"
+      "adjT": 69.7,
+      "sourceName": "Hawaii",
+      "record": "24-8",
+      "netRtg": 5.9,
+      "ortg": 107.1,
+      "drtg": 101.2,
+      "luck": 0.038
     },
     "UC Irvine": {
       "adjO": 103.2,
       "adjD": 97.8,
-      "adjT": 68.4,
-      "sourceName": "UC Irvine"
+      "adjT": 68.3,
+      "sourceName": "UC Irvine",
+      "record": "23-12",
+      "netRtg": 5.91,
+      "ortg": 104.6,
+      "drtg": 98.7,
+      "luck": -0.029
     },
     "Liberty": {
       "adjO": 117.7,
       "adjD": 112.3,
-      "adjT": 64.0,
-      "sourceName": "Liberty"
+      "adjT": 64.1,
+      "sourceName": "Liberty",
+      "record": "26-7",
+      "netRtg": 4.73,
+      "ortg": 118.1,
+      "drtg": 113.4,
+      "luck": 0.146
     },
     "Pacific": {
       "adjO": 110.6,
       "adjD": 105.3,
-      "adjT": 64.4,
-      "sourceName": "Pacific"
+      "adjT": 64.3,
+      "sourceName": "Pacific",
+      "record": "18-15",
+      "netRtg": 5.53,
+      "ortg": 110.8,
+      "drtg": 105.2,
+      "luck": -0.02
     },
     "UC San Diego": {
       "adjO": 109.2,
       "adjD": 104.0,
-      "adjT": 67.5,
-      "sourceName": "UC San Diego"
+      "adjT": 67.2,
+      "sourceName": "UC San Diego",
+      "record": "23-11",
+      "netRtg": 4.49,
+      "ortg": 107.8,
+      "drtg": 103.3,
+      "luck": 0.01
     },
     "Seattle": {
       "adjO": 103.3,
       "adjD": 98.3,
-      "adjT": 67.8,
-      "sourceName": "Seattle"
+      "adjT": 67.7,
+      "sourceName": "Seattle",
+      "record": "21-13",
+      "netRtg": 5.2,
+      "ortg": 101.9,
+      "drtg": 96.7,
+      "luck": 0.015
     },
     "Murray St.": {
       "adjO": 116.7,
       "adjD": 111.7,
-      "adjT": 71.2,
-      "sourceName": "Murray St."
+      "adjT": 71.6,
+      "sourceName": "Murray St.",
+      "record": "20-12",
+      "netRtg": 4.13,
+      "ortg": 116.3,
+      "drtg": 112.2,
+      "luck": 0.043
     },
     "Utah": {
       "adjO": 113.9,
       "adjD": 109.0,
-      "adjT": 66.3,
-      "sourceName": "Utah"
+      "adjT": 66.0,
+      "sourceName": "Utah",
+      "record": "10-22",
+      "netRtg": 3.62,
+      "ortg": 114.6,
+      "drtg": 111.0,
+      "luck": -0.012
     },
     "Southern Illinois": {
       "adjO": 103.8,
       "adjD": 98.9,
-      "adjT": 69.2,
-      "sourceName": "Southern Illinois"
+      "adjT": 68.9,
+      "sourceName": "Southern Illinois",
+      "record": "16-16",
+      "netRtg": 4.56,
+      "ortg": 103.8,
+      "drtg": 99.2,
+      "luck": -0.094
     },
     "Memphis": {
       "adjO": 107.0,
       "adjD": 102.3,
-      "adjT": 69.9,
-      "sourceName": "Memphis"
+      "adjT": 70.2,
+      "sourceName": "Memphis",
+      "record": "13-19",
+      "netRtg": 2.53,
+      "ortg": 107.2,
+      "drtg": 104.7,
+      "luck": -0.053
     },
     "North Dakota St.": {
       "adjO": 112.7,
       "adjD": 108.1,
-      "adjT": 66.2,
-      "sourceName": "North Dakota St."
+      "adjT": 66.3,
+      "sourceName": "North Dakota St.",
+      "record": "27-7",
+      "netRtg": 5.0,
+      "ortg": 111.7,
+      "drtg": 106.7,
+      "luck": 0.04
     },
     "UAB": {
       "adjO": 109.8,
       "adjD": 105.3,
-      "adjT": 68.9,
-      "sourceName": "UAB"
+      "adjT": 69.1,
+      "sourceName": "UAB",
+      "record": "20-12",
+      "netRtg": 3.47,
+      "ortg": 109.9,
+      "drtg": 106.4,
+      "luck": 0.006
     },
     "Cal Baptist": {
       "adjO": 107.9,
       "adjD": 103.4,
-      "adjT": 65.2,
-      "sourceName": "Cal Baptist"
+      "adjT": 65.8,
+      "sourceName": "Cal Baptist",
+      "record": "25-8",
+      "netRtg": 5.99,
+      "ortg": 107.9,
+      "drtg": 101.9,
+      "luck": 0.091
     },
     "Florida Atlantic": {
       "adjO": 111.2,
       "adjD": 106.8,
-      "adjT": 69.5,
-      "sourceName": "Florida Atlantic"
+      "adjT": 69.6,
+      "sourceName": "Florida Atlantic",
+      "record": "18-15",
+      "netRtg": 3.31,
+      "ortg": 109.7,
+      "drtg": 106.4,
+      "luck": -0.034
     },
     "UNLV": {
       "adjO": 114.9,
       "adjD": 110.6,
       "adjT": 69.9,
-      "sourceName": "UNLV"
+      "sourceName": "UNLV",
+      "record": "18-16",
+      "netRtg": 6.28,
+      "ortg": 115.0,
+      "drtg": 108.7,
+      "luck": 0.016
     },
     "San Francisco": {
       "adjO": 113.5,
       "adjD": 109.5,
-      "adjT": 65.6,
-      "sourceName": "San Francisco"
+      "adjT": 66.0,
+      "sourceName": "San Francisco",
+      "record": "17-16",
+      "netRtg": 4.29,
+      "ortg": 113.7,
+      "drtg": 109.4,
+      "luck": -0.006
     },
     "Maryland": {
       "adjO": 111.9,
       "adjD": 108.0,
       "adjT": 66.2,
-      "sourceName": "Maryland"
+      "sourceName": "Maryland",
+      "record": "12-21",
+      "netRtg": 4.26,
+      "ortg": 111.1,
+      "drtg": 106.9,
+      "luck": 0.016
     },
     "Duquesne": {
       "adjO": 111.4,
       "adjD": 107.6,
-      "adjT": 69.2,
-      "sourceName": "Duquesne"
+      "adjT": 68.6,
+      "sourceName": "Duquesne",
+      "record": "18-15",
+      "netRtg": 3.41,
+      "ortg": 110.7,
+      "drtg": 107.3,
+      "luck": -0.012
     },
     "Fresno St.": {
       "adjO": 108.3,
       "adjD": 104.6,
-      "adjT": 68.0,
-      "sourceName": "Fresno St."
+      "adjT": 68.2,
+      "sourceName": "Fresno St.",
+      "record": "13-19",
+      "netRtg": 3.16,
+      "ortg": 107.5,
+      "drtg": 104.3,
+      "luck": -0.078
     },
     "UT Rio Grande Valley": {
       "adjO": 111.0,
       "adjD": 107.3,
       "adjT": 66.4,
-      "sourceName": "UT Rio Grande Valley"
+      "sourceName": "UT Rio Grande Valley",
+      "record": "19-14",
+      "netRtg": 4.62,
+      "ortg": 111.0,
+      "drtg": 106.4,
+      "luck": -0.056
     },
     "Bradley": {
       "adjO": 111.5,
       "adjD": 107.9,
-      "adjT": 67.1,
-      "sourceName": "Bradley"
+      "adjT": 67.3,
+      "sourceName": "Bradley",
+      "record": "21-12",
+      "netRtg": 3.99,
+      "ortg": 111.7,
+      "drtg": 107.7,
+      "luck": 0.039
     },
     "Penn St.": {
       "adjO": 115.7,
       "adjD": 112.2,
-      "adjT": 67.4,
-      "sourceName": "Penn St."
+      "adjT": 67.5,
+      "sourceName": "Penn St.",
+      "record": "12-20",
+      "netRtg": 2.17,
+      "ortg": 114.0,
+      "drtg": 111.9,
+      "luck": -0.012
     },
     "UC Santa Barbara": {
       "adjO": 114.6,
       "adjD": 111.1,
-      "adjT": 64.1,
-      "sourceName": "UC Santa Barbara"
+      "adjT": 64.4,
+      "sourceName": "UC Santa Barbara",
+      "record": "18-14",
+      "netRtg": 3.14,
+      "ortg": 113.8,
+      "drtg": 110.6,
+      "luck": -0.067
     },
     "Saint Joseph's": {
       "adjO": 105.6,
       "adjD": 102.4,
       "adjT": 68.0,
-      "sourceName": "Saint Joseph's"
+      "sourceName": "Saint Joseph's",
+      "record": "22-11",
+      "netRtg": 4.5,
+      "ortg": 107.3,
+      "drtg": 102.8,
+      "luck": 0.088
     },
     "William & Mary": {
       "adjO": 111.7,
       "adjD": 108.7,
-      "adjT": 72.8,
-      "sourceName": "William & Mary"
+      "adjT": 72.6,
+      "sourceName": "William & Mary",
+      "record": "20-12",
+      "netRtg": 1.57,
+      "ortg": 111.0,
+      "drtg": 109.5,
+      "luck": 0.024
     },
     "Washington St.": {
       "adjO": 114.7,
       "adjD": 111.8,
-      "adjT": 67.7,
-      "sourceName": "Washington St."
+      "adjT": 67.8,
+      "sourceName": "Washington St.",
+      "record": "12-20",
+      "netRtg": 2.41,
+      "ortg": 114.0,
+      "drtg": 111.6,
+      "luck": -0.094
     },
     "Navy": {
       "adjO": 107.3,
       "adjD": 104.4,
       "adjT": 65.1,
-      "sourceName": "Navy"
+      "sourceName": "Navy",
+      "record": "26-7",
+      "netRtg": 1.81,
+      "ortg": 107.4,
+      "drtg": 105.6,
+      "luck": 0.053
     },
     "Montana St.": {
       "adjO": 110.7,
       "adjD": 107.7,
       "adjT": 65.9,
-      "sourceName": "Montana St."
+      "sourceName": "Montana St.",
+      "record": "18-14",
+      "netRtg": 2.95,
+      "ortg": 111.0,
+      "drtg": 108.0,
+      "luck": -0.083
     },
     "Rhode Island": {
       "adjO": 107.3,
       "adjD": 104.4,
-      "adjT": 65.8,
-      "sourceName": "Rhode Island"
+      "adjT": 65.7,
+      "sourceName": "Rhode Island",
+      "record": "16-16",
+      "netRtg": 2.38,
+      "ortg": 105.8,
+      "drtg": 103.4,
+      "luck": -0.048
     },
     "Western Kentucky": {
       "adjO": 108.7,
       "adjD": 106.3,
-      "adjT": 69.7,
-      "sourceName": "Western Kentucky"
+      "adjT": 69.9,
+      "sourceName": "Western Kentucky",
+      "record": "18-14",
+      "netRtg": 0.2,
+      "ortg": 108.6,
+      "drtg": 108.4,
+      "luck": 0.008
     },
     "Winthrop": {
       "adjO": 112.8,
       "adjD": 110.8,
-      "adjT": 69.4,
-      "sourceName": "Winthrop"
+      "adjT": 70.0,
+      "sourceName": "Winthrop",
+      "record": "23-11",
+      "netRtg": 1.11,
+      "ortg": 111.6,
+      "drtg": 110.5,
+      "luck": 0.025
     },
     "East Tennessee St.": {
       "adjO": 110.6,
       "adjD": 108.6,
-      "adjT": 66.0,
-      "sourceName": "East Tennessee St."
+      "adjT": 66.1,
+      "sourceName": "East Tennessee St.",
+      "record": "23-11",
+      "netRtg": 0.46,
+      "ortg": 109.7,
+      "drtg": 109.2,
+      "luck": -0.021
     },
     "Richmond": {
       "adjO": 111.6,
       "adjD": 109.7,
-      "adjT": 68.0,
-      "sourceName": "Richmond"
+      "adjT": 67.7,
+      "sourceName": "Richmond",
+      "record": "15-17",
+      "netRtg": 0.77,
+      "ortg": 111.3,
+      "drtg": 110.5,
+      "luck": -0.092
     },
     "North Texas": {
       "adjO": 104.5,
       "adjD": 102.7,
-      "adjT": 64.9,
-      "sourceName": "North Texas"
+      "adjT": 65.0,
+      "sourceName": "North Texas",
+      "record": "19-14",
+      "netRtg": 2.47,
+      "ortg": 103.4,
+      "drtg": 100.9,
+      "luck": 0.01
     },
     "Arkansas St.": {
       "adjO": 111.1,
       "adjD": 109.4,
-      "adjT": 72.2,
-      "sourceName": "Arkansas St."
+      "adjT": 72.0,
+      "sourceName": "Arkansas St.",
+      "record": "20-12",
+      "netRtg": 1.47,
+      "ortg": 110.7,
+      "drtg": 109.2,
+      "luck": 0.008
     },
     "Robert Morris": {
       "adjO": 111.4,
       "adjD": 109.8,
-      "adjT": 64.6,
-      "sourceName": "Robert Morris"
+      "adjT": 64.5,
+      "sourceName": "Robert Morris",
+      "record": "22-11",
+      "netRtg": 1.68,
+      "ortg": 110.8,
+      "drtg": 109.1,
+      "luck": 0.029
     },
     "Toledo": {
       "adjO": 114.2,
       "adjD": 112.6,
-      "adjT": 68.1,
-      "sourceName": "Toledo"
+      "adjT": 67.8,
+      "sourceName": "Toledo",
+      "record": "19-15",
+      "netRtg": 3.17,
+      "ortg": 114.5,
+      "drtg": 111.3,
+      "luck": -0.055
     },
     "Loyola Marymount": {
       "adjO": 107.1,
       "adjD": 105.8,
       "adjT": 67.0,
-      "sourceName": "Loyola Marymount"
+      "sourceName": "Loyola Marymount",
+      "record": "15-17",
+      "netRtg": 0.79,
+      "ortg": 106.6,
+      "drtg": 105.8,
+      "luck": -0.045
     },
     "Bowling Green": {
       "adjO": 107.3,
       "adjD": 106.0,
-      "adjT": 68.1,
-      "sourceName": "Bowling Green"
+      "adjT": 68.4,
+      "sourceName": "Bowling Green",
+      "record": "18-14",
+      "netRtg": 1.53,
+      "ortg": 107.3,
+      "drtg": 105.7,
+      "luck": -0.095
     },
     "Northern Colorado": {
       "adjO": 111.7,
       "adjD": 110.5,
-      "adjT": 68.4,
-      "sourceName": "Northern Colorado"
+      "adjT": 68.7,
+      "sourceName": "Northern Colorado",
+      "record": "20-12",
+      "netRtg": 1.82,
+      "ortg": 112.2,
+      "drtg": 110.4,
+      "luck": -0.024
     },
     "St. Bonaventure": {
       "adjO": 114.7,
       "adjD": 113.5,
-      "adjT": 66.9,
-      "sourceName": "St. Bonaventure"
+      "adjT": 67.3,
+      "sourceName": "St. Bonaventure",
+      "record": "17-17",
+      "netRtg": 2.08,
+      "ortg": 113.7,
+      "drtg": 111.6,
+      "luck": -0.044
     },
     "Valparaiso": {
       "adjO": 109.0,
       "adjD": 107.8,
-      "adjT": 65.0,
-      "sourceName": "Valparaiso"
+      "adjT": 65.1,
+      "sourceName": "Valparaiso",
+      "record": "18-15",
+      "netRtg": 0.99,
+      "ortg": 108.2,
+      "drtg": 107.2,
+      "luck": 0.041
     },
     "Rutgers": {
       "adjO": 110.6,
       "adjD": 109.5,
-      "adjT": 65.8,
-      "sourceName": "Rutgers"
+      "adjT": 66.9,
+      "sourceName": "Rutgers",
+      "record": "14-19",
+      "netRtg": 3.95,
+      "ortg": 110.5,
+      "drtg": 106.5,
+      "luck": 0.043
     },
     "Wright St.": {
       "adjO": 112.2,
       "adjD": 111.2,
-      "adjT": 66.8,
-      "sourceName": "Wright St."
+      "adjT": 67.2,
+      "sourceName": "Wright St.",
+      "record": "23-11",
+      "netRtg": 2.04,
+      "ortg": 112.1,
+      "drtg": 110.0,
+      "luck": 0.009
     },
     "Central Arkansas": {
       "adjO": 110.3,
       "adjD": 109.4,
-      "adjT": 67.8,
-      "sourceName": "Central Arkansas"
+      "adjT": 68.0,
+      "sourceName": "Central Arkansas",
+      "record": "22-12",
+      "netRtg": 1.26,
+      "ortg": 110.2,
+      "drtg": 108.9,
+      "luck": 0.041
     },
     "UC Davis": {
       "adjO": 109.8,
       "adjD": 108.9,
-      "adjT": 68.4,
-      "sourceName": "UC Davis"
+      "adjT": 69.0,
+      "sourceName": "UC Davis",
+      "record": "19-14",
+      "netRtg": 0.85,
+      "ortg": 108.0,
+      "drtg": 107.1,
+      "luck": 0.04
     },
     "Troy": {
       "adjO": 111.0,
       "adjD": 110.1,
-      "adjT": 64.8,
-      "sourceName": "Troy"
+      "adjT": 64.9,
+      "sourceName": "Troy",
+      "record": "22-11",
+      "netRtg": 1.8,
+      "ortg": 110.8,
+      "drtg": 109.0,
+      "luck": 0.024
     },
     "Charleston": {
       "adjO": 107.9,
       "adjD": 107.1,
-      "adjT": 67.7,
-      "sourceName": "Charleston"
+      "adjT": 67.6,
+      "sourceName": "Charleston",
+      "record": "21-11",
+      "netRtg": -0.11,
+      "ortg": 108.1,
+      "drtg": 108.2,
+      "luck": 0.105
     },
     "Harvard": {
       "adjO": 107.2,
       "adjD": 106.3,
-      "adjT": 62.8,
-      "sourceName": "Harvard"
+      "adjT": 63.0,
+      "sourceName": "Harvard",
+      "record": "17-12",
+      "netRtg": 1.15,
+      "ortg": 106.6,
+      "drtg": 105.4,
+      "luck": -0.015
     },
     "Eastern Washington": {
       "adjO": 113.3,
       "adjD": 112.5,
-      "adjT": 67.5,
-      "sourceName": "Eastern Washington"
+      "adjT": 67.7,
+      "sourceName": "Eastern Washington",
+      "record": "14-19",
+      "netRtg": -0.0,
+      "ortg": 113.1,
+      "drtg": 113.1,
+      "luck": -0.061
     },
     "Portland St.": {
       "adjO": 103.3,
       "adjD": 102.6,
-      "adjT": 67.5,
-      "sourceName": "Portland St."
+      "adjT": 68.0,
+      "sourceName": "Portland St.",
+      "record": "20-11",
+      "netRtg": 1.5,
+      "ortg": 103.5,
+      "drtg": 102.0,
+      "luck": 0.008
     },
     "Kent St.": {
       "adjO": 111.4,
       "adjD": 110.8,
-      "adjT": 70.2,
-      "sourceName": "Kent St."
+      "adjT": 70.3,
+      "sourceName": "Kent St.",
+      "record": "24-9",
+      "netRtg": 1.52,
+      "ortg": 111.8,
+      "drtg": 110.3,
+      "luck": 0.136
     },
     "Boston College": {
       "adjO": 104.3,
       "adjD": 103.7,
-      "adjT": 65.4,
-      "sourceName": "Boston College"
+      "adjT": 66.0,
+      "sourceName": "Boston College",
+      "record": "11-20",
+      "netRtg": 1.06,
+      "ortg": 103.7,
+      "drtg": 102.7,
+      "luck": -0.035
     },
     "Oakland": {
       "adjO": 115.4,
       "adjD": 115.0,
       "adjT": 69.8,
-      "sourceName": "Oakland"
+      "sourceName": "Oakland",
+      "record": "16-16",
+      "netRtg": 0.2,
+      "ortg": 115.2,
+      "drtg": 115.0,
+      "luck": 0.016
     },
     "UT Arlington": {
       "adjO": 103.0,
       "adjD": 102.8,
-      "adjT": 65.1,
-      "sourceName": "UT Arlington"
+      "adjT": 64.9,
+      "sourceName": "UT Arlington",
+      "record": "18-14",
+      "netRtg": 1.15,
+      "ortg": 102.6,
+      "drtg": 101.5,
+      "luck": 0.03
     },
     "CSUN": {
       "adjO": 108.9,
       "adjD": 108.7,
-      "adjT": 73.5,
-      "sourceName": "CSUN"
+      "adjT": 73.6,
+      "sourceName": "CSUN",
+      "record": "20-14",
+      "netRtg": -0.43,
+      "ortg": 108.9,
+      "drtg": 109.4,
+      "luck": 0.078
     },
     "Austin Peay": {
       "adjO": 108.5,
       "adjD": 108.3,
-      "adjT": 69.5,
-      "sourceName": "Austin Peay"
+      "adjT": 69.4,
+      "sourceName": "Austin Peay",
+      "record": "22-9",
+      "netRtg": -0.27,
+      "ortg": 108.0,
+      "drtg": 108.3,
+      "luck": 0.033
     },
     "Georgia Tech": {
       "adjO": 107.8,
       "adjD": 107.7,
-      "adjT": 70.5,
-      "sourceName": "Georgia Tech"
+      "adjT": 70.7,
+      "sourceName": "Georgia Tech",
+      "record": "11-20",
+      "netRtg": 0.57,
+      "ortg": 107.7,
+      "drtg": 107.1,
+      "luck": -0.039
     },
     "Cornell": {
       "adjO": 118.7,
       "adjD": 118.8,
       "adjT": 71.3,
-      "sourceName": "Cornell"
+      "sourceName": "Cornell",
+      "record": "15-13",
+      "netRtg": 0.36,
+      "ortg": 119.8,
+      "drtg": 119.4,
+      "luck": -0.032
     },
     "Fordham": {
       "adjO": 104.2,
       "adjD": 104.3,
-      "adjT": 64.0,
-      "sourceName": "Fordham"
+      "adjT": 64.4,
+      "sourceName": "Fordham",
+      "record": "17-15",
+      "netRtg": 0.42,
+      "ortg": 104.6,
+      "drtg": 104.2,
+      "luck": -0.056
     },
     "Temple": {
       "adjO": 112.0,
       "adjD": 112.3,
-      "adjT": 64.7,
-      "sourceName": "Temple"
+      "adjT": 64.9,
+      "sourceName": "Temple",
+      "record": "16-16",
+      "netRtg": 0.49,
+      "ortg": 111.7,
+      "drtg": 111.2,
+      "luck": -0.073
     },
     "Penn": {
       "adjO": 107.3,
       "adjD": 107.7,
       "adjT": 69.1,
-      "sourceName": "Penn"
+      "sourceName": "Penn",
+      "record": "18-11",
+      "netRtg": 1.33,
+      "ortg": 107.3,
+      "drtg": 106.0,
+      "luck": 0.068
     },
     "Kennesaw St.": {
       "adjO": 110.4,
       "adjD": 110.9,
       "adjT": 71.2,
-      "sourceName": "Kennesaw St."
+      "sourceName": "Kennesaw St.",
+      "record": "21-13",
+      "netRtg": 0.76,
+      "ortg": 110.7,
+      "drtg": 110.0,
+      "luck": 0.009
     },
     "Cal St. Fullerton": {
       "adjO": 110.5,
       "adjD": 111.3,
-      "adjT": 72.5,
-      "sourceName": "Cal St. Fullerton"
+      "adjT": 72.8,
+      "sourceName": "Cal St. Fullerton",
+      "record": "18-16",
+      "netRtg": 0.3,
+      "ortg": 109.4,
+      "drtg": 109.1,
+      "luck": 0.047
     },
     "Merrimack": {
       "adjO": 107.7,
       "adjD": 108.6,
-      "adjT": 63.2,
-      "sourceName": "Merrimack"
+      "adjT": 63.5,
+      "sourceName": "Merrimack",
+      "record": "23-11",
+      "netRtg": -0.88,
+      "ortg": 106.5,
+      "drtg": 107.4,
+      "luck": 0.115
     },
     "Idaho": {
       "adjO": 108.6,
       "adjD": 109.6,
-      "adjT": 67.6,
-      "sourceName": "Idaho"
+      "adjT": 67.8,
+      "sourceName": "Idaho",
+      "record": "21-14",
+      "netRtg": 1.51,
+      "ortg": 108.8,
+      "drtg": 107.3,
+      "luck": -0.012
     },
     "New Orleans": {
       "adjO": 110.7,
       "adjD": 111.7,
-      "adjT": 69.6,
-      "sourceName": "New Orleans"
+      "adjT": 69.7,
+      "sourceName": "New Orleans",
+      "record": "15-18",
+      "netRtg": -2.15,
+      "ortg": 109.7,
+      "drtg": 111.9,
+      "luck": 0.038
     },
     "Montana": {
       "adjO": 107.3,
       "adjD": 108.4,
-      "adjT": 69.0,
-      "sourceName": "Montana"
+      "adjT": 69.6,
+      "sourceName": "Montana",
+      "record": "18-16",
+      "netRtg": -1.75,
+      "ortg": 106.7,
+      "drtg": 108.5,
+      "luck": 0.047
     },
     "Towson": {
       "adjO": 104.3,
       "adjD": 105.4,
       "adjT": 63.5,
-      "sourceName": "Towson"
+      "sourceName": "Towson",
+      "record": "19-15",
+      "netRtg": 1.07,
+      "ortg": 105.8,
+      "drtg": 104.7,
+      "luck": 0.012
     },
     "Northern Kentucky": {
       "adjO": 108.2,
       "adjD": 109.3,
-      "adjT": 69.7,
-      "sourceName": "Northern Kentucky"
+      "adjT": 70.2,
+      "sourceName": "Northern Kentucky",
+      "record": "20-14",
+      "netRtg": -0.6,
+      "ortg": 109.5,
+      "drtg": 110.1,
+      "luck": -0.022
     },
     "Middle Tennessee": {
       "adjO": 109.2,
       "adjD": 110.4,
-      "adjT": 65.5,
-      "sourceName": "Middle Tennessee"
+      "adjT": 65.8,
+      "sourceName": "Middle Tennessee",
+      "record": "17-15",
+      "netRtg": -0.5,
+      "ortg": 109.2,
+      "drtg": 109.7,
+      "luck": 0.012
     },
     "Lipscomb": {
       "adjO": 108.0,
       "adjD": 109.2,
-      "adjT": 69.5,
-      "sourceName": "Lipscomb"
+      "adjT": 69.4,
+      "sourceName": "Lipscomb",
+      "record": "19-13",
+      "netRtg": -2.83,
+      "ortg": 106.9,
+      "drtg": 109.7,
+      "luck": 0.044
     },
     "New Mexico St.": {
       "adjO": 110.5,
       "adjD": 111.8,
       "adjT": 66.9,
-      "sourceName": "New Mexico St."
+      "sourceName": "New Mexico St.",
+      "record": "16-16",
+      "netRtg": -1.41,
+      "ortg": 108.8,
+      "drtg": 110.2,
+      "luck": -0.061
     },
     "Mercer": {
       "adjO": 112.6,
       "adjD": 113.8,
-      "adjT": 69.0,
-      "sourceName": "Mercer"
+      "adjT": 68.9,
+      "sourceName": "Mercer",
+      "record": "19-13",
+      "netRtg": -1.96,
+      "ortg": 111.8,
+      "drtg": 113.7,
+      "luck": -0.021
     },
     "Oregon St.": {
       "adjO": 109.1,
       "adjD": 110.4,
-      "adjT": 65.0,
-      "sourceName": "Oregon St."
+      "adjT": 65.1,
+      "sourceName": "Oregon St.",
+      "record": "17-16",
+      "netRtg": -0.57,
+      "ortg": 109.3,
+      "drtg": 109.8,
+      "luck": 0.097
     },
     "Weber St.": {
       "adjO": 112.3,
       "adjD": 113.8,
       "adjT": 68.5,
-      "sourceName": "Weber St."
+      "sourceName": "Weber St.",
+      "record": "16-16",
+      "netRtg": -2.7,
+      "ortg": 111.5,
+      "drtg": 114.2,
+      "luck": -0.031
     },
     "Appalachian St.": {
       "adjO": 106.1,
       "adjD": 107.7,
-      "adjT": 62.8,
-      "sourceName": "Appalachian St."
+      "adjT": 63.0,
+      "sourceName": "Appalachian St.",
+      "record": "19-13",
+      "netRtg": -2.28,
+      "ortg": 105.9,
+      "drtg": 108.1,
+      "luck": 0.015
     },
     "Texas A&M Corpus Chris": {
       "adjO": 103.7,
       "adjD": 105.2,
-      "adjT": 66.5,
-      "sourceName": "Texas A&M Corpus Chris"
+      "adjT": 66.0,
+      "sourceName": "Texas A&M Corpus Chris",
+      "record": "18-15",
+      "netRtg": -0.24,
+      "ortg": 104.8,
+      "drtg": 105.1,
+      "luck": 0.003
     },
     "Columbia": {
       "adjO": 108.5,
       "adjD": 110.2,
-      "adjT": 66.4,
-      "sourceName": "Columbia"
+      "adjT": 66.7,
+      "sourceName": "Columbia",
+      "record": "16-12",
+      "netRtg": -2.06,
+      "ortg": 108.5,
+      "drtg": 110.6,
+      "luck": 0.012
     },
     "Utah Tech": {
       "adjO": 110.5,
       "adjD": 112.2,
-      "adjT": 65.9,
-      "sourceName": "Utah Tech"
+      "adjT": 66.3,
+      "sourceName": "Utah Tech",
+      "record": "19-15",
+      "netRtg": -1.88,
+      "ortg": 110.9,
+      "drtg": 112.8,
+      "luck": 0.099
     },
     "Charlotte": {
       "adjO": 113.2,
       "adjD": 114.9,
-      "adjT": 63.5,
-      "sourceName": "Charlotte"
+      "adjT": 63.4,
+      "sourceName": "Charlotte",
+      "record": "17-17",
+      "netRtg": -1.47,
+      "ortg": 113.0,
+      "drtg": 114.5,
+      "luck": 0.024
     },
     "Monmouth": {
       "adjO": 105.7,
       "adjD": 107.6,
       "adjT": 67.1,
-      "sourceName": "Monmouth"
+      "sourceName": "Monmouth",
+      "record": "19-15",
+      "netRtg": -0.85,
+      "ortg": 106.1,
+      "drtg": 107.0,
+      "luck": 0.013
     },
     "Tulane": {
       "adjO": 108.0,
       "adjD": 110.2,
-      "adjT": 66.7,
-      "sourceName": "Tulane"
+      "adjT": 66.9,
+      "sourceName": "Tulane",
+      "record": "18-15",
+      "netRtg": -3.62,
+      "ortg": 107.7,
+      "drtg": 111.3,
+      "luck": 0.121
     },
     "Queens": {
       "adjO": 116.2,
       "adjD": 118.5,
-      "adjT": 69.4,
-      "sourceName": "Queens"
+      "adjT": 69.6,
+      "sourceName": "Queens",
+      "record": "21-13",
+      "netRtg": -1.44,
+      "ortg": 115.8,
+      "drtg": 117.2,
+      "luck": 0.067
     },
     "Marist": {
       "adjO": 100.2,
       "adjD": 102.6,
-      "adjT": 66.0,
-      "sourceName": "Marist"
+      "adjT": 66.3,
+      "sourceName": "Marist",
+      "record": "19-12",
+      "netRtg": -3.11,
+      "ortg": 99.5,
+      "drtg": 102.6,
+      "luck": -0.027
     },
     "Campbell": {
       "adjO": 110.6,
       "adjD": 113.0,
-      "adjT": 69.3,
-      "sourceName": "Campbell"
+      "adjT": 69.8,
+      "sourceName": "Campbell",
+      "record": "16-18",
+      "netRtg": -1.39,
+      "ortg": 111.3,
+      "drtg": 112.7,
+      "luck": 0.009
     },
     "South Alabama": {
       "adjO": 106.6,
       "adjD": 109.1,
       "adjT": 64.6,
-      "sourceName": "South Alabama"
+      "sourceName": "South Alabama",
+      "record": "21-12",
+      "netRtg": -2.76,
+      "ortg": 107.2,
+      "drtg": 110.0,
+      "luck": 0.053
     },
     "Buffalo": {
       "adjO": 112.9,
       "adjD": 115.5,
       "adjT": 66.5,
-      "sourceName": "Buffalo"
+      "sourceName": "Buffalo",
+      "record": "17-15",
+      "netRtg": -2.79,
+      "ortg": 112.5,
+      "drtg": 115.3,
+      "luck": -0.028
     },
     "Green Bay": {
       "adjO": 112.8,
       "adjD": 115.5,
-      "adjT": 63.0,
-      "sourceName": "Green Bay"
+      "adjT": 62.9,
+      "sourceName": "Green Bay",
+      "record": "18-15",
+      "netRtg": -3.54,
+      "ortg": 112.5,
+      "drtg": 116.1,
+      "luck": 0.064
     },
     "Marshall": {
       "adjO": 113.0,
       "adjD": 115.8,
-      "adjT": 69.2,
-      "sourceName": "Marshall"
+      "adjT": 69.3,
+      "sourceName": "Marshall",
+      "record": "19-13",
+      "netRtg": -3.12,
+      "ortg": 112.1,
+      "drtg": 115.2,
+      "luck": 0.034
     },
     "FIU": {
       "adjO": 107.4,
       "adjD": 110.2,
-      "adjT": 71.8,
-      "sourceName": "FIU"
+      "adjT": 71.6,
+      "sourceName": "FIU",
+      "record": "15-17",
+      "netRtg": -2.04,
+      "ortg": 107.5,
+      "drtg": 109.5,
+      "luck": -0.051
     },
     "Drake": {
       "adjO": 110.4,
       "adjD": 113.5,
-      "adjT": 67.3,
-      "sourceName": "Drake"
+      "adjT": 67.2,
+      "sourceName": "Drake",
+      "record": "14-20",
+      "netRtg": -2.64,
+      "ortg": 109.9,
+      "drtg": 112.6,
+      "luck": -0.06
     },
     "Siena": {
       "adjO": 107.4,
       "adjD": 110.6,
-      "adjT": 64.5,
-      "sourceName": "Siena"
+      "adjT": 64.7,
+      "sourceName": "Siena",
+      "record": "23-11",
+      "netRtg": -2.14,
+      "ortg": 107.1,
+      "drtg": 109.3,
+      "luck": 0.005
     },
     "Howard": {
       "adjO": 102.7,
       "adjD": 105.9,
-      "adjT": 68.9,
-      "sourceName": "Howard"
+      "adjT": 69.1,
+      "sourceName": "Howard",
+      "record": "24-10",
+      "netRtg": -2.92,
+      "ortg": 104.1,
+      "drtg": 107.0,
+      "luck": 0.003
     },
     "Furman": {
       "adjO": 106.2,
       "adjD": 109.3,
-      "adjT": 65.8,
-      "sourceName": "Furman"
+      "adjT": 65.9,
+      "sourceName": "Furman",
+      "record": "22-12",
+      "netRtg": -1.97,
+      "ortg": 107.5,
+      "drtg": 109.4,
+      "luck": 0.01
     },
     "Portland": {
       "adjO": 106.5,
       "adjD": 109.7,
-      "adjT": 68.3,
-      "sourceName": "Portland"
+      "adjT": 68.5,
+      "sourceName": "Portland",
+      "record": "15-19",
+      "netRtg": -2.8,
+      "ortg": 106.1,
+      "drtg": 108.9,
+      "luck": 0.064
     },
     "Massachusetts": {
       "adjO": 108.6,
       "adjD": 111.8,
-      "adjT": 69.8,
-      "sourceName": "Massachusetts"
+      "adjT": 69.9,
+      "sourceName": "Massachusetts",
+      "record": "17-16",
+      "netRtg": -2.6,
+      "ortg": 108.7,
+      "drtg": 111.3,
+      "luck": -0.045
     },
     "Jacksonville St.": {
       "adjO": 106.5,
       "adjD": 109.8,
-      "adjT": 65.0,
-      "sourceName": "Jacksonville St."
+      "adjT": 65.4,
+      "sourceName": "Jacksonville St.",
+      "record": "15-17",
+      "netRtg": -3.18,
+      "ortg": 105.2,
+      "drtg": 108.4,
+      "luck": -0.057
     },
     "Tennessee St.": {
       "adjO": 108.5,
       "adjD": 112.0,
-      "adjT": 70.3,
-      "sourceName": "Tennessee St."
+      "adjT": 70.2,
+      "sourceName": "Tennessee St.",
+      "record": "23-9",
+      "netRtg": -1.81,
+      "ortg": 109.1,
+      "drtg": 110.9,
+      "luck": 0.07
     },
     "Youngstown St.": {
       "adjO": 106.3,
       "adjD": 109.9,
       "adjT": 67.2,
-      "sourceName": "Youngstown St."
+      "sourceName": "Youngstown St.",
+      "record": "15-17",
+      "netRtg": -3.93,
+      "ortg": 105.5,
+      "drtg": 109.4,
+      "luck": -0.092
     },
     "Samford": {
       "adjO": 109.6,
       "adjD": 113.2,
-      "adjT": 67.0,
-      "sourceName": "Samford"
+      "adjT": 67.3,
+      "sourceName": "Samford",
+      "record": "18-14",
+      "netRtg": -3.92,
+      "ortg": 109.6,
+      "drtg": 113.6,
+      "luck": 0.009
     },
     "LIU": {
       "adjO": 105.5,
       "adjD": 109.2,
-      "adjT": 68.0,
-      "sourceName": "LIU"
+      "adjT": 67.8,
+      "sourceName": "LIU",
+      "record": "24-10",
+      "netRtg": -3.96,
+      "ortg": 105.6,
+      "drtg": 109.6,
+      "luck": 0.104
     },
     "Tarleton St.": {
       "adjO": 104.5,
       "adjD": 108.2,
       "adjT": 69.2,
-      "sourceName": "Tarleton St."
+      "sourceName": "Tarleton St.",
+      "record": "14-18",
+      "netRtg": -4.38,
+      "ortg": 104.2,
+      "drtg": 108.6,
+      "luck": -0.041
     },
     "Missouri St.": {
       "adjO": 107.7,
       "adjD": 111.6,
-      "adjT": 65.7,
-      "sourceName": "Missouri St."
+      "adjT": 65.5,
+      "sourceName": "Missouri St.",
+      "record": "16-18",
+      "netRtg": -2.96,
+      "ortg": 109.0,
+      "drtg": 112.0,
+      "luck": -0.043
     },
     "Cal Poly": {
       "adjO": 109.1,
       "adjD": 113.0,
-      "adjT": 73.6,
-      "sourceName": "Cal Poly"
+      "adjT": 74.0,
+      "sourceName": "Cal Poly",
+      "record": "14-19",
+      "netRtg": -3.68,
+      "ortg": 109.4,
+      "drtg": 113.1,
+      "luck": -0.003
     },
     "Quinnipiac": {
       "adjO": 104.0,
       "adjD": 108.0,
-      "adjT": 69.6,
-      "sourceName": "Quinnipiac"
+      "adjT": 69.9,
+      "sourceName": "Quinnipiac",
+      "record": "19-13",
+      "netRtg": -4.3,
+      "ortg": 104.2,
+      "drtg": 108.5,
+      "luck": 0.027
     },
     "James Madison": {
       "adjO": 109.1,
       "adjD": 113.1,
-      "adjT": 65.3,
-      "sourceName": "James Madison"
+      "adjT": 66.0,
+      "sourceName": "James Madison",
+      "record": "18-15",
+      "netRtg": -3.87,
+      "ortg": 109.2,
+      "drtg": 113.0,
+      "luck": 0.017
     },
     "Tennessee Martin": {
       "adjO": 100.7,
       "adjD": 104.8,
-      "adjT": 64.3,
-      "sourceName": "Tennessee Martin"
+      "adjT": 64.2,
+      "sourceName": "Tennessee Martin",
+      "record": "22-11",
+      "netRtg": -4.79,
+      "ortg": 100.4,
+      "drtg": 105.2,
+      "luck": 0.048
     },
     "South Dakota St.": {
       "adjO": 108.0,
       "adjD": 112.1,
       "adjT": 66.8,
-      "sourceName": "South Dakota St."
+      "sourceName": "South Dakota St.",
+      "record": "14-18",
+      "netRtg": -4.47,
+      "ortg": 108.0,
+      "drtg": 112.5,
+      "luck": -0.117
     },
     "Indiana St.": {
       "adjO": 106.0,
       "adjD": 110.3,
-      "adjT": 68.1,
-      "sourceName": "Indiana St."
+      "adjT": 68.0,
+      "sourceName": "Indiana St.",
+      "record": "11-21",
+      "netRtg": -2.85,
+      "ortg": 106.2,
+      "drtg": 109.1,
+      "luck": -0.11
     },
     "Elon": {
       "adjO": 112.2,
       "adjD": 116.7,
       "adjT": 66.8,
-      "sourceName": "Elon"
+      "sourceName": "Elon",
+      "record": "14-18",
+      "netRtg": -5.66,
+      "ortg": 110.1,
+      "drtg": 115.8,
+      "luck": -0.03
     },
     "UMBC": {
       "adjO": 106.3,
       "adjD": 110.8,
-      "adjT": 65.9,
-      "sourceName": "UMBC"
+      "adjT": 66.3,
+      "sourceName": "UMBC",
+      "record": "24-9",
+      "netRtg": -1.94,
+      "ortg": 108.8,
+      "drtg": 110.7,
+      "luck": 0.028
     },
     "Stony Brook": {
       "adjO": 105.2,
       "adjD": 109.8,
-      "adjT": 66.0,
-      "sourceName": "Stony Brook"
+      "adjT": 66.3,
+      "sourceName": "Stony Brook",
+      "record": "17-15",
+      "netRtg": -5.49,
+      "ortg": 105.2,
+      "drtg": 110.7,
+      "luck": 0.064
     },
     "Drexel": {
       "adjO": 103.0,
       "adjD": 107.6,
       "adjT": 64.2,
-      "sourceName": "Drexel"
+      "sourceName": "Drexel",
+      "record": "17-16",
+      "netRtg": -4.67,
+      "ortg": 102.4,
+      "drtg": 107.0,
+      "luck": 0.003
     },
     "Lamar": {
       "adjO": 104.4,
       "adjD": 109.2,
-      "adjT": 65.3,
-      "sourceName": "Lamar"
+      "adjT": 65.6,
+      "sourceName": "Lamar",
+      "record": "12-19",
+      "netRtg": -6.25,
+      "ortg": 103.1,
+      "drtg": 109.4,
+      "luck": -0.089
     },
     "Denver": {
       "adjO": 116.9,
       "adjD": 121.9,
-      "adjT": 67.8,
-      "sourceName": "Denver"
+      "adjT": 67.9,
+      "sourceName": "Denver",
+      "record": "15-17",
+      "netRtg": -6.11,
+      "ortg": 116.0,
+      "drtg": 122.1,
+      "luck": 0.007
     },
     "Southern Miss": {
       "adjO": 104.0,
       "adjD": 109.2,
-      "adjT": 68.7,
-      "sourceName": "Southern Miss"
+      "adjT": 69.3,
+      "sourceName": "Southern Miss",
+      "record": "19-16",
+      "netRtg": -4.09,
+      "ortg": 105.3,
+      "drtg": 109.4,
+      "luck": 0.043
     },
     "Southeast Missouri": {
       "adjO": 103.2,
       "adjD": 108.4,
-      "adjT": 69.1,
-      "sourceName": "Southeast Missouri"
+      "adjT": 68.9,
+      "sourceName": "Southeast Missouri",
+      "record": "20-13",
+      "netRtg": -5.86,
+      "ortg": 102.2,
+      "drtg": 108.0,
+      "luck": 0.031
     },
     "Ohio": {
       "adjO": 107.2,
       "adjD": 112.4,
-      "adjT": 68.3,
-      "sourceName": "Ohio"
+      "adjT": 68.8,
+      "sourceName": "Ohio",
+      "record": "15-17",
+      "netRtg": -5.58,
+      "ortg": 107.9,
+      "drtg": 113.5,
+      "luck": 0.025
     },
     "Abilene Christian": {
       "adjO": 102.2,
       "adjD": 107.4,
-      "adjT": 67.0,
-      "sourceName": "Abilene Christian"
+      "adjT": 67.8,
+      "sourceName": "Abilene Christian",
+      "record": "14-19",
+      "netRtg": -6.54,
+      "ortg": 101.1,
+      "drtg": 107.6,
+      "luck": 0.029
     },
     "La Salle": {
       "adjO": 103.7,
       "adjD": 109.1,
-      "adjT": 64.7,
-      "sourceName": "La Salle"
+      "adjT": 65.8,
+      "sourceName": "La Salle",
+      "record": "9-23",
+      "netRtg": -5.93,
+      "ortg": 105.6,
+      "drtg": 111.6,
+      "luck": -0.029
     },
     "Coastal Carolina": {
       "adjO": 102.2,
       "adjD": 107.8,
       "adjT": 66.9,
-      "sourceName": "Coastal Carolina"
+      "sourceName": "Coastal Carolina",
+      "record": "19-13",
+      "netRtg": -6.81,
+      "ortg": 101.8,
+      "drtg": 108.6,
+      "luck": 0.132
     },
     "Bethune Cookman": {
       "adjO": 103.6,
       "adjD": 109.3,
       "adjT": 69.1,
-      "sourceName": "Bethune Cookman"
+      "sourceName": "Bethune Cookman",
+      "record": "17-15",
+      "netRtg": -6.6,
+      "ortg": 103.6,
+      "drtg": 110.2,
+      "luck": 0.069
     },
     "Detroit Mercy": {
       "adjO": 108.4,
       "adjD": 114.1,
-      "adjT": 69.0,
-      "sourceName": "Detroit Mercy"
+      "adjT": 68.8,
+      "sourceName": "Detroit Mercy",
+      "record": "17-15",
+      "netRtg": -4.16,
+      "ortg": 107.9,
+      "drtg": 112.1,
+      "luck": 0.067
     },
     "San Jose St.": {
       "adjO": 110.9,
       "adjD": 116.7,
-      "adjT": 64.8,
-      "sourceName": "San Jose St."
+      "adjT": 65.1,
+      "sourceName": "San Jose St.",
+      "record": "9-24",
+      "netRtg": -4.95,
+      "ortg": 112.2,
+      "drtg": 117.2,
+      "luck": -0.012
     },
     "San Diego": {
       "adjO": 108.4,
       "adjD": 114.2,
-      "adjT": 68.5,
-      "sourceName": "San Diego"
+      "adjT": 68.0,
+      "sourceName": "San Diego",
+      "record": "12-21",
+      "netRtg": -4.89,
+      "ortg": 108.3,
+      "drtg": 113.2,
+      "luck": 0.003
     },
     "Western Carolina": {
       "adjO": 109.9,
       "adjD": 115.9,
       "adjT": 67.8,
-      "sourceName": "Western Carolina"
+      "sourceName": "Western Carolina",
+      "record": "15-16",
+      "netRtg": -5.58,
+      "ortg": 109.2,
+      "drtg": 114.7,
+      "luck": -0.015
     },
     "Eastern Michigan": {
       "adjO": 102.3,
       "adjD": 108.4,
-      "adjT": 66.2,
-      "sourceName": "Eastern Michigan"
+      "adjT": 66.5,
+      "sourceName": "Eastern Michigan",
+      "record": "10-21",
+      "netRtg": -6.39,
+      "ortg": 101.9,
+      "drtg": 108.3,
+      "luck": -0.096
     },
     "Rice": {
       "adjO": 108.5,
       "adjD": 114.6,
-      "adjT": 65.3,
-      "sourceName": "Rice"
+      "adjT": 65.5,
+      "sourceName": "Rice",
+      "record": "13-18",
+      "netRtg": -5.22,
+      "ortg": 108.6,
+      "drtg": 113.8,
+      "luck": 0.009
     },
     "Idaho St.": {
       "adjO": 110.7,
       "adjD": 116.9,
-      "adjT": 64.9,
-      "sourceName": "Idaho St."
+      "adjT": 65.5,
+      "sourceName": "Idaho St.",
+      "record": "13-20",
+      "netRtg": -7.09,
+      "ortg": 109.5,
+      "drtg": 116.6,
+      "luck": -0.035
     },
     "Nicholls": {
       "adjO": 106.4,
       "adjD": 112.8,
-      "adjT": 68.4,
-      "sourceName": "Nicholls"
+      "adjT": 68.2,
+      "sourceName": "Nicholls",
+      "record": "14-19",
+      "netRtg": -6.19,
+      "ortg": 105.8,
+      "drtg": 112.0,
+      "luck": 0.044
     },
     "American": {
       "adjO": 105.3,
       "adjD": 111.7,
       "adjT": 66.7,
-      "sourceName": "American"
+      "sourceName": "American",
+      "record": "16-16",
+      "netRtg": -6.35,
+      "ortg": 105.6,
+      "drtg": 111.9,
+      "luck": -0.024
     },
     "Vermont": {
       "adjO": 107.1,
       "adjD": 113.6,
-      "adjT": 65.0,
-      "sourceName": "Vermont"
+      "adjT": 64.9,
+      "sourceName": "Vermont",
+      "record": "22-12",
+      "netRtg": -6.52,
+      "ortg": 106.0,
+      "drtg": 112.5,
+      "luck": 0.008
     },
     "Texas St.": {
       "adjO": 103.9,
       "adjD": 110.4,
       "adjT": 66.0,
-      "sourceName": "Texas St."
+      "sourceName": "Texas St.",
+      "record": "19-13",
+      "netRtg": -6.56,
+      "ortg": 104.0,
+      "drtg": 110.6,
+      "luck": 0.084
     },
     "Old Dominion": {
       "adjO": 105.9,
       "adjD": 112.4,
-      "adjT": 69.1,
-      "sourceName": "Old Dominion"
+      "adjT": 69.0,
+      "sourceName": "Old Dominion",
+      "record": "12-21",
+      "netRtg": -6.97,
+      "ortg": 106.0,
+      "drtg": 113.0,
+      "luck": -0.073
     },
     "Charleston Southern": {
       "adjO": 106.0,
       "adjD": 112.6,
-      "adjT": 71.4,
-      "sourceName": "Charleston Southern"
+      "adjT": 71.6,
+      "sourceName": "Charleston Southern",
+      "record": "15-17",
+      "netRtg": -6.48,
+      "ortg": 105.7,
+      "drtg": 112.2,
+      "luck": -0.09
     },
     "Louisiana Tech": {
       "adjO": 100.2,
       "adjD": 106.8,
-      "adjT": 64.4,
-      "sourceName": "Louisiana Tech"
+      "adjT": 64.3,
+      "sourceName": "Louisiana Tech",
+      "record": "20-14",
+      "netRtg": -2.7,
+      "ortg": 103.0,
+      "drtg": 105.7,
+      "luck": 0.05
     },
     "Princeton": {
       "adjO": 106.1,
       "adjD": 113.1,
-      "adjT": 63.2,
-      "sourceName": "Princeton"
+      "adjT": 63.5,
+      "sourceName": "Princeton",
+      "record": "9-20",
+      "netRtg": -7.25,
+      "ortg": 105.4,
+      "drtg": 112.7,
+      "luck": -0.077
     },
     "Wofford": {
       "adjO": 109.9,
       "adjD": 116.8,
       "adjT": 67.8,
-      "sourceName": "Wofford"
+      "sourceName": "Wofford",
+      "record": "19-13",
+      "netRtg": -7.36,
+      "ortg": 109.1,
+      "drtg": 116.5,
+      "luck": 0.073
     },
     "SIUE": {
       "adjO": 99.4,
       "adjD": 106.4,
-      "adjT": 64.3,
-      "sourceName": "SIUE"
+      "adjT": 64.4,
+      "sourceName": "SIUE",
+      "record": "19-13",
+      "netRtg": -7.58,
+      "ortg": 99.5,
+      "drtg": 107.1,
+      "luck": -0.007
     },
     "Long Beach St.": {
       "adjO": 105.8,
       "adjD": 112.8,
-      "adjT": 68.2,
-      "sourceName": "Long Beach St."
+      "adjT": 68.5,
+      "sourceName": "Long Beach St.",
+      "record": "10-22",
+      "netRtg": -5.81,
+      "ortg": 105.6,
+      "drtg": 111.4,
+      "luck": -0.03
     },
     "Iona": {
       "adjO": 104.6,
       "adjD": 111.6,
-      "adjT": 68.5,
-      "sourceName": "Iona"
+      "adjT": 68.8,
+      "sourceName": "Iona",
+      "record": "18-14",
+      "netRtg": -7.75,
+      "ortg": 103.9,
+      "drtg": 111.7,
+      "luck": 0.041
     },
     "UNC Asheville": {
       "adjO": 104.8,
       "adjD": 111.9,
-      "adjT": 64.6,
-      "sourceName": "UNC Asheville"
+      "adjT": 64.8,
+      "sourceName": "UNC Asheville",
+      "record": "15-17",
+      "netRtg": -6.78,
+      "ortg": 104.7,
+      "drtg": 111.5,
+      "luck": -0.016
     },
     "Saint Peter's": {
       "adjO": 103.5,
       "adjD": 110.6,
       "adjT": 65.5,
-      "sourceName": "Saint Peter's"
+      "sourceName": "Saint Peter's",
+      "record": "17-12",
+      "netRtg": -7.54,
+      "ortg": 103.0,
+      "drtg": 110.5,
+      "luck": 0.066
     },
     "Colgate": {
       "adjO": 107.5,
       "adjD": 114.6,
-      "adjT": 66.8,
-      "sourceName": "Colgate"
+      "adjT": 66.9,
+      "sourceName": "Colgate",
+      "record": "18-15",
+      "netRtg": -7.07,
+      "ortg": 107.7,
+      "drtg": 114.8,
+      "luck": 0.044
     },
     "Radford": {
       "adjO": 106.3,
       "adjD": 113.6,
-      "adjT": 70.4,
-      "sourceName": "Radford"
+      "adjT": 70.6,
+      "sourceName": "Radford",
+      "record": "16-16",
+      "netRtg": -7.66,
+      "ortg": 106.3,
+      "drtg": 114.0,
+      "luck": -0.036
     },
     "Fairfield": {
       "adjO": 108.2,
       "adjD": 115.5,
-      "adjT": 66.9,
-      "sourceName": "Fairfield"
+      "adjT": 67.0,
+      "sourceName": "Fairfield",
+      "record": "21-13",
+      "netRtg": -8.14,
+      "ortg": 105.8,
+      "drtg": 113.9,
+      "luck": 0.078
     },
     "Southern Utah": {
       "adjO": 105.9,
       "adjD": 113.3,
-      "adjT": 70.0,
-      "sourceName": "Southern Utah"
+      "adjT": 70.3,
+      "sourceName": "Southern Utah",
+      "record": "10-22",
+      "netRtg": -7.13,
+      "ortg": 106.5,
+      "drtg": 113.7,
+      "luck": -0.053
     },
     "Purdue Fort Wayne": {
       "adjO": 106.1,
       "adjD": 113.7,
-      "adjT": 67.9,
-      "sourceName": "Purdue Fort Wayne"
+      "adjT": 67.7,
+      "sourceName": "Purdue Fort Wayne",
+      "record": "17-15",
+      "netRtg": -7.84,
+      "ortg": 105.3,
+      "drtg": 113.2,
+      "luck": 0.118
     },
     "UC Riverside": {
       "adjO": 103.3,
       "adjD": 111.0,
-      "adjT": 68.4,
-      "sourceName": "UC Riverside"
+      "adjT": 68.5,
+      "sourceName": "UC Riverside",
+      "record": "10-22",
+      "netRtg": -7.77,
+      "ortg": 103.9,
+      "drtg": 111.7,
+      "luck": -0.048
     },
     "Boston University": {
       "adjO": 111.8,
       "adjD": 119.7,
-      "adjT": 63.2,
-      "sourceName": "Boston University"
+      "adjT": 63.1,
+      "sourceName": "Boston University",
+      "record": "17-17",
+      "netRtg": -8.06,
+      "ortg": 111.7,
+      "drtg": 119.8,
+      "luck": -0.022
     },
     "Pepperdine": {
       "adjO": 105.4,
       "adjD": 113.3,
-      "adjT": 68.5,
-      "sourceName": "Pepperdine"
+      "adjT": 68.6,
+      "sourceName": "Pepperdine",
+      "record": "9-23",
+      "netRtg": -8.04,
+      "ortg": 105.3,
+      "drtg": 113.4,
+      "luck": -0.018
     },
     "Nebraska Omaha": {
       "adjO": 107.0,
       "adjD": 115.0,
-      "adjT": 67.1,
-      "sourceName": "Nebraska Omaha"
+      "adjT": 67.0,
+      "sourceName": "Nebraska Omaha",
+      "record": "16-17",
+      "netRtg": -8.14,
+      "ortg": 106.1,
+      "drtg": 114.2,
+      "luck": 0.033
     },
     "Milwaukee": {
       "adjO": 106.9,
       "adjD": 115.1,
-      "adjT": 67.3,
-      "sourceName": "Milwaukee"
+      "adjT": 67.4,
+      "sourceName": "Milwaukee",
+      "record": "12-20",
+      "netRtg": -8.86,
+      "ortg": 106.5,
+      "drtg": 115.4,
+      "luck": 0.013
     },
     "East Carolina": {
       "adjO": 102.8,
       "adjD": 111.0,
-      "adjT": 68.4,
-      "sourceName": "East Carolina"
+      "adjT": 68.6,
+      "sourceName": "East Carolina",
+      "record": "11-20",
+      "netRtg": -7.42,
+      "ortg": 103.7,
+      "drtg": 111.1,
+      "luck": -0.006
     },
     "Central Michigan": {
       "adjO": 106.6,
       "adjD": 114.8,
-      "adjT": 67.0,
-      "sourceName": "Central Michigan"
+      "adjT": 67.1,
+      "sourceName": "Central Michigan",
+      "record": "10-21",
+      "netRtg": -9.01,
+      "ortg": 106.0,
+      "drtg": 115.0,
+      "luck": -0.098
     },
     "Florida Gulf Coast": {
       "adjO": 105.9,
       "adjD": 114.2,
-      "adjT": 67.7,
-      "sourceName": "Florida Gulf Coast"
+      "adjT": 67.6,
+      "sourceName": "Florida Gulf Coast",
+      "record": "16-18",
+      "netRtg": -6.59,
+      "ortg": 105.6,
+      "drtg": 112.1,
+      "luck": -0.029
     },
     "Georgia Southern": {
       "adjO": 107.8,
       "adjD": 116.3,
-      "adjT": 70.6,
-      "sourceName": "Georgia Southern"
+      "adjT": 70.1,
+      "sourceName": "Georgia Southern",
+      "record": "21-16",
+      "netRtg": -5.98,
+      "ortg": 110.2,
+      "drtg": 116.2,
+      "luck": 0.057
     },
     "Incarnate Word": {
       "adjO": 108.5,
       "adjD": 117.0,
       "adjT": 65.5,
-      "sourceName": "Incarnate Word"
+      "sourceName": "Incarnate Word",
+      "record": "12-19",
+      "netRtg": -8.44,
+      "ortg": 108.8,
+      "drtg": 117.3,
+      "luck": -0.028
     },
     "Dartmouth": {
       "adjO": 104.9,
       "adjD": 113.5,
-      "adjT": 69.3,
-      "sourceName": "Dartmouth"
+      "adjT": 69.5,
+      "sourceName": "Dartmouth",
+      "record": "11-16",
+      "netRtg": -9.47,
+      "ortg": 104.7,
+      "drtg": 114.2,
+      "luck": 0.0
     },
     "Sacramento St.": {
       "adjO": 107.3,
       "adjD": 115.9,
-      "adjT": 71.8,
-      "sourceName": "Sacramento St."
+      "adjT": 71.6,
+      "sourceName": "Sacramento St.",
+      "record": "10-21",
+      "netRtg": -8.32,
+      "ortg": 105.9,
+      "drtg": 114.2,
+      "luck": -0.022
     },
     "Lindenwood": {
       "adjO": 101.6,
       "adjD": 110.2,
-      "adjT": 72.2,
-      "sourceName": "Lindenwood"
+      "adjT": 72.4,
+      "sourceName": "Lindenwood",
+      "record": "18-15",
+      "netRtg": -8.51,
+      "ortg": 100.5,
+      "drtg": 109.0,
+      "luck": 0.017
     },
     "Western Michigan": {
       "adjO": 108.2,
       "adjD": 117.1,
-      "adjT": 67.6,
-      "sourceName": "Western Michigan"
+      "adjT": 67.7,
+      "sourceName": "Western Michigan",
+      "record": "10-21",
+      "netRtg": -9.22,
+      "ortg": 107.8,
+      "drtg": 117.0,
+      "luck": -0.036
     },
     "Longwood": {
       "adjO": 103.4,
       "adjD": 112.4,
-      "adjT": 68.3,
-      "sourceName": "Longwood"
+      "adjT": 68.5,
+      "sourceName": "Longwood",
+      "record": "16-16",
+      "netRtg": -9.13,
+      "ortg": 103.4,
+      "drtg": 112.6,
+      "luck": -0.036
     },
     "Hampton": {
       "adjO": 102.2,
       "adjD": 111.2,
-      "adjT": 64.9,
-      "sourceName": "Hampton"
+      "adjT": 65.3,
+      "sourceName": "Hampton",
+      "record": "13-19",
+      "netRtg": -9.12,
+      "ortg": 102.5,
+      "drtg": 111.6,
+      "luck": -0.013
     },
     "North Carolina A&T": {
       "adjO": 106.3,
       "adjD": 115.6,
-      "adjT": 68.4,
-      "sourceName": "North Carolina A&T"
+      "adjT": 68.5,
+      "sourceName": "North Carolina A&T",
+      "record": "11-19",
+      "netRtg": -10.88,
+      "ortg": 105.2,
+      "drtg": 116.1,
+      "luck": -0.023
     },
     "Bellarmine": {
       "adjO": 116.4,
       "adjD": 125.8,
-      "adjT": 64.6,
-      "sourceName": "Bellarmine"
+      "adjT": 64.7,
+      "sourceName": "Bellarmine",
+      "record": "13-19",
+      "netRtg": -9.65,
+      "ortg": 116.5,
+      "drtg": 126.1,
+      "luck": -0.013
     },
     "Northwestern St.": {
       "adjO": 103.5,
       "adjD": 113.0,
-      "adjT": 64.9,
-      "sourceName": "Northwestern St."
+      "adjT": 64.8,
+      "sourceName": "Northwestern St.",
+      "record": "10-22",
+      "netRtg": -10.16,
+      "ortg": 102.3,
+      "drtg": 112.4,
+      "luck": -0.013
     },
     "Presbyterian": {
       "adjO": 103.0,
       "adjD": 112.6,
-      "adjT": 63.9,
-      "sourceName": "Presbyterian"
+      "adjT": 64.2,
+      "sourceName": "Presbyterian",
+      "record": "15-18",
+      "netRtg": -9.07,
+      "ortg": 103.2,
+      "drtg": 112.2,
+      "luck": -0.02
     },
     "Delaware": {
       "adjO": 105.5,
       "adjD": 115.2,
-      "adjT": 62.7,
-      "sourceName": "Delaware"
+      "adjT": 63.2,
+      "sourceName": "Delaware",
+      "record": "10-21",
+      "netRtg": -11.1,
+      "ortg": 104.5,
+      "drtg": 115.6,
+      "luck": 0.006
     },
     "UTEP": {
       "adjO": 101.8,
       "adjD": 111.6,
-      "adjT": 65.0,
-      "sourceName": "UTEP"
+      "adjT": 65.5,
+      "sourceName": "UTEP",
+      "record": "11-20",
+      "netRtg": -9.37,
+      "ortg": 101.0,
+      "drtg": 110.3,
+      "luck": 0.01
     },
     "South Dakota": {
       "adjO": 104.7,
       "adjD": 114.4,
-      "adjT": 69.9,
-      "sourceName": "South Dakota"
+      "adjT": 69.8,
+      "sourceName": "South Dakota",
+      "record": "16-16",
+      "netRtg": -10.39,
+      "ortg": 104.3,
+      "drtg": 114.7,
+      "luck": 0.056
     },
     "Morehead St.": {
       "adjO": 107.7,
       "adjD": 117.4,
-      "adjT": 65.3,
-      "sourceName": "Morehead St."
+      "adjT": 65.4,
+      "sourceName": "Morehead St.",
+      "record": "20-13",
+      "netRtg": -10.34,
+      "ortg": 106.9,
+      "drtg": 117.2,
+      "luck": 0.16
     },
     "Brown": {
       "adjO": 98.6,
       "adjD": 108.6,
-      "adjT": 66.3,
-      "sourceName": "Brown"
+      "adjT": 66.5,
+      "sourceName": "Brown",
+      "record": "9-18",
+      "netRtg": -10.96,
+      "ortg": 97.9,
+      "drtg": 108.9,
+      "luck": -0.05
     },
     "Southern": {
       "adjO": 104.1,
       "adjD": 114.1,
-      "adjT": 70.2,
-      "sourceName": "Southern"
+      "adjT": 69.9,
+      "sourceName": "Southern",
+      "record": "17-17",
+      "netRtg": -9.74,
+      "ortg": 104.7,
+      "drtg": 114.4,
+      "luck": 0.06
     },
     "Mercyhurst": {
       "adjO": 102.1,
       "adjD": 112.6,
-      "adjT": 64.4,
-      "sourceName": "Mercyhurst"
+      "adjT": 64.8,
+      "sourceName": "Mercyhurst",
+      "record": "17-17",
+      "netRtg": -10.68,
+      "ortg": 101.2,
+      "drtg": 111.9,
+      "luck": -0.013
     },
     "Eastern Kentucky": {
       "adjO": 109.3,
       "adjD": 119.9,
-      "adjT": 67.2,
-      "sourceName": "Eastern Kentucky"
+      "adjT": 67.3,
+      "sourceName": "Eastern Kentucky",
+      "record": "11-21",
+      "netRtg": -11.65,
+      "ortg": 109.1,
+      "drtg": 120.8,
+      "luck": -0.017
     },
     "East Texas A&M": {
       "adjO": 100.2,
       "adjD": 110.8,
-      "adjT": 68.1,
-      "sourceName": "East Texas A&M"
+      "adjT": 68.2,
+      "sourceName": "East Texas A&M",
+      "record": "11-21",
+      "netRtg": -10.78,
+      "ortg": 100.7,
+      "drtg": 111.5,
+      "luck": 0.001
     },
     "Northeastern": {
       "adjO": 106.3,
       "adjD": 117.3,
-      "adjT": 69.4,
-      "sourceName": "Northeastern"
+      "adjT": 69.6,
+      "sourceName": "Northeastern",
+      "record": "7-24",
+      "netRtg": -10.56,
+      "ortg": 107.5,
+      "drtg": 118.1,
+      "luck": -0.061
     },
     "Le Moyne": {
       "adjO": 102.1,
       "adjD": 113.2,
-      "adjT": 69.4,
-      "sourceName": "Le Moyne"
+      "adjT": 69.5,
+      "sourceName": "Le Moyne",
+      "record": "15-17",
+      "netRtg": -11.82,
+      "ortg": 102.0,
+      "drtg": 113.8,
+      "luck": -0.018
     },
     "Mount St. Mary's": {
       "adjO": 99.7,
       "adjD": 110.8,
-      "adjT": 67.6,
-      "sourceName": "Mount St. Mary's"
+      "adjT": 67.5,
+      "sourceName": "Mount St. Mary's",
+      "record": "15-17",
+      "netRtg": -9.63,
+      "ortg": 99.4,
+      "drtg": 109.0,
+      "luck": 0.028
     },
     "North Dakota": {
       "adjO": 107.4,
       "adjD": 118.7,
-      "adjT": 67.3,
-      "sourceName": "North Dakota"
+      "adjT": 67.2,
+      "sourceName": "North Dakota",
+      "record": "18-17",
+      "netRtg": -9.67,
+      "ortg": 106.8,
+      "drtg": 116.5,
+      "luck": 0.111
     },
     "Southeastern Louisiana": {
       "adjO": 99.3,
       "adjD": 110.6,
-      "adjT": 65.1,
-      "sourceName": "Southeastern Louisiana"
+      "adjT": 65.5,
+      "sourceName": "Southeastern Louisiana",
+      "record": "9-22",
+      "netRtg": -10.52,
+      "ortg": 99.7,
+      "drtg": 110.2,
+      "luck": -0.006
     },
     "Grambling St.": {
       "adjO": 97.9,
       "adjD": 109.2,
-      "adjT": 67.5,
-      "sourceName": "Grambling St."
+      "adjT": 67.6,
+      "sourceName": "Grambling St.",
+      "record": "14-19",
+      "netRtg": -11.75,
+      "ortg": 96.8,
+      "drtg": 108.6,
+      "luck": -0.053
     },
     "Sacred Heart": {
       "adjO": 107.1,
       "adjD": 118.5,
-      "adjT": 68.6,
-      "sourceName": "Sacred Heart"
+      "adjT": 68.5,
+      "sourceName": "Sacred Heart",
+      "record": "14-19",
+      "netRtg": -11.6,
+      "ortg": 107.2,
+      "drtg": 118.8,
+      "luck": 0.001
     },
     "Lehigh": {
       "adjO": 103.0,
       "adjD": 114.6,
-      "adjT": 66.7,
-      "sourceName": "Lehigh"
+      "adjT": 66.9,
+      "sourceName": "Lehigh",
+      "record": "18-16",
+      "netRtg": -10.41,
+      "ortg": 102.7,
+      "drtg": 113.1,
+      "luck": 0.081
     },
     "Jacksonville": {
       "adjO": 102.8,
       "adjD": 114.4,
-      "adjT": 63.1,
-      "sourceName": "Jacksonville"
+      "adjT": 63.4,
+      "sourceName": "Jacksonville",
+      "record": "12-20",
+      "netRtg": -11.48,
+      "ortg": 103.0,
+      "drtg": 114.5,
+      "luck": -0.03
     },
     "USC Upstate": {
       "adjO": 99.5,
       "adjD": 111.1,
-      "adjT": 67.7,
-      "sourceName": "USC Upstate"
+      "adjT": 67.5,
+      "sourceName": "USC Upstate",
+      "record": "13-19",
+      "netRtg": -12.38,
+      "ortg": 99.0,
+      "drtg": 111.4,
+      "luck": 0.025
     },
     "Texas Southern": {
       "adjO": 103.3,
       "adjD": 115.1,
       "adjT": 68.8,
-      "sourceName": "Texas Southern"
+      "sourceName": "Texas Southern",
+      "record": "12-18",
+      "netRtg": -13.33,
+      "ortg": 101.7,
+      "drtg": 115.0,
+      "luck": -0.033
     },
     "Chattanooga": {
       "adjO": 104.7,
       "adjD": 116.6,
-      "adjT": 67.1,
-      "sourceName": "Chattanooga"
+      "adjT": 67.2,
+      "sourceName": "Chattanooga",
+      "record": "13-19",
+      "netRtg": -12.25,
+      "ortg": 105.4,
+      "drtg": 117.6,
+      "luck": -0.029
     },
     "Central Connecticut": {
       "adjO": 105.3,
       "adjD": 117.4,
       "adjT": 65.1,
-      "sourceName": "Central Connecticut"
+      "sourceName": "Central Connecticut",
+      "record": "18-12",
+      "netRtg": -12.73,
+      "ortg": 104.7,
+      "drtg": 117.4,
+      "luck": 0.116
     },
     "Houston Christian": {
       "adjO": 103.6,
       "adjD": 115.9,
-      "adjT": 63.8,
-      "sourceName": "Houston Christian"
+      "adjT": 64.4,
+      "sourceName": "Houston Christian",
+      "record": "12-20",
+      "netRtg": -11.09,
+      "ortg": 102.9,
+      "drtg": 114.0,
+      "luck": 0.034
     },
     "Georgia St.": {
       "adjO": 99.4,
       "adjD": 111.8,
-      "adjT": 67.6,
-      "sourceName": "Georgia St."
+      "adjT": 67.8,
+      "sourceName": "Georgia St.",
+      "record": "10-22",
+      "netRtg": -12.88,
+      "ortg": 99.4,
+      "drtg": 112.2,
+      "luck": -0.04
     },
     "Alabama A&M": {
       "adjO": 103.8,
       "adjD": 116.4,
-      "adjT": 65.2,
-      "sourceName": "Alabama A&M"
+      "adjT": 65.3,
+      "sourceName": "Alabama A&M",
+      "record": "18-15",
+      "netRtg": -12.72,
+      "ortg": 104.0,
+      "drtg": 116.7,
+      "luck": 0.058
     },
     "Ball St.": {
       "adjO": 98.1,
       "adjD": 110.7,
-      "adjT": 63.5,
-      "sourceName": "Ball St."
+      "adjT": 63.7,
+      "sourceName": "Ball St.",
+      "record": "12-19",
+      "netRtg": -11.3,
+      "ortg": 98.6,
+      "drtg": 109.9,
+      "luck": -0.005
     },
     "Little Rock": {
       "adjO": 103.8,
       "adjD": 116.4,
-      "adjT": 66.3,
-      "sourceName": "Little Rock"
+      "adjT": 66.7,
+      "sourceName": "Little Rock",
+      "record": "12-20",
+      "netRtg": -12.95,
+      "ortg": 102.7,
+      "drtg": 115.7,
+      "luck": -0.033
     },
     "UNC Greensboro": {
       "adjO": 107.8,
       "adjD": 120.4,
       "adjT": 67.7,
-      "sourceName": "UNC Greensboro"
+      "sourceName": "UNC Greensboro",
+      "record": "15-19",
+      "netRtg": -12.21,
+      "ortg": 107.6,
+      "drtg": 119.8,
+      "luck": 0.056
     },
     "Evansville": {
       "adjO": 101.7,
       "adjD": 114.5,
       "adjT": 67.0,
-      "sourceName": "Evansville"
+      "sourceName": "Evansville",
+      "record": "7-25",
+      "netRtg": -12.83,
+      "ortg": 101.9,
+      "drtg": 114.7,
+      "luck": -0.011
     },
     "West Georgia": {
       "adjO": 102.5,
       "adjD": 115.4,
-      "adjT": 68.9,
-      "sourceName": "West Georgia"
+      "adjT": 69.2,
+      "sourceName": "West Georgia",
+      "record": "15-17",
+      "netRtg": -12.54,
+      "ortg": 101.6,
+      "drtg": 114.1,
+      "luck": 0.072
     },
     "Alabama St.": {
       "adjO": 101.5,
       "adjD": 114.4,
-      "adjT": 69.3,
-      "sourceName": "Alabama St."
+      "adjT": 69.5,
+      "sourceName": "Alabama St.",
+      "record": "10-22",
+      "netRtg": -14.42,
+      "ortg": 99.2,
+      "drtg": 113.6,
+      "luck": -0.071
     },
     "Loyola Chicago": {
       "adjO": 102.7,
       "adjD": 115.6,
-      "adjT": 66.2,
-      "sourceName": "Loyola Chicago"
+      "adjT": 65.5,
+      "sourceName": "Loyola Chicago",
+      "record": "9-24",
+      "netRtg": -10.19,
+      "ortg": 103.3,
+      "drtg": 113.5,
+      "luck": 0.057
     },
     "Tennessee Tech": {
       "adjO": 102.7,
       "adjD": 115.8,
-      "adjT": 66.7,
-      "sourceName": "Tennessee Tech"
+      "adjT": 66.8,
+      "sourceName": "Tennessee Tech",
+      "record": "13-18",
+      "netRtg": -13.32,
+      "ortg": 102.5,
+      "drtg": 115.8,
+      "luck": -0.028
     },
     "Louisiana": {
       "adjO": 99.8,
       "adjD": 113.3,
-      "adjT": 62.6,
-      "sourceName": "Louisiana"
+      "adjT": 63.2,
+      "sourceName": "Louisiana",
+      "record": "11-22",
+      "netRtg": -13.18,
+      "ortg": 100.2,
+      "drtg": 113.3,
+      "luck": 0.033
     },
     "IU Indy": {
       "adjO": 105.8,
       "adjD": 119.3,
-      "adjT": 72.8,
-      "sourceName": "IU Indy"
+      "adjT": 73.2,
+      "sourceName": "IU Indy",
+      "record": "7-25",
+      "netRtg": -13.9,
+      "ortg": 105.4,
+      "drtg": 119.3,
+      "luck": -0.033
     },
     "Norfolk St.": {
       "adjO": 101.3,
       "adjD": 115.0,
-      "adjT": 67.6,
-      "sourceName": "Norfolk St."
+      "adjT": 68.2,
+      "sourceName": "Norfolk St.",
+      "record": "15-17",
+      "netRtg": -15.31,
+      "ortg": 101.4,
+      "drtg": 116.7,
+      "luck": -0.019
     },
     "Wagner": {
       "adjO": 103.0,
       "adjD": 116.7,
       "adjT": 65.5,
-      "sourceName": "Wagner"
+      "sourceName": "Wagner",
+      "record": "14-17",
+      "netRtg": -12.71,
+      "ortg": 102.5,
+      "drtg": 115.2,
+      "luck": -0.001
     },
     "Florida A&M": {
       "adjO": 98.0,
       "adjD": 111.7,
-      "adjT": 68.0,
-      "sourceName": "Florida A&M"
+      "adjT": 68.3,
+      "sourceName": "Florida A&M",
+      "record": "15-16",
+      "netRtg": -13.0,
+      "ortg": 97.9,
+      "drtg": 110.9,
+      "luck": 0.071
     },
     "Oral Roberts": {
       "adjO": 101.7,
       "adjD": 115.5,
-      "adjT": 67.5,
-      "sourceName": "Oral Roberts"
+      "adjT": 67.8,
+      "sourceName": "Oral Roberts",
+      "record": "10-23",
+      "netRtg": -13.03,
+      "ortg": 102.0,
+      "drtg": 115.0,
+      "luck": -0.055
     },
     "Stetson": {
       "adjO": 104.5,
       "adjD": 118.3,
-      "adjT": 66.8,
-      "sourceName": "Stetson"
+      "adjT": 66.7,
+      "sourceName": "Stetson",
+      "record": "12-21",
+      "netRtg": -12.54,
+      "ortg": 105.2,
+      "drtg": 117.8,
+      "luck": 0.008
     },
     "Prairie View A&M": {
       "adjO": 101.0,
       "adjD": 114.9,
-      "adjT": 72.2,
-      "sourceName": "Prairie View A&M"
+      "adjT": 71.0,
+      "sourceName": "Prairie View A&M",
+      "record": "18-17",
+      "netRtg": -10.69,
+      "ortg": 101.2,
+      "drtg": 111.9,
+      "luck": 0.013
     },
     "Northern Arizona": {
       "adjO": 105.6,
       "adjD": 119.8,
-      "adjT": 63.7,
-      "sourceName": "Northern Arizona"
+      "adjT": 63.8,
+      "sourceName": "Northern Arizona",
+      "record": "10-22",
+      "netRtg": -14.51,
+      "ortg": 105.1,
+      "drtg": 119.6,
+      "luck": 0.031
     },
     "Albany": {
       "adjO": 103.8,
       "adjD": 118.2,
       "adjT": 65.2,
-      "sourceName": "Albany"
+      "sourceName": "Albany",
+      "record": "11-21",
+      "netRtg": -15.04,
+      "ortg": 103.2,
+      "drtg": 118.2,
+      "luck": -0.086
     },
     "Cleveland St.": {
       "adjO": 110.0,
       "adjD": 124.4,
-      "adjT": 69.3,
-      "sourceName": "Cleveland St."
+      "adjT": 69.8,
+      "sourceName": "Cleveland St.",
+      "record": "11-22",
+      "netRtg": -14.63,
+      "ortg": 109.4,
+      "drtg": 124.0,
+      "luck": 0.04
     },
     "Loyola MD": {
       "adjO": 103.7,
       "adjD": 118.4,
       "adjT": 68.2,
-      "sourceName": "Loyola MD"
+      "sourceName": "Loyola MD",
+      "record": "12-20",
+      "netRtg": -14.86,
+      "ortg": 104.2,
+      "drtg": 119.1,
+      "luck": -0.027
     },
     "UMass Lowell": {
       "adjO": 102.6,
       "adjD": 117.5,
-      "adjT": 69.1,
-      "sourceName": "UMass Lowell"
+      "adjT": 69.2,
+      "sourceName": "UMass Lowell",
+      "record": "15-18",
+      "netRtg": -14.72,
+      "ortg": 102.5,
+      "drtg": 117.3,
+      "luck": 0.017
     },
     "Arkansas Pine Bluff": {
       "adjO": 103.1,
       "adjD": 118.0,
-      "adjT": 68.8,
-      "sourceName": "Arkansas Pine Bluff"
+      "adjT": 68.9,
+      "sourceName": "Arkansas Pine Bluff",
+      "record": "13-19",
+      "netRtg": -13.3,
+      "ortg": 104.0,
+      "drtg": 117.3,
+      "luck": 0.025
     },
     "Lafayette": {
       "adjO": 100.6,
       "adjD": 115.6,
-      "adjT": 66.6,
-      "sourceName": "Lafayette"
+      "adjT": 66.8,
+      "sourceName": "Lafayette",
+      "record": "11-21",
+      "netRtg": -15.22,
+      "ortg": 100.7,
+      "drtg": 115.9,
+      "luck": 0.009
     },
     "Cal St. Bakersfield": {
       "adjO": 101.9,
       "adjD": 117.2,
-      "adjT": 69.7,
-      "sourceName": "Cal St. Bakersfield"
+      "adjT": 70.1,
+      "sourceName": "Cal St. Bakersfield",
+      "record": "8-24",
+      "netRtg": -15.33,
+      "ortg": 101.9,
+      "drtg": 117.2,
+      "luck": 0.012
     },
     "NJIT": {
       "adjO": 98.4,
       "adjD": 113.7,
-      "adjT": 67.7,
-      "sourceName": "NJIT"
+      "adjT": 67.8,
+      "sourceName": "NJIT",
+      "record": "16-17",
+      "netRtg": -16.94,
+      "ortg": 96.5,
+      "drtg": 113.4,
+      "luck": 0.115
     },
     "Eastern Illinois": {
       "adjO": 95.8,
       "adjD": 111.4,
-      "adjT": 65.6,
-      "sourceName": "Eastern Illinois"
+      "adjT": 65.7,
+      "sourceName": "Eastern Illinois",
+      "record": "13-20",
+      "netRtg": -14.85,
+      "ortg": 96.9,
+      "drtg": 111.7,
+      "luck": 0.037
     },
     "New Haven": {
       "adjO": 96.2,
       "adjD": 112.3,
-      "adjT": 63.2,
-      "sourceName": "New Haven"
+      "adjT": 63.3,
+      "sourceName": "New Haven",
+      "record": "14-17",
+      "netRtg": -16.11,
+      "ortg": 96.1,
+      "drtg": 112.2,
+      "luck": 0.041
     },
     "Manhattan": {
       "adjO": 106.3,
       "adjD": 122.5,
-      "adjT": 67.6,
-      "sourceName": "Manhattan"
+      "adjT": 67.9,
+      "sourceName": "Manhattan",
+      "record": "12-20",
+      "netRtg": -16.49,
+      "ortg": 104.4,
+      "drtg": 120.9,
+      "luck": 0.053
     },
     "Northern Illinois": {
       "adjO": 97.3,
       "adjD": 113.8,
-      "adjT": 67.2,
-      "sourceName": "Northern Illinois"
+      "adjT": 67.5,
+      "sourceName": "Northern Illinois",
+      "record": "9-21",
+      "netRtg": -17.21,
+      "ortg": 97.1,
+      "drtg": 114.3,
+      "luck": 0.014
     },
     "Holy Cross": {
       "adjO": 100.7,
       "adjD": 117.8,
-      "adjT": 65.3,
-      "sourceName": "Holy Cross"
+      "adjT": 65.6,
+      "sourceName": "Holy Cross",
+      "record": "11-22",
+      "netRtg": -16.46,
+      "ortg": 100.8,
+      "drtg": 117.3,
+      "luck": -0.007
     },
     "Fairleigh Dickinson": {
       "adjO": 101.2,
       "adjD": 118.7,
-      "adjT": 63.7,
-      "sourceName": "Fairleigh Dickinson"
+      "adjT": 63.9,
+      "sourceName": "Fairleigh Dickinson",
+      "record": "11-21",
+      "netRtg": -17.65,
+      "ortg": 100.8,
+      "drtg": 118.5,
+      "luck": -0.006
     },
     "North Florida": {
       "adjO": 106.8,
       "adjD": 124.3,
-      "adjT": 70.1,
-      "sourceName": "North Florida"
+      "adjT": 70.5,
+      "sourceName": "North Florida",
+      "record": "7-25",
+      "netRtg": -17.47,
+      "ortg": 107.0,
+      "drtg": 124.4,
+      "luck": -0.029
     },
     "Bucknell": {
       "adjO": 98.2,
       "adjD": 115.9,
-      "adjT": 66.8,
-      "sourceName": "Bucknell"
+      "adjT": 66.9,
+      "sourceName": "Bucknell",
+      "record": "10-23",
+      "netRtg": -16.66,
+      "ortg": 98.1,
+      "drtg": 114.8,
+      "luck": 0.015
     },
     "Army": {
       "adjO": 101.2,
       "adjD": 119.4,
-      "adjT": 67.0,
-      "sourceName": "Army"
+      "adjT": 67.1,
+      "sourceName": "Army",
+      "record": "11-21",
+      "netRtg": -18.46,
+      "ortg": 100.1,
+      "drtg": 118.5,
+      "luck": 0.044
     },
     "Stonehill": {
       "adjO": 91.7,
       "adjD": 110.0,
-      "adjT": 66.1,
-      "sourceName": "Stonehill"
+      "adjT": 66.4,
+      "sourceName": "Stonehill",
+      "record": "12-21",
+      "netRtg": -17.35,
+      "ortg": 91.7,
+      "drtg": 109.0,
+      "luck": -0.007
     },
     "UTSA": {
       "adjO": 100.1,
       "adjD": 118.4,
-      "adjT": 68.3,
-      "sourceName": "UTSA"
+      "adjT": 68.6,
+      "sourceName": "UTSA",
+      "record": "5-25",
+      "netRtg": -18.61,
+      "ortg": 99.7,
+      "drtg": 118.3,
+      "luck": -0.001
     },
     "Southern Indiana": {
       "adjO": 95.6,
       "adjD": 114.2,
-      "adjT": 67.4,
-      "sourceName": "Southern Indiana"
+      "adjT": 67.5,
+      "sourceName": "Southern Indiana",
+      "record": "7-23",
+      "netRtg": -18.61,
+      "ortg": 95.5,
+      "drtg": 114.1,
+      "luck": -0.105
     },
     "Niagara": {
       "adjO": 99.0,
       "adjD": 117.6,
-      "adjT": 61.9,
-      "sourceName": "Niagara"
+      "adjT": 62.1,
+      "sourceName": "Niagara",
+      "record": "8-22",
+      "netRtg": -18.51,
+      "ortg": 99.6,
+      "drtg": 118.1,
+      "luck": -0.038
     },
     "North Alabama": {
       "adjO": 100.0,
       "adjD": 119.0,
-      "adjT": 64.9,
-      "sourceName": "North Alabama"
+      "adjT": 64.8,
+      "sourceName": "North Alabama",
+      "record": "9-21",
+      "netRtg": -19.25,
+      "ortg": 99.5,
+      "drtg": 118.8,
+      "luck": 0.057
     },
     "Alcorn St.": {
       "adjO": 98.8,
       "adjD": 117.9,
-      "adjT": 67.0,
-      "sourceName": "Alcorn St."
+      "adjT": 67.3,
+      "sourceName": "Alcorn St.",
+      "record": "9-23",
+      "netRtg": -20.15,
+      "ortg": 96.3,
+      "drtg": 116.5,
+      "luck": 0.039
     },
     "Maryland Eastern Shore": {
       "adjO": 95.2,
       "adjD": 114.3,
-      "adjT": 62.8,
-      "sourceName": "Maryland Eastern Shore"
+      "adjT": 63.1,
+      "sourceName": "Maryland Eastern Shore",
+      "record": "9-23",
+      "netRtg": -20.8,
+      "ortg": 94.6,
+      "drtg": 115.4,
+      "luck": -0.052
     },
     "Jackson St.": {
       "adjO": 99.8,
       "adjD": 119.0,
       "adjT": 69.5,
-      "sourceName": "Jackson St."
+      "sourceName": "Jackson St.",
+      "record": "12-21",
+      "netRtg": -18.84,
+      "ortg": 100.0,
+      "drtg": 118.8,
+      "luck": 0.101
     },
     "Canisius": {
       "adjO": 95.1,
       "adjD": 114.5,
-      "adjT": 64.1,
-      "sourceName": "Canisius"
+      "adjT": 64.2,
+      "sourceName": "Canisius",
+      "record": "10-21",
+      "netRtg": -19.26,
+      "ortg": 95.3,
+      "drtg": 114.5,
+      "luck": 0.019
     },
     "Air Force": {
       "adjO": 96.6,
       "adjD": 116.1,
-      "adjT": 66.0,
-      "sourceName": "Air Force"
+      "adjT": 66.3,
+      "sourceName": "Air Force",
+      "record": "3-29",
+      "netRtg": -19.89,
+      "ortg": 95.7,
+      "drtg": 115.6,
+      "luck": 0.0
     },
     "Maine": {
       "adjO": 92.7,
       "adjD": 112.5,
       "adjT": 64.7,
-      "sourceName": "Maine"
+      "sourceName": "Maine",
+      "record": "8-24",
+      "netRtg": -20.41,
+      "ortg": 91.5,
+      "drtg": 111.9,
+      "luck": -0.031
     },
     "Chicago St.": {
       "adjO": 98.4,
       "adjD": 118.5,
-      "adjT": 65.4,
-      "sourceName": "Chicago St."
+      "adjT": 65.3,
+      "sourceName": "Chicago St.",
+      "record": "7-25",
+      "netRtg": -19.59,
+      "ortg": 99.4,
+      "drtg": 119.0,
+      "luck": -0.032
     },
     "New Hampshire": {
       "adjO": 94.6,
       "adjD": 115.1,
       "adjT": 67.5,
-      "sourceName": "New Hampshire"
+      "sourceName": "New Hampshire",
+      "record": "9-21",
+      "netRtg": -20.82,
+      "ortg": 95.1,
+      "drtg": 116.0,
+      "luck": -0.002
     },
     "North Carolina Central": {
       "adjO": 100.3,
       "adjD": 120.8,
       "adjT": 65.8,
-      "sourceName": "North Carolina Central"
+      "sourceName": "North Carolina Central",
+      "record": "14-18",
+      "netRtg": -21.07,
+      "ortg": 100.1,
+      "drtg": 121.1,
+      "luck": 0.071
     },
     "The Citadel": {
       "adjO": 98.8,
       "adjD": 119.9,
-      "adjT": 64.2,
-      "sourceName": "The Citadel"
+      "adjT": 64.4,
+      "sourceName": "The Citadel",
+      "record": "11-22",
+      "netRtg": -20.28,
+      "ortg": 100.6,
+      "drtg": 120.9,
+      "luck": 0.028
     },
     "Louisiana Monroe": {
       "adjO": 101.1,
       "adjD": 122.3,
-      "adjT": 70.2,
-      "sourceName": "Louisiana Monroe"
+      "adjT": 70.1,
+      "sourceName": "Louisiana Monroe",
+      "record": "4-28",
+      "netRtg": -20.97,
+      "ortg": 101.2,
+      "drtg": 122.2,
+      "luck": -0.099
     },
     "Morgan St.": {
       "adjO": 100.2,
       "adjD": 121.5,
-      "adjT": 70.6,
-      "sourceName": "Morgan St."
+      "adjT": 70.7,
+      "sourceName": "Morgan St.",
+      "record": "14-16",
+      "netRtg": -21.73,
+      "ortg": 99.4,
+      "drtg": 121.1,
+      "luck": 0.103
     },
     "Saint Francis": {
       "adjO": 99.5,
       "adjD": 122.0,
-      "adjT": 69.9,
-      "sourceName": "Saint Francis"
+      "adjT": 70.0,
+      "sourceName": "Saint Francis",
+      "record": "7-24",
+      "netRtg": -22.27,
+      "ortg": 99.5,
+      "drtg": 121.8,
+      "luck": -0.025
     },
     "Bryant": {
       "adjO": 96.5,
       "adjD": 118.9,
-      "adjT": 64.3,
-      "sourceName": "Bryant"
+      "adjT": 64.2,
+      "sourceName": "Bryant",
+      "record": "9-22",
+      "netRtg": -23.1,
+      "ortg": 96.5,
+      "drtg": 119.6,
+      "luck": 0.009
     },
     "Kansas City": {
       "adjO": 92.4,
       "adjD": 116.6,
-      "adjT": 69.7,
-      "sourceName": "Kansas City"
+      "adjT": 69.8,
+      "sourceName": "Kansas City",
+      "record": "4-27",
+      "netRtg": -25.25,
+      "ortg": 92.0,
+      "drtg": 117.2,
+      "luck": -0.017
     },
     "Rider": {
       "adjO": 95.6,
       "adjD": 120.0,
-      "adjT": 65.6,
-      "sourceName": "Rider"
+      "adjT": 65.8,
+      "sourceName": "Rider",
+      "record": "4-25",
+      "netRtg": -24.45,
+      "ortg": 95.7,
+      "drtg": 120.1,
+      "luck": -0.024
     },
     "South Carolina St.": {
       "adjO": 95.0,
       "adjD": 120.4,
-      "adjT": 68.2,
-      "sourceName": "South Carolina St."
+      "adjT": 68.7,
+      "sourceName": "South Carolina St.",
+      "record": "10-22",
+      "netRtg": -23.49,
+      "ortg": 95.2,
+      "drtg": 118.7,
+      "luck": 0.033
     },
     "Binghamton": {
       "adjO": 97.8,
       "adjD": 123.2,
-      "adjT": 65.2,
-      "sourceName": "Binghamton"
+      "adjT": 65.3,
+      "sourceName": "Binghamton",
+      "record": "8-23",
+      "netRtg": -25.57,
+      "ortg": 97.5,
+      "drtg": 123.1,
+      "luck": -0.019
     },
     "VMI": {
       "adjO": 99.3,
       "adjD": 125.2,
-      "adjT": 66.6,
-      "sourceName": "VMI"
+      "adjT": 66.8,
+      "sourceName": "VMI",
+      "record": "6-26",
+      "netRtg": -26.27,
+      "ortg": 98.6,
+      "drtg": 124.9,
+      "luck": -0.011
     },
     "Gardner Webb": {
       "adjO": 96.0,
       "adjD": 123.2,
-      "adjT": 69.4,
-      "sourceName": "Gardner Webb"
+      "adjT": 69.2,
+      "sourceName": "Gardner Webb",
+      "record": "4-29",
+      "netRtg": -26.41,
+      "ortg": 95.6,
+      "drtg": 122.0,
+      "luck": -0.001
     },
     "Delaware St.": {
       "adjO": 88.2,
       "adjD": 115.7,
-      "adjT": 66.2,
-      "sourceName": "Delaware St."
+      "adjT": 65.3,
+      "sourceName": "Delaware St.",
+      "record": "8-23",
+      "netRtg": -27.22,
+      "ortg": 87.1,
+      "drtg": 114.3,
+      "luck": -0.013
     },
     "Coppin St.": {
       "adjO": 92.4,
       "adjD": 120.1,
       "adjT": 68.0,
-      "sourceName": "Coppin St."
+      "sourceName": "Coppin St.",
+      "record": "7-24",
+      "netRtg": -27.5,
+      "ortg": 92.1,
+      "drtg": 119.6,
+      "luck": 0.037
     },
     "Western Illinois": {
       "adjO": 92.9,
       "adjD": 121.4,
-      "adjT": 66.5,
-      "sourceName": "Western Illinois"
+      "adjT": 66.6,
+      "sourceName": "Western Illinois",
+      "record": "5-26",
+      "netRtg": -28.48,
+      "ortg": 92.8,
+      "drtg": 121.3,
+      "luck": -0.052
     },
     "Mississippi Valley St.": {
       "adjO": 89.5,
       "adjD": 120.9,
-      "adjT": 67.1,
-      "sourceName": "Mississippi Valley St."
+      "adjT": 67.0,
+      "sourceName": "Mississippi Valley St.",
+      "record": "3-30",
+      "netRtg": -31.33,
+      "ortg": 90.3,
+      "drtg": 121.7,
+      "luck": -0.026
     }
   },
   "trank": {

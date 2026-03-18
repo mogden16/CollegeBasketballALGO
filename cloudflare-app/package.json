@@ -7,7 +7,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "check:deploy": "bash scripts/predeploy_check.sh",
-    "deploy:safe": "npm run check:deploy && npm run deploy"
+    "deploy:safe": "npm run check:deploy && npm run deploy",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260310.0",

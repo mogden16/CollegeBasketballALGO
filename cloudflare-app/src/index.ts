@@ -1,6 +1,7 @@
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
 import { predictGame, buildConsensus, type TeamRatings, type MatchupResult, type KenPomTeamInfo } from "./matchup";
+import { getNarrativeTemperature } from "./trendsProvider";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type TeamModelsPayload = {
@@ -14,6 +15,11 @@ type QuickMatchupBody = {
   teamB       : string;
   neutral     : boolean;
   useDampening: boolean;
+};
+
+type NarrativeTemperatureBody = {
+  teamA: string;
+  teamB: string;
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -147,6 +153,40 @@ const handleMatchup = async (request: Request): Promise<Response> => {
   };
 
   return new Response(JSON.stringify(result), { headers: jsonHeaders });
+};
+
+// ── Narrative Temperature API handler ─────────────────────────────────────────
+const handleNarrativeTemperature = async (request: Request): Promise<Response> => {
+  let body: Partial<NarrativeTemperatureBody>;
+  try {
+    body = (await request.json()) as Partial<NarrativeTemperatureBody>;
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body." }), { status: 400, headers: jsonHeaders });
+  }
+
+  const teamAInput = String(body.teamA ?? "").trim();
+  const teamBInput = String(body.teamB ?? "").trim();
+
+  if (!teamAInput || !teamBInput) {
+    return new Response(JSON.stringify({ error: "teamA and teamB are required." }), { status: 400, headers: jsonHeaders });
+  }
+
+  try {
+    const narrative = await getNarrativeTemperature(teamAInput, teamBInput);
+    return new Response(JSON.stringify(narrative), { headers: jsonHeaders });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to fetch trends data.";
+    return new Response(JSON.stringify({
+      error: message,
+      teamA: { team: teamAInput, score: 0, label: "Neutral", badge: "Neutral", phrases: [], topPhrases: [] },
+      teamB: { team: teamBInput, score: 0, label: "Neutral", badge: "Neutral", phrases: [], topPhrases: [] },
+      volatility: { score: 0, label: "Low" },
+      narrativeEdge: { label: "Narrative Edge: Neutral", strength: "neutral" },
+      fetchedAt: new Date().toISOString(),
+      sourceStatus: "unavailable",
+      sourceNote: "Trends data unavailable right now.",
+    }), { status: 200, headers: jsonHeaders });
+  }
 };
 
 // ── Home page ─────────────────────────────────────────────────────────────────
@@ -292,6 +332,40 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .spread-field select{min-width:130px}
 .spread-field input{width:110px}
 .spread-result{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem}
+
+/* ── Narrative temperature ───────────────── */
+.narrative-card{background:linear-gradient(180deg,rgba(16,30,52,.98),rgba(12,22,40,.98));border:1px solid var(--border2);border-radius:16px;padding:1.25rem}
+.narrative-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.narrative-title-row{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.narrative-note{font-size:.8rem;color:var(--muted)}
+.info-btn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border2);background:#0a1525;color:var(--text);font-size:.82rem;font-weight:700;cursor:pointer}
+.info-btn:hover{border-color:var(--blue);color:var(--blue)}
+.narrative-info{display:none;margin-bottom:1rem;padding:.85rem 1rem;border-radius:12px;background:rgba(74,144,226,.09);border:1px solid rgba(74,144,226,.25);color:var(--text);font-size:.84rem;line-height:1.5}
+.narrative-info.open{display:block}
+.narrative-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+@media(max-width:700px){.narrative-grid{grid-template-columns:1fr}}
+.narrative-team{background:rgba(10,21,37,.82);border:1px solid var(--border);border-radius:14px;padding:1rem}
+.narrative-team-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;margin-bottom:.8rem}
+.narrative-team-name{font-size:1rem;font-weight:700}
+.narrative-score{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.badge.hot{background:rgba(56,217,169,.14);color:var(--green);border:1px solid rgba(56,217,169,.28)}
+.badge.warm{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.28)}
+.badge.neutral{background:rgba(123,146,175,.15);color:#9ab0c8;border:1px solid rgba(123,146,175,.28)}
+.badge.cool{background:rgba(74,144,226,.12);color:var(--blue);border:1px solid rgba(74,144,226,.28)}
+.badge.risk{background:rgba(240,112,112,.13);color:var(--red);border:1px solid rgba(240,112,112,.28)}
+.badge.vol-low,.badge.edge-neutral{background:rgba(123,146,175,.15);color:#9ab0c8;border:1px solid rgba(123,146,175,.28)}
+.badge.vol-moderate,.badge.edge-slight{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.28)}
+.badge.vol-high,.badge.edge-clear{background:rgba(240,112,112,.13);color:var(--red);border:1px solid rgba(240,112,112,.28)}
+.phrase-chip-wrap{display:flex;flex-wrap:wrap;gap:.5rem}
+.phrase-chip{padding:.38rem .65rem;border-radius:999px;background:var(--card2);border:1px solid rgba(255,255,255,.06);font-size:.76rem;color:var(--text)}
+.phrase-chip.spike{border-color:rgba(74,144,226,.4);box-shadow:inset 0 0 0 1px rgba(74,144,226,.12)}
+.phrase-chip small{color:var(--muted);margin-left:.3rem}
+.narrative-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-bottom:.85rem}
+@media(max-width:700px){.narrative-meta{grid-template-columns:1fr}}
+.narrative-meta-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem}
+.narrative-meta-card .label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.35rem}
+.narrative-footer{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.8rem}
+.narrative-status{min-height:1.2rem;font-size:.84rem;color:var(--muted)}
 .spread-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
 @media(max-width:500px){.spread-result-grid{grid-template-columns:1fr 1fr}}
 .sr-item .sr-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.25rem}
@@ -470,7 +544,79 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 
     </div><!-- /.two-col -->
 
-    <!-- SECTION 6: Spread Evaluator -->
+    <!-- SECTION 6: Narrative Temperature -->
+    <section class="narrative-card section" id="narrative-section">
+      <div class="narrative-head">
+        <div>
+          <div class="narrative-title-row">
+            <h3 class="card-title" style="margin-bottom:0">Narrative Temperature</h3>
+            <button class="info-btn" id="narrative-info-btn" type="button" aria-expanded="false" aria-controls="narrative-info">i</button>
+          </div>
+          <div class="narrative-note">Soft signal based on Google Trends phrase activity</div>
+        </div>
+        <button class="btn btn-primary" id="narrative-scan-btn" type="button">Scan Trends</button>
+      </div>
+      <div class="narrative-info" id="narrative-info">
+        We scan team-related Google Trends phrase activity across several categories:<br/>
+        - Negative / risk: injury, questionable, suspended, slump, travel, short rest<br/>
+        - Positive / momentum: returning, healthy, hot streak, momentum, breakout, dominant<br/>
+        - Buzz / volatility: upset, odds, prediction, cinderella<br/>
+        These are used as a soft narrative signal only.
+      </div>
+      <div class="narrative-status" id="narrative-status">Scan Google Trends style phrase activity for both teams to add a soft sentiment signal.</div>
+      <div id="narrative-content" style="display:none">
+        <div class="narrative-grid">
+          <div class="narrative-team">
+            <div class="narrative-team-head">
+              <div>
+                <div class="narrative-team-name" id="narrative-team-a-name">Team A</div>
+                <div style="color:var(--muted);font-size:.82rem">Narrative temperature</div>
+              </div>
+              <div style="text-align:right">
+                <div class="narrative-score" id="narrative-team-a-score">0.0</div>
+                <span id="narrative-team-a-badge" class="badge neutral">Neutral</span>
+              </div>
+            </div>
+            <div class="phrase-chip-wrap" id="narrative-team-a-phrases"></div>
+          </div>
+          <div class="narrative-team">
+            <div class="narrative-team-head">
+              <div>
+                <div class="narrative-team-name" id="narrative-team-b-name">Team B</div>
+                <div style="color:var(--muted);font-size:.82rem">Narrative temperature</div>
+              </div>
+              <div style="text-align:right">
+                <div class="narrative-score" id="narrative-team-b-score">0.0</div>
+                <span id="narrative-team-b-badge" class="badge neutral">Neutral</span>
+              </div>
+            </div>
+            <div class="phrase-chip-wrap" id="narrative-team-b-phrases"></div>
+          </div>
+        </div>
+        <div class="narrative-meta">
+          <div class="narrative-meta-card">
+            <div class="label">Volatility</div>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <span id="narrative-volatility-badge" class="badge vol-low">Low</span>
+              <span id="narrative-volatility-text">Volatility score 0.00</span>
+            </div>
+          </div>
+          <div class="narrative-meta-card">
+            <div class="label">Narrative Edge</div>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <span id="narrative-edge-badge" class="badge edge-neutral">Neutral</span>
+              <span id="narrative-edge-text">Narrative Edge: Neutral</span>
+            </div>
+          </div>
+        </div>
+        <div class="narrative-footer">
+          <span id="narrative-source-note">Soft signal based on Google Trends phrase activity.</span>
+          <span id="narrative-fetched-at"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: Spread Evaluator -->
     <section class="card section" id="evaluator-section">
       <h3 class="card-title">Spread Evaluator</h3>
       <div class="spread-row">
@@ -563,6 +709,7 @@ function setupAC(inputId, listId) {
 var appNeutral   = false;
 var appDampening = true;
 var appData      = null;
+var appNarrative = null;
 var appSliders   = { injury: 0, hca: 0, tempo: 0, vol: 0 };
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -592,6 +739,8 @@ function initApp() {
   document.getElementById('ev-spread').addEventListener('input', function() { if (appData) renderEval(); });
   document.getElementById('predict-btn').addEventListener('click', runPredict);
   document.getElementById('reset-btn').addEventListener('click',  resetAll);
+  document.getElementById('narrative-scan-btn').addEventListener('click', scanNarrative);
+  document.getElementById('narrative-info-btn').addEventListener('click', toggleNarrativeInfo);
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -624,7 +773,7 @@ function wireSlider(inId, valId, key) {
 function resetAll() {
   document.getElementById('ta-input').value = '';
   document.getElementById('tb-input').value = '';
-  appNeutral = false; appDampening = true; appData = null;
+  appNeutral = false; appDampening = true; appData = null; appNarrative = null;
   setToggle('neutral-yes','neutral-no', false);
   setToggle('damp-yes','damp-no', true);
   syncNeutral();
@@ -635,6 +784,10 @@ function resetAll() {
   document.getElementById('ev-team').innerHTML = '<option value="A">Team A</option><option value="B">Team B</option>';
   document.getElementById('kenpom-team-info').innerHTML = '';
   document.getElementById('results').style.display = 'none';
+  document.getElementById('narrative-content').style.display = 'none';
+  document.getElementById('narrative-status').textContent = 'Scan Google Trends style phrase activity for both teams to add a soft sentiment signal.';
+  document.getElementById('narrative-source-note').textContent = 'Soft signal based on Google Trends phrase activity.';
+  document.getElementById('narrative-fetched-at').textContent = '';
   clearErr();
 }
 function setBadge(id, text, cls) {
@@ -686,6 +839,84 @@ function showErr(msg, warn) {
 }
 function clearErr() { document.getElementById('builder-error').innerHTML = ''; }
 
+function toggleNarrativeInfo() {
+  var panel = document.getElementById('narrative-info');
+  var btn = document.getElementById('narrative-info-btn');
+  var open = panel.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function badgeClassFromNarrative(label) {
+  var key = String(label || 'neutral').toLowerCase();
+  return key === 'hot' || key === 'warm' || key === 'cool' || key === 'risk' ? key : 'neutral';
+}
+function badgeClassFromVolatility(label) {
+  var key = String(label || 'low').toLowerCase();
+  return key === 'high' ? 'vol-high' : key === 'moderate' ? 'vol-moderate' : 'vol-low';
+}
+function badgeClassFromEdge(strength) {
+  return strength === 'clear' ? 'edge-clear' : strength === 'slight' ? 'edge-slight' : 'edge-neutral';
+}
+function renderNarrativeTeam(prefix, summary) {
+  document.getElementById(prefix + '-name').textContent = summary.team;
+  document.getElementById(prefix + '-score').textContent = (summary.score > 0 ? '+' : '') + Number(summary.score || 0).toFixed(2);
+  setBadge(prefix + '-badge', summary.label, badgeClassFromNarrative(summary.label));
+  var phrases = summary.topPhrases && summary.topPhrases.length ? summary.topPhrases : summary.phrases.slice(0, 3);
+  document.getElementById(prefix + '-phrases').innerHTML = phrases.length
+    ? phrases.map(function(item) {
+        return '<span class="phrase-chip' + (item.isSpiking ? ' spike' : '') + '">' + htmlEsc(summary.team + ' ' + (item.term || item.phrase)) + '<small>' + htmlEsc(item.category) + ' ' + item.trendScore.toFixed(0) + '</small></span>';
+      }).join('')
+    : '<span style="color:var(--muted);font-size:.82rem">No strong phrase signal detected.</span>';
+}
+function renderNarrative(data) {
+  appNarrative = data;
+  document.getElementById('narrative-content').style.display = 'block';
+  renderNarrativeTeam('narrative-team-a', data.teamA);
+  renderNarrativeTeam('narrative-team-b', data.teamB);
+  setBadge('narrative-volatility-badge', data.volatility.label, badgeClassFromVolatility(data.volatility.label));
+  document.getElementById('narrative-volatility-text').textContent = 'Volatility score ' + Number(data.volatility.score || 0).toFixed(2);
+  var edgeLabel = data.narrativeEdge && data.narrativeEdge.label ? data.narrativeEdge.label.replace('Narrative Edge: ', '') : 'Neutral';
+  setBadge('narrative-edge-badge', edgeLabel, badgeClassFromEdge(data.narrativeEdge && data.narrativeEdge.strength));
+  document.getElementById('narrative-edge-text').textContent = data.narrativeEdge ? data.narrativeEdge.label : 'Narrative Edge: Neutral';
+  document.getElementById('narrative-source-note').textContent = data.sourceNote || 'Soft signal based on Google Trends phrase activity.';
+  document.getElementById('narrative-fetched-at').textContent = data.fetchedAt ? ('Updated ' + new Date(data.fetchedAt).toLocaleString()) : '';
+  document.getElementById('narrative-status').textContent = data.sourceStatus === 'unavailable'
+    ? 'Trends data unavailable right now.'
+    : data.sourceStatus === 'partial'
+      ? 'Partial trends signal loaded. Missing phrases were ignored.'
+      : 'Narrative signal loaded. Use this as a soft supplemental read only.';
+}
+function scanNarrative() {
+  var ta = document.getElementById('ta-input').value.trim();
+  var tb = document.getElementById('tb-input').value.trim();
+  if (!ta || !tb) { showErr('Please enter both teams before scanning trends.'); return; }
+  var btn = document.getElementById('narrative-scan-btn');
+  btn.disabled = true;
+  btn.textContent = appNarrative ? 'Refreshing…' : 'Scanning…';
+  document.getElementById('narrative-status').textContent = 'Scanning trends…';
+  fetch('/api/narrative-temperature', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ teamA: ta, teamB: tb })
+  })
+    .then(function(res) { return res.json(); })
+    .then(function(data) { renderNarrative(data); })
+    .catch(function() {
+      renderNarrative({
+        teamA: { team: ta, score: 0, label: 'Neutral', badge: 'Neutral', phrases: [], topPhrases: [] },
+        teamB: { team: tb, score: 0, label: 'Neutral', badge: 'Neutral', phrases: [], topPhrases: [] },
+        volatility: { score: 0, label: 'Low' },
+        narrativeEdge: { label: 'Narrative Edge: Neutral', strength: 'neutral' },
+        fetchedAt: new Date().toISOString(),
+        sourceStatus: 'unavailable',
+        sourceNote: 'Trends data unavailable right now.'
+      });
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = appNarrative ? 'Refresh Trends' : 'Scan Trends';
+    });
+}
+
 // ── Predict API call ──────────────────────────────────────────────────────────
 function runPredict() {
   var ta = document.getElementById('ta-input').value.trim();
@@ -709,6 +940,8 @@ function runPredict() {
     appData = data;
     recompute();
     document.getElementById('results').style.display = 'block';
+    document.getElementById('narrative-status').textContent = 'Ready to scan a soft Google Trends narrative signal for this matchup.';
+    document.getElementById('narrative-scan-btn').textContent = 'Scan Trends';
   })
   .catch(function(e) { showErr(e.message || 'Network error.'); })
   .finally(function() { btn.disabled = false; btn.textContent = 'Predict'; });
@@ -927,6 +1160,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/api/matchup") {
       return handleMatchup(request);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/narrative-temperature") {
+      return handleNarrativeTemperature(request);
     }
 
     return new Response("Not found", { status: 404 });

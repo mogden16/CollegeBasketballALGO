@@ -73,9 +73,9 @@ const TEAM_ALIASES: Record<string, string> = {
   "texas am": "Texas A&M",
 };
 
-const LAMBDA = 0.88;
+const LAMBDA = 0.8905;
 const AVG_EFFICIENCY = 100;
-const HCA = 3.5;
+const HCA = 1.9895;
 
 const buildNormalizedLookup = (teams: string[]): Map<string, string> => {
   const lookup = new Map<string, string>();

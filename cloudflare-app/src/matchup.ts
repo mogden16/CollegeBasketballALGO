@@ -3,6 +3,21 @@ export type TeamRatings = {
   adjD: number;
   adjT: number;
   sourceName?: string;
+  record?: string | null;
+  netRtg?: number | null;
+  ortg?: number | null;
+  drtg?: number | null;
+  luck?: number | null;
+};
+
+export type KenPomTeamInfo = {
+  team: string;
+  record: string | null;
+  netRating: number | null;
+  offRating: number | null;
+  defRating: number | null;
+  adjTempo: number | null;
+  luck: number | null;
 };
 
 /** Projection from a single source model (KenPom or T-Rank). */
@@ -29,6 +44,10 @@ export type MatchupResult = {
   kenpom: SourceProjection | null;
   trank: SourceProjection | null;
   consensus: SourceProjection | null;
+  kenpomTeamInfo: {
+    teamA: KenPomTeamInfo | null;
+    teamB: KenPomTeamInfo | null;
+  };
   notes: string[];
 };
 

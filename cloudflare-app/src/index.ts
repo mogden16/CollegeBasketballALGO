@@ -2,7 +2,7 @@ import gamesData from "../data/games-by-date.json";
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
 import { toLocalIsoDate } from "./date";
-import { buildFanDuelLookupForDate, fetchOddsApiEventsForDate, getGameLookupKey, type VegasInfo } from "./odds";
+import { buildOddsLookupForDate, fetchOddsApiEventsForDate, getGameLookupKey, lineUnavailable, PREFERRED_BOOKMAKERS, type VegasInfo } from "./odds";
 
 type ModelProjection = {
   homeScore: number | null;
@@ -227,7 +227,7 @@ const testOddsApi = async (selectedDate: string, env: Env): Promise<UpstreamTest
   url.searchParams.set('apiKey', env.ODDS_API_KEY);
   url.searchParams.set('regions', 'us');
   url.searchParams.set('markets', 'spreads,totals');
-  url.searchParams.set('bookmakers', 'fanduel');
+  url.searchParams.set('bookmakers', PREFERRED_BOOKMAKERS.join(','));
   url.searchParams.set('oddsFormat', 'american');
   url.searchParams.set('dateFormat', 'iso');
   url.searchParams.set('commenceTimeFrom', start);
@@ -283,7 +283,7 @@ const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[]
         vegas: {
           spread: pick.vegas?.spread ?? null,
           total: pick.vegas?.total ?? null,
-          vegasSource: "fanduel",
+          vegasSource: pick.vegas?.vegasSource ?? "none",
           vegasStatus: pick.vegas?.spread !== null && pick.vegas?.total !== null ? "available" : "unavailable",
         },
       }),
@@ -292,26 +292,35 @@ const hydrateVegasForDate = async (selectedDate: string, picks: GamePrediction[]
 
   const needsHydration = picks.some((pick) => pick.vegas?.spread === null || pick.vegas?.total === null);
   if (onlyMissing && !needsHydration) {
-    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: "fanduel", vegasStatus: "available" } }));
+    return picks.map((pick) => recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: pick.vegas?.vegasSource ?? "none", vegasStatus: "available" } }));
   }
 
   const oddsEvents = await fetchOddsApiEventsForDate(selectedDate, env.ODDS_API_KEY);
-  const oddsLookup = buildFanDuelLookupForDate(selectedDate, picks, oddsEvents);
+  const oddsLookup = buildOddsLookupForDate(selectedDate, picks, oddsEvents);
 
   return picks.map((pick) => {
     const key = getGameLookupKey(pick.homeTeam, pick.awayTeam);
-    const fromOdds = oddsLookup.get(key);
-    if (!fromOdds) return recalculateEdges({ ...pick, vegas: { ...pick.vegas, vegasSource: "fanduel", vegasStatus: "unavailable" } });
+    const fromOdds = oddsLookup.get(key) ?? lineUnavailable();
+    const hasCompleteCachedLine = pick.vegas?.spread !== null && pick.vegas?.total !== null;
 
-    const spread = onlyMissing && pick.vegas.spread !== null ? pick.vegas.spread : fromOdds.spread;
-    const total = onlyMissing && pick.vegas.total !== null ? pick.vegas.total : fromOdds.total;
+    if (onlyMissing && hasCompleteCachedLine) {
+      return recalculateEdges({
+        ...pick,
+        vegas: {
+          ...pick.vegas,
+          vegasSource: pick.vegas?.vegasSource ?? "none",
+          vegasStatus: "available",
+        },
+      });
+    }
+
     return recalculateEdges({
       ...pick,
       vegas: {
-        spread,
-        total,
-        vegasSource: "fanduel",
-        vegasStatus: spread !== null && total !== null ? "available" : "unavailable",
+        spread: fromOdds.spread,
+        total: fromOdds.total,
+        vegasSource: fromOdds.vegasSource ?? "none",
+        vegasStatus: fromOdds.spread !== null && fromOdds.total !== null ? "available" : "unavailable",
       },
     });
   });
@@ -340,7 +349,7 @@ const buildLiveGamesForDate = async (selectedDate: string, env: Env): Promise<Pi
       gameTimeEt: game.gameTimeEt,
       kenpom: kenpomProjection,
       trank: trankProjection,
-      vegas: { spread: null, total: null, vegasSource: "fanduel", vegasStatus: "unavailable" },
+      vegas: lineUnavailable(),
       isEdge: false,
       confidence: null,
     });
@@ -350,7 +359,7 @@ const buildLiveGamesForDate = async (selectedDate: string, env: Env): Promise<Pi
 
   for (const game of withOdds) {
     if (game.vegas.vegasStatus === "unavailable") {
-      console.log(`FanDuel odds unavailable: ${selectedDate} ${game.awayTeam} @ ${game.homeTeam}`);
+      console.log(`Preferred sportsbook odds unavailable: ${selectedDate} ${game.awayTeam} @ ${game.homeTeam}`);
     }
   }
 
@@ -394,7 +403,7 @@ function edgeText(prefix,e){if(!e.reasons.length)return prefix+': no qualifying 
 function renderCards(games){const spreadT=Number(spreadThresholdInput.value)||0;const totalT=Number(totalThresholdInput.value)||0;let highlighted=0;cardsContainer.innerHTML=games.map((g)=>{const side=calcSideEdge(g,spreadT);const total=calcTotalEdge(g,totalT);const hot=side.highlight||total.highlight;if(hot)highlighted++;const time=g.gameTimeEt||'TBD ET';return '<article class="card'+(hot?' highlight':'')+'"><h2 class="line1">'+g.awayTeam+' @ '+g.homeTeam+' | '+time+'</h2>'+
 '<div class="row"><span class="label">KenPom predicted score</span><span>'+modelScore(g.kenpom,g.awayTeam,g.homeTeam)+'</span></div>'+
 '<div class="row"><span class="label">T-Rank predicted score</span><span>'+modelScore(g.trank,g.awayTeam,g.homeTeam)+'</span></div>'+
-'<div class="row"><span class="label">Vegas line</span><span>Spread: '+formatSpread(g.vegas.spread)+' | Total: '+(g.vegas.total??'N/A')+'</span></div>'+
+'<div class="row"><span class="label">Vegas line</span><span>Spread: '+formatSpread(g.vegas.spread)+' | Total: '+(g.vegas.total??'N/A')+' | Book: '+(g.vegas.vegasSource&&g.vegas.vegasSource!=="none"?g.vegas.vegasSource:'N/A')+'</span></div>'+
 '<div class="row"><span class="label">EDGE</span><div style="width:100%"><div class="edgeBox '+(side.highlight?'hot':'')+'">'+edgeText('Side',side)+'</div><div class="edgeBox '+(total.highlight?'hot':'')+'">'+edgeText('Total',total)+'</div></div></div></article>'}).join('');
 if(!games.length){emptyState.textContent=currentReason==='upstream_unavailable'?'No games shown because live schedule fetch is currently unavailable.':'No games scheduled for this date.';emptyState.style.display='block'}else{emptyState.style.display='none'}
 statusLine.textContent='Date: '+dateInput.value+' • Source: '+currentSource+' • Games: '+games.length+' • Highlighted: '+highlighted;

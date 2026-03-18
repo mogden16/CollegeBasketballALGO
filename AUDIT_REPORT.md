@@ -16,8 +16,8 @@ The code does NOT use the standard KenPom formula. Instead it uses a lambda-shri
 
 ```python
 tempo    = (home.adj_t * away.adj_t) ** 0.48 * (68.4 ** 0.04)  # Geometric mean variant
-eff_home = home.adj_o + 0.88 * (away.adj_d - 100)              # Additive lambda adjustment
-eff_away = away.adj_o + 0.88 * (home.adj_d - 100)
+eff_home = home.adj_o + 0.8905 * (away.adj_d - 100)            # Additive lambda adjustment
+eff_away = away.adj_o + 0.8905 * (home.adj_d - 100)
 pts_home = tempo * eff_home / 100
 pts_away = tempo * eff_away / 100
 spread   = -((pts_home - pts_away) + hca)
@@ -32,10 +32,10 @@ away_score = poss * (away_AdjO / 100) * (home_AdjD / 100)
 
 The lambda model is a legitimate regression-to-the-mean approach, and the tempo exponents sum to 1.0 (0.48×2 + 0.04 = 1.0), making the formula dimensionally consistent. However:
 - The additive lambda adjustment diverges from the standard multiplicative approach for extreme AdjD values
-- LAMBDA=0.88 and the tempo exponents appear tuned but are hardcoded without documentation of how they were derived
+- LAMBDA=0.8905 and the tempo exponents appear tuned but are hardcoded without documentation of how they were derived
 
 **Sign convention:** PASS — `spread < 0` = home favored ✓ (line 371)
-**Home court adjustment:** PASS — HCA = 3.5 applied to spread, zeroed for neutral sites (lines 49, 364) ✓
+**Home court adjustment:** PASS — HCA = 1.9895 applied to spread, zeroed for neutral sites (lines 49, 364) ✓
 
 ### 2. KenPom-Derived Total (O/U)
 **Verdict: WARNING** — Non-standard formula; HCA not reflected in total
@@ -149,7 +149,7 @@ Today's slate is minimal (conference championship games only). ESPN API is unava
 | 1 | **Critical** | Bug Fix | `is_edge` includes total edge logic — games flagged as edge bets based solely on total mismatch, producing false positives for spread bettors | High — directly misleads bet recommendations |
 | 2 | **Critical** | Bug Fix | `enter_results()` missing bt_* columns — T-Rank data lost on manual entry path | Medium — auto-check path works, but manual entry drops data |
 | 3 | **Critical** | Data Quality | Barttorvik parser fails on 46/365 teams (12.6%) including Purdue, Michigan St., Ohio St., Indiana, Marquette, Maryland — teams with "recent game" annotation in the copy-paste | High — major programs missing from T-Rank predictions |
-| 4 | **High** | Calculation Accuracy | HCA (3.5 pts) is hardcoded, not derived from data. Should be configurable and ideally calibrated from results | Medium — current value is reasonable but static |
+| 4 | **High** | Calculation Accuracy | HCA (1.9895 pts) is hardcoded, not derived from data. Should be configurable and ideally calibrated from results | Medium — current value is reasonable but static |
 | 5 | **High** | Calculation Accuracy | Totals are systematically over-predicted (avg total error +15-20 pts based on log analysis). Model doesn't account for tournament pace regression or game context | High — total predictions are unreliable |
 | 6 | **High** | Data Quality | ATS push handling — pushes against the spread count as losses in `performance_summary()` | Low-Medium — inflates loss count |
 | 7 | **Medium** | Data Quality | `results_log.csv` mixes legacy 17-column and new 20-column rows without header — `_read_csv()` misreads newer rows when first row is legacy format | Medium — silent data corruption |

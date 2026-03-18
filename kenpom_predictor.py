@@ -55,11 +55,11 @@ BARTTORVIK_FILE = "barttorvik_raw.txt"
 # Model constants
 AVG_EFFICIENCY     = 100.0
 AVG_TEMPO_2026     = 68.4
-LAMBDA             = 0.88
-TEMPO_SCALE        = 1.0
+LAMBDA             = 0.8905
+TEMPO_SCALE        = 0.9290
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
-HCA                = 3.5
+HCA                = 1.9895
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES

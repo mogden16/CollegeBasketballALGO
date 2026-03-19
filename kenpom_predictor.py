@@ -54,11 +54,11 @@ BARTTORVIK_FILE = "barttorvik_raw.txt"
 
 # Model constants
 AVG_TEMPO_2026     = 68.4
-LAMBDA             = 0.8905
-TEMPO_SCALE        = 0.9290
+LAMBDA             = 0.8296
+TEMPO_SCALE        = 1.2398
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
-HCA                = 1.9895
+HCA                = 3.1453
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES
@@ -155,7 +155,7 @@ def parse_barttorvik(filepath: str) -> dict[str, Team]:
     barttorvik_raw.txt. No editing needed.
     """
     teams = {}
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         lines = [line.rstrip("\n") for line in f]
 
     i = 0

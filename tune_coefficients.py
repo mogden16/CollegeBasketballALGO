@@ -83,11 +83,10 @@ def predict_with_params(home: Team, away: Team, neutral: bool,
                         lam: float, tempo_scale: float, hca: float) -> tuple[float, float]:
     """Run predict_game logic with explicit coefficient values."""
     adj_hca = 0.0 if neutral else hca
-    tempo = tempo_scale * (home.adj_t + away.adj_t) / 2
-    eff_home = home.adj_o + lam * (away.adj_d - kenpom_predictor.AVG_EFFICIENCY)
-    eff_away = away.adj_o + lam * (home.adj_d - kenpom_predictor.AVG_EFFICIENCY)
-    pts_home = tempo * eff_home / 100
-    pts_away = tempo * eff_away / 100
+    eff_home = ((home.adj_o + away.adj_d) / 2) * lam
+    eff_away = ((away.adj_o + home.adj_d) / 2) * lam
+    pts_home = (tempo_scale * home.adj_t) * eff_home / 100
+    pts_away = (tempo_scale * away.adj_t) * eff_away / 100
     pts_home += adj_hca / 2
     pts_away -= adj_hca / 2
     return pts_home, pts_away

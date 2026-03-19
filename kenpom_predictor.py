@@ -53,7 +53,6 @@ RESULTS_LOG     = "results_log.csv"
 BARTTORVIK_FILE = "barttorvik_raw.txt"
 
 # Model constants
-AVG_EFFICIENCY     = 100.0
 AVG_TEMPO_2026     = 68.4
 LAMBDA             = 0.8905
 TEMPO_SCALE        = 0.9290
@@ -427,19 +426,31 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
 # ══════════════════════════════════════════════════════
 def predict_game(home: Team, away: Team, neutral: bool = False) -> dict:
     hca = 0.0 if neutral else HCA
-    tempo    = TEMPO_SCALE * (home.adj_t + away.adj_t) / 2
-    eff_home = home.adj_o + LAMBDA * (away.adj_d - AVG_EFFICIENCY)
-    eff_away = away.adj_o + LAMBDA * (home.adj_d - AVG_EFFICIENCY)
-    pts_home = tempo * eff_home / 100
-    pts_away = tempo * eff_away / 100
+
+    # Build each team's matchup efficiency from its own offense and the opponent's
+    # defense, then apply the lambda dampening factor to that matchup average.
+    # This keeps lambda in the model without reverting to a shared tempo input.
+    eff_home = ((home.adj_o + away.adj_d) / 2) * LAMBDA
+    eff_away = ((away.adj_o + home.adj_d) / 2) * LAMBDA
+
+    # AdjO / AdjD are per-100-possession metrics, so each team now scales its own
+    # matchup efficiency by its own adjusted tempo instead of a shared averaged tempo.
+    pace_home = TEMPO_SCALE * home.adj_t
+    pace_away = TEMPO_SCALE * away.adj_t
+    pts_home = pace_home * eff_home / 100
+    pts_away = pace_away * eff_away / 100
     total    = pts_home + pts_away
     spread   = -((pts_home - pts_away) + hca)  # Negative = home favored
+
+    # Preserve the legacy single tempo field for downstream consumers as a display-only
+    # summary, even though team scoring now uses each side's own adjusted tempo.
+    display_tempo = (pace_home + pace_away) / 2
     return {
         "home_score": round(pts_home, 1),
         "away_score": round(pts_away, 1),
         "total":      round(total, 1),
         "spread":     round(spread, 1),
-        "tempo":      round(tempo, 1),
+        "tempo":      round(display_tempo, 1),
     }
 
 # ══════════════════════════════════════════════════════

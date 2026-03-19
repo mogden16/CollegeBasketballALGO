@@ -53,7 +53,6 @@ export type MatchupResult = {
 
 // ── Model constants (tuned coefficients) ────────────────────────────────────
 export const LAMBDA = 0.8905;         // regression-to-mean shrinkage factor
-export const AVG_EFFICIENCY = 100;    // league average adjusted efficiency
 export const HCA = 1.9895;            // home court advantage (points)
 export const TEMPO_SCALE = 0.9290;    // tempo regression multiplier
 
@@ -78,11 +77,13 @@ export function predictGame(
   // Built-in HCA only active when dampening ON and not a neutral site.
   const builtinHCA  = useDampening && !neutral ? HCA : 0;
 
-  const tempo  = tempoScale * (teamA.adjT + teamB.adjT) / 2;
-  const effA   = teamA.adjO + lambda * (teamB.adjD - AVG_EFFICIENCY);
-  const effB   = teamB.adjO + lambda * (teamA.adjD - AVG_EFFICIENCY);
-  const rawA   = (tempo * effA) / 100;
-  const rawB   = (tempo * effB) / 100;
+  // Build each side's matchup efficiency from its own offense and the opposing
+  // defense, then apply lambda to that matchup average instead of using a
+  // shared tempo or league-average defensive baseline.
+  const effA        = ((teamA.adjO + teamB.adjD) / 2) * lambda;
+  const effB        = ((teamB.adjO + teamA.adjD) / 2) * lambda;
+  const rawA        = ((tempoScale * teamA.adjT) * effA) / 100;
+  const rawB        = ((tempoScale * teamB.adjT) * effB) / 100;
 
   // Spread from Team A's perspective (positive = A wins)
   const spread = rawA - rawB - builtinHCA;

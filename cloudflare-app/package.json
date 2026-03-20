@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "refresh:data": "python3 scripts/regenerate_team_models.py && python3 scripts/regenerate_games_by_date.py && python3 scripts/generate_picks.py",
+    "refresh:models": "python3 scripts/regenerate_team_models.py",
     "check:deploy": "bash scripts/predeploy_check.sh",
     "deploy:safe": "npm run check:deploy && npm run deploy"
   },

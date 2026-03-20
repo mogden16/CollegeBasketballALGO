@@ -16,7 +16,7 @@ from thefuzz import process
 
 from kenpom_predictor import (
     PREDICTIONS_LOG, PREDICTIONS_HEADERS, RESULTS_LOG, FUZZY_THRESHOLD,
-    DISCORD_WEBHOOK_URL, fetch_scores_for_date,
+    DISCORD_WEBHOOK_URL, fetch_scores_for_date, EDGE_THRESHOLD,
 )
 
 # ══════════════════════════════════════════════════════
@@ -29,38 +29,72 @@ RESULTS_HEADERS = [
     "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
     "vegas_spread", "vegas_total",
     "spread_error", "total_error",
-    "spread_vs_vegas_error", "model_beat_vegas"
+    "spread_vs_vegas_error", "model_beat_vegas",
+    # Edge context — carried over from predictions_log so results can be
+    # filtered to Discord-alerted games without re-joining against predictions.
+    "is_edge", "confidence", "kp_spread_edge", "kp_total_edge", "bt_spread_edge",
 ]
 
-# Old results format (before bt_* columns were added)
+# results format before edge columns were added
+_LEGACY_RESULTS_HEADERS_V2 = [
+    "date", "home_team", "away_team",
+    "actual_home_score", "actual_away_score", "actual_total", "actual_spread",
+    "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
+    "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
+    "vegas_spread", "vegas_total",
+    "spread_error", "total_error",
+    "spread_vs_vegas_error", "model_beat_vegas",
+]
+
+# results format before bt_* columns were added
 _LEGACY_RESULTS_HEADERS = [
     "date", "home_team", "away_team",
     "actual_home_score", "actual_away_score", "actual_total", "actual_spread",
     "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
     "vegas_spread", "vegas_total",
     "spread_error", "total_error",
-    "spread_vs_vegas_error", "model_beat_vegas"
+    "spread_vs_vegas_error", "model_beat_vegas",
 ]
 
 
-def _read_csv(path: str, known_headers: list[str], legacy_headers: list[str] = None) -> list[dict]:
-    """Read a CSV, auto-detecting missing header rows and legacy column layouts."""
+def _read_csv(path: str, known_headers: list[str], *legacy_header_sets: list[str]) -> list[dict]:
+    """Read a CSV, handling headered and headerless files.
+
+    Headerless files (results_log) may contain rows from different schema
+    versions if the file was built up over time.  To handle this cleanly,
+    the header set is chosen per-row based on exact field-count match rather
+    than from the first line only.  This prevents column misalignment when
+    the file transitions from a 17-column to a 21-column to a 25-column format.
+    """
+    all_header_sets = [known_headers] + list(legacy_header_sets)
+    # Map field count → header list; keep the most-current set for any given length.
+    header_by_len: dict[int, list[str]] = {}
+    for h in reversed(all_header_sets):   # iterate oldest-first so newest wins
+        header_by_len[len(h)] = h
+
     with open(path, newline="", encoding="utf-8-sig") as f:
-        first_line = f.readline()
+        first_line = f.readline().strip()
         f.seek(0)
-        # Headerless CSV: first field looks like a date (YYYY-MM-DD)
-        if first_line and first_line.strip() and first_line.strip().split(",")[0].count("-") == 2:
-            num_fields = len(first_line.strip().split(","))
-            if num_fields == len(known_headers):
-                headers = known_headers
-            elif legacy_headers and num_fields == len(legacy_headers):
-                headers = legacy_headers
-            else:
-                headers = known_headers
-            reader = csv.DictReader(f, fieldnames=headers)
+
+        # If the first field looks like a date the file has no header row.
+        if first_line and first_line.split(",")[0].count("-") == 2:
+            rows = []
+            for raw in csv.reader(f):
+                if not raw:
+                    continue
+                n = len(raw)
+                headers = header_by_len.get(n)
+                if headers is None:
+                    # Closest match (handles rows with trailing empty fields)
+                    headers = min(all_header_sets, key=lambda h: abs(len(h) - n))
+                rows.append({
+                    headers[i]: raw[i].strip()
+                    for i in range(min(n, len(headers)))
+                })
+            return rows
         else:
             reader = csv.DictReader(f)
-        return [{k.strip(): (v.strip() if v else "") for k, v in row.items() if k} for row in reader]
+            return [{k.strip(): (v.strip() if v else "") for k, v in row.items() if k} for row in reader]
 
 
 # ══════════════════════════════════════════════════════
@@ -80,7 +114,7 @@ def enter_results():
 
     resolved = set()
     if Path(RESULTS_LOG).exists():
-        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS):
+        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS):
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 
     pending = [
@@ -167,6 +201,11 @@ def enter_results():
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,
                 "model_beat_vegas":     model_beat_vegas,
+                "is_edge":              p.get("is_edge", ""),
+                "confidence":           p.get("confidence", ""),
+                "kp_spread_edge":       p.get("kp_spread_edge", ""),
+                "kp_total_edge":        p.get("kp_total_edge", ""),
+                "bt_spread_edge":       p.get("bt_spread_edge", ""),
             })
 
             print(f"  Saved. Spread error: {spread_error:+.1f} pts  |  Total error: {total_error:+.1f} pts\n")
@@ -181,83 +220,183 @@ def _pct(num: int, denom: int) -> str:
 
 
 def performance_summary(rows: list[dict], label: str) -> str:
-    """Build performance stats string for a set of result rows."""
+    """
+    Build a performance stats block for a set of result rows.
+
+    Four metrics, each broken out by all games / edge games / HIGH confidence:
+      1. Moneyline   — did the model pick the correct outright winner?
+      2. KP Spread ATS — did KenPom correctly call which side covers vs Vegas?
+      3. KP Total O/U  — did KenPom correctly call over/under vs Vegas total?
+      4. BT Spread ATS — did T-Rank correctly call which side covers vs Vegas?
+
+    Edge games = rows where |spread_edge| >= EDGE_THRESHOLD (the Discord alert threshold).
+    HIGH confidence = rows where both KP and BT agreed and both cleared EDGE_THRESHOLD.
+    """
     if not rows:
         return f"\n  {label}: No data."
 
     n = len(rows)
-    spread_errors = [abs(float(r["spread_error"])) for r in rows if r.get("spread_error")]
-    total_errors  = [abs(float(r["total_error"]))  for r in rows if r.get("total_error")]
-    beat_vegas    = [r for r in rows if r.get("model_beat_vegas") == "YES"]
-    vs_vegas_rows = [r for r in rows if r.get("model_beat_vegas") in ("YES", "NO")]
 
-    mae_spread = sum(spread_errors) / len(spread_errors) if spread_errors else None
-    mae_total  = sum(total_errors)  / len(total_errors)  if total_errors  else None
+    # ── Safe float helper ──────────────────────────────────────────────────────
+    def _f(val):
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return None
 
-    # --- Moneyline: did the model pick the correct winner? ---
-    # spread < 0 means home is favored / won
-    ml_correct = 0
-    ml_total = 0
-    for r in rows:
-        kp = r.get("kp_spread", "")
-        actual = r.get("actual_spread", "")
-        if not kp or not actual:
-            continue
-        kp_val, actual_val = float(kp), float(actual)
-        if actual_val == 0:
-            continue  # push / no winner
-        ml_total += 1
-        if (kp_val < 0) == (actual_val < 0):
-            ml_correct += 1
+    # ── MAE ───────────────────────────────────────────────────────────────────
+    spread_errs = [abs(_f(r["spread_error"])) for r in rows if _f(r.get("spread_error")) is not None]
+    total_errs  = [abs(_f(r["total_error"]))  for r in rows if _f(r.get("total_error"))  is not None]
+    mae_spread  = sum(spread_errs) / len(spread_errs) if spread_errs else None
+    mae_total   = sum(total_errs)  / len(total_errs)  if total_errs  else None
 
-    # --- KP spread ATS: did KP correctly pick the right side vs Vegas? ---
-    kp_ats_correct = 0
-    kp_ats_total = 0
-    for r in rows:
-        kp = r.get("kp_spread", "")
-        vegas = r.get("vegas_spread", "")
-        actual = r.get("actual_spread", "")
-        if not kp or not vegas or not actual:
-            continue
-        kp_val, vegas_val, actual_val = float(kp), float(vegas), float(actual)
-        if kp_val == vegas_val:
-            continue  # no edge, no pick
-        kp_ats_total += 1
-        # KP says take home ATS if kp_spread < vegas_spread (home stronger than Vegas thinks)
-        kp_says_home = kp_val < vegas_val
-        home_covered = actual_val < vegas_val
-        if kp_says_home == home_covered:
-            kp_ats_correct += 1
+    # ── Metric helpers ────────────────────────────────────────────────────────
+    def _moneyline(subset):
+        """Correct outright winner, no spread involved."""
+        correct = total = 0
+        for r in subset:
+            kp  = _f(r.get("kp_spread"))
+            act = _f(r.get("actual_spread"))
+            if kp is None or act is None or act == 0:
+                continue
+            total += 1
+            if (kp < 0) == (act < 0):
+                correct += 1
+        return correct, total
 
-    # --- BT spread ATS: did T-Rank correctly pick the right side vs Vegas? ---
-    bt_ats_correct = 0
-    bt_ats_total = 0
-    for r in rows:
-        bt = r.get("bt_spread", "")
-        vegas = r.get("vegas_spread", "")
-        actual = r.get("actual_spread", "")
-        if not bt or not vegas or not actual:
-            continue
-        bt_val, vegas_val, actual_val = float(bt), float(vegas), float(actual)
-        if bt_val == vegas_val:
-            continue
-        bt_ats_total += 1
-        bt_says_home = bt_val < vegas_val
-        home_covered = actual_val < vegas_val
-        if bt_says_home == home_covered:
-            bt_ats_correct += 1
+    def _spread_ats(subset, spread_key, edge_key, threshold=None):
+        """
+        ATS correctness for a given model spread column.
+        If threshold is set, only rows where |edge_key| >= threshold are counted
+        (i.e. games the model actually had a strong opinion on).
+        Falls back to computing edge from spread values if edge_key is missing.
+        """
+        correct = total = 0
+        for r in subset:
+            model = _f(r.get(spread_key))
+            vegas = _f(r.get("vegas_spread"))
+            act   = _f(r.get("actual_spread"))
+            if model is None or vegas is None or act is None:
+                continue
+            if threshold is not None:
+                # Use pre-computed edge when available; fall back to raw diff
+                edge = _f(r.get(edge_key))
+                if edge is None:
+                    edge = vegas - model   # kp_spread_edge convention: vegas - model
+                if abs(edge) < threshold:
+                    continue
+            elif model == vegas:
+                continue   # no opinion, skip for all-games ATS
+            total += 1
+            if (model < vegas) == (act < vegas):   # same side picked vs covered
+                correct += 1
+        return correct, total
 
+    def _total_ou(subset, threshold=None):
+        """
+        Over/under correctness vs Vegas total.
+        If threshold is set, only rows where |kp_total_edge| >= threshold counted.
+        Falls back to computing edge on the fly if kp_total_edge missing.
+        """
+        correct = total = 0
+        for r in subset:
+            kp_tot    = _f(r.get("kp_total"))
+            vegas_tot = _f(r.get("vegas_total"))
+            act_tot   = _f(r.get("actual_total"))
+            if kp_tot is None or vegas_tot is None or act_tot is None:
+                continue
+            if threshold is not None:
+                edge = _f(r.get("kp_total_edge"))
+                if edge is None:
+                    edge = kp_tot - vegas_tot   # kp_total_edge convention: kp - vegas
+                if abs(edge) < threshold:
+                    continue
+            total += 1
+            if (kp_tot > vegas_tot) == (act_tot > vegas_tot):
+                correct += 1
+        return correct, total
+
+    # ── Subsets ───────────────────────────────────────────────────────────────
+    # For rows that predate the is_edge/confidence columns (legacy format),
+    # compute the edge flag on the fly from stored spread values so that
+    # historical data still populates the edge/high breakdowns.
+    def _row_is_edge(r):
+        stored = r.get("is_edge", "").lower()
+        if stored == "true":
+            return True
+        if stored == "false":
+            return False
+        # Legacy row — derive from spreads
+        kp = _f(r.get("kp_spread"))
+        vs = _f(r.get("vegas_spread"))
+        return kp is not None and vs is not None and abs(vs - kp) >= EDGE_THRESHOLD
+
+    def _row_is_high(r):
+        stored = r.get("confidence", "").upper()
+        if stored == "HIGH":
+            return True
+        if stored:   # non-blank non-HIGH means explicitly not HIGH
+            return False
+        # Legacy row — HIGH if KP and BT both clear EDGE_THRESHOLD in same direction
+        kp = _f(r.get("kp_spread"))
+        bt = _f(r.get("bt_spread"))
+        vs = _f(r.get("vegas_spread"))
+        if kp is None or bt is None or vs is None:
+            return False
+        kp_edge = vs - kp
+        bt_edge = vs - bt
+        return (abs(kp_edge) >= EDGE_THRESHOLD
+                and abs(bt_edge) >= EDGE_THRESHOLD
+                and (kp_edge > 0) == (bt_edge > 0))
+
+    edge_rows = [r for r in rows if _row_is_edge(r)]
+    high_rows = [r for r in rows if _row_is_high(r)]
+
+    # ── Build each metric ─────────────────────────────────────────────────────
+    ml_all  = _moneyline(rows)
+    ml_edge = _moneyline(edge_rows)
+    ml_high = _moneyline(high_rows)
+
+    kp_ats_all  = _spread_ats(rows,      "kp_spread", "kp_spread_edge")
+    kp_ats_edge = _spread_ats(rows,      "kp_spread", "kp_spread_edge", EDGE_THRESHOLD)
+    kp_ats_high = _spread_ats(high_rows, "kp_spread", "kp_spread_edge")
+
+    kp_ou_all  = _total_ou(rows)
+    kp_ou_edge = _total_ou(rows, EDGE_THRESHOLD)
+
+    bt_ats_all  = _spread_ats(rows,      "bt_spread", "bt_spread_edge")
+    bt_ats_edge = _spread_ats(rows,      "bt_spread", "bt_spread_edge", EDGE_THRESHOLD)
+    bt_ats_high = _spread_ats(high_rows, "bt_spread", "bt_spread_edge")
+
+    # ── Format ────────────────────────────────────────────────────────────────
+    thr = f"{EDGE_THRESHOLD:.0f}"
     lines = []
     lines.append(f"\n{'═'*60}")
     lines.append(f"  {label}  |  {n} games")
     lines.append(f"{'═'*60}")
-    lines.append(f"  KP Spread MAE      : {mae_spread:.2f} pts" if mae_spread else "  KP Spread MAE      : N/A")
-    lines.append(f"  Total MAE          : {mae_total:.2f} pts"  if mae_total  else "  Total MAE          : N/A")
-    lines.append(f"  Moneyline (KP)     : {_pct(ml_correct, ml_total)}")
-    lines.append(f"  KP Spread ATS      : {_pct(kp_ats_correct, kp_ats_total)}")
-    lines.append(f"  BT Spread ATS      : {_pct(bt_ats_correct, bt_ats_total)}")
-    if vs_vegas_rows:
-        lines.append(f"  KP Closer Than Vegas: {_pct(len(beat_vegas), len(vs_vegas_rows))}")
+
+    lines.append(f"\n  1. MONEYLINE  (outright winner, spread ignored)")
+    lines.append(f"     All games          : {_pct(*ml_all)}")
+    lines.append(f"     Edge games (≥{thr}pt): {_pct(*ml_edge)}")
+    lines.append(f"     HIGH confidence    : {_pct(*ml_high)}")
+
+    lines.append(f"\n  2. KP SPREAD ATS  (vs Vegas spread)")
+    lines.append(f"     All games          : {_pct(*kp_ats_all)}")
+    lines.append(f"     Edge games (≥{thr}pt): {_pct(*kp_ats_edge)}")
+    lines.append(f"     HIGH confidence    : {_pct(*kp_ats_high)}")
+
+    lines.append(f"\n  3. KP TOTAL  O/U  (vs Vegas total)")
+    lines.append(f"     All games          : {_pct(*kp_ou_all)}")
+    lines.append(f"     Total edge (≥{thr}pt): {_pct(*kp_ou_edge)}")
+
+    lines.append(f"\n  4. BT SPREAD ATS  (vs Vegas spread)")
+    lines.append(f"     All games          : {_pct(*bt_ats_all)}")
+    lines.append(f"     Edge games (≥{thr}pt): {_pct(*bt_ats_edge)}")
+    lines.append(f"     HIGH confidence    : {_pct(*bt_ats_high)}")
+
+    lines.append(f"\n  ACCURACY (MAE)")
+    lines.append(f"     KP Spread MAE      : {mae_spread:.2f} pts" if mae_spread else "     KP Spread MAE      : N/A")
+    lines.append(f"     KP Total MAE       : {mae_total:.2f} pts"  if mae_total  else "     KP Total MAE       : N/A")
 
     return "\n".join(lines)
 
@@ -294,7 +433,7 @@ def performance_report():
         print("No results log found. Enter some actual scores first with --results.")
         return
 
-    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
+    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
 
     if not all_rows:
         print("Results log is empty.")
@@ -310,14 +449,47 @@ def performance_report():
     report_parts = []
     report_parts.append(performance_summary(rows, f"SLATE RESULTS — {yesterday}"))
 
-    # Edge game performance
-    edge_rows = [r for r in rows if r.get("is_edge", "").lower() == "true"]
+    # Edge game detail — best/worst within the flagged set
+    # Use the same dynamic-fallback logic as performance_summary for legacy rows.
+    def _f_local(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    def _is_edge(r):
+        s = r.get("is_edge", "").lower()
+        if s == "true":
+            return True
+        if s == "false":
+            return False
+        kp = _f_local(r.get("kp_spread"))
+        vs = _f_local(r.get("vegas_spread"))
+        return kp is not None and vs is not None and abs(vs - kp) >= EDGE_THRESHOLD
+
+    def _is_high(r):
+        s = r.get("confidence", "").upper()
+        if s == "HIGH":
+            return True
+        if s:
+            return False
+        kp = _f_local(r.get("kp_spread"))
+        bt = _f_local(r.get("bt_spread"))
+        vs = _f_local(r.get("vegas_spread"))
+        if kp is None or bt is None or vs is None:
+            return False
+        kp_e = vs - kp
+        bt_e = vs - bt
+        return (abs(kp_e) >= EDGE_THRESHOLD and abs(bt_e) >= EDGE_THRESHOLD
+                and (kp_e > 0) == (bt_e > 0))
+
+    edge_rows = [r for r in rows if _is_edge(r)]
+    high_rows = [r for r in rows if _is_high(r)]
     edge_text = ""
     if edge_rows:
-        edge_spread_errors = [abs(float(r["spread_error"])) for r in edge_rows if r["spread_error"]]
-        edge_mae = sum(edge_spread_errors) / len(edge_spread_errors) if edge_spread_errors else None
-        edge_text += f"\n  EDGE GAMES ({len(edge_rows)} games flagged)"
-        edge_text += f"\n  Edge spread MAE    : {edge_mae:.2f} pts" if edge_mae else "\n  N/A"
+        edge_text += f"\n  EDGE GAMES FLAGGED : {len(edge_rows)}"
+        if high_rows:
+            edge_text += f"  ({len(high_rows)} HIGH confidence)"
     report_parts.append(edge_text)
 
     # Best and worst predictions
@@ -364,7 +536,7 @@ def check_results():
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
-        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS)
+        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
         for row in existing_rows:
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 
@@ -455,12 +627,213 @@ def check_results():
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,
                 "model_beat_vegas":     model_beat_vegas,
+                "is_edge":              p.get("is_edge", ""),
+                "confidence":           p.get("confidence", ""),
+                "kp_spread_edge":       p.get("kp_spread_edge", ""),
+                "kp_total_edge":        p.get("kp_total_edge", ""),
+                "bt_spread_edge":       p.get("bt_spread_edge", ""),
             }
             writer.writerow(row)
             new_rows.append(row)
 
     print(f"\n  Resolved {len(new_rows)} game(s). Results saved to {RESULTS_LOG}")
     return existing_rows + new_rows
+
+
+# ══════════════════════════════════════════════════════
+# GAME TABLE OUTPUT
+# ══════════════════════════════════════════════════════
+def print_game_table(rows: list[dict], label: str = "") -> None:
+    """
+    Print a per-game table of predictions vs actuals.
+
+    Columns (all spreads from home team's perspective, negative = home favored):
+      Date | Matchup | KP | BT | Vegas | Score | Err | ATS | O/U
+
+    Edge flags: ⚡ = edge game,  ⚡⚡ = HIGH confidence
+    ATS: W = KP picked correct side vs Vegas, L = wrong, – = no Vegas line
+    O/U: actual result (O/U), marked ✓ if KP predicted correctly, ✗ if not
+    """
+    if not rows:
+        print("  No data to display.")
+        return
+
+    def _f(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    def _short(name: str, width: int) -> str:
+        return name[:width] if len(name) > width else name
+
+    # ── Column widths ──────────────────────────────────────────────────────────
+    W_DATE    = 10
+    W_MATCHUP = 30
+    W_KP      = 7
+    W_BT      = 7
+    W_VEGAS   = 9   # spread + total  e.g. -8.5/141
+    W_SCORE   = 11  # e.g. "73-64 H" or "73-64 A"
+    W_ERR     = 6
+    W_ATS     = 3
+    W_OU      = 4
+
+    sep_width = W_DATE + 1 + W_MATCHUP + 1 + W_KP + 1 + W_BT + 1 + W_VEGAS + 1 + W_SCORE + 1 + W_ERR + 1 + W_ATS + 1 + W_OU
+
+    hdr = (
+        f"{'Date':<{W_DATE}} {'Matchup':<{W_MATCHUP}} "
+        f"{'KP':>{W_KP}} {'BT':>{W_BT}} {'Vegas':>{W_VEGAS}} "
+        f"{'Score':>{W_SCORE}} {'Err':>{W_ERR}} {'ATS':>{W_ATS}} {'O/U':>{W_OU}}"
+    )
+
+    if label:
+        print(f"\n{'═' * sep_width}")
+        print(f"  {label}")
+    print(f"\n{hdr}")
+    print("─" * sep_width)
+
+    prev_date = None
+    for r in sorted(rows, key=lambda x: (x.get("date", ""), x.get("home_team", ""))):
+        home = r.get("home_team", "")
+        away = r.get("away_team", "")
+        date = r.get("date", "")
+
+        # Blank line between dates for readability
+        if prev_date and date != prev_date:
+            print()
+        prev_date = date
+
+        # ── Edge flag ──
+        # Use stored values when present; fall back to computing from spreads
+        # so that legacy rows (which predate the is_edge column) still render flags.
+        conf_stored    = r.get("confidence", "").upper()
+        is_edge_stored = r.get("is_edge", "").lower()
+
+        kp_v_edge  = _f(r.get("kp_spread"))
+        bt_v_edge  = _f(r.get("bt_spread"))
+        vegas_edge = _f(r.get("vegas_spread"))
+
+        if is_edge_stored == "true":
+            is_edge = True
+        elif is_edge_stored == "false":
+            is_edge = False
+        else:
+            # Legacy row — compute from spread delta
+            is_edge = (kp_v_edge is not None and vegas_edge is not None
+                       and abs(vegas_edge - kp_v_edge) >= EDGE_THRESHOLD)
+
+        if conf_stored == "HIGH":
+            conf = "HIGH"
+        elif conf_stored:
+            conf = ""
+        else:
+            # Legacy row — HIGH if both KP and BT edge in the same direction
+            if (is_edge and bt_v_edge is not None and vegas_edge is not None):
+                kp_e = vegas_edge - kp_v_edge
+                bt_e = vegas_edge - bt_v_edge
+                conf = ("HIGH" if abs(bt_e) >= EDGE_THRESHOLD and (kp_e > 0) == (bt_e > 0)
+                        else "")
+            else:
+                conf = ""
+
+        if conf == "HIGH":
+            flag = " ⚡⚡"
+        elif is_edge:
+            flag = " ⚡"
+        else:
+            flag = ""
+
+        matchup_raw = f"{_short(away, 13)} @ {_short(home, 13)}"
+        matchup = f"{matchup_raw}{flag}"
+
+        # ── Spreads (home perspective, negative = home favored) ──
+        kp_v    = _f(r.get("kp_spread"))
+        bt_v    = _f(r.get("bt_spread"))
+        vegas_v = _f(r.get("vegas_spread"))
+        vegas_t = _f(r.get("vegas_total"))
+
+        kp_str    = f"{kp_v:+.1f}"   if kp_v    is not None else "  N/A"
+        bt_str    = f"{bt_v:+.1f}"   if bt_v    is not None else "  N/A"
+        if vegas_v is not None:
+            vegas_str = f"{vegas_v:+.1f}"
+            if vegas_t is not None:
+                vegas_str += f"/{vegas_t:.0f}"
+        else:
+            vegas_str = "    N/A"
+
+        # ── Actual score ──
+        a_home = _f(r.get("actual_home_score"))
+        a_away = _f(r.get("actual_away_score"))
+        if a_home is not None and a_away is not None:
+            winner = "H" if a_home > a_away else "A"
+            score_str = f"{int(a_home)}-{int(a_away)} {winner}"
+        else:
+            score_str = "Pending"
+
+        # ── Spread error ──
+        err_v   = _f(r.get("spread_error"))
+        err_str = f"{err_v:+.1f}" if err_v is not None else "   N/A"
+
+        # ── ATS (KP vs Vegas) ──
+        act_v = _f(r.get("actual_spread"))
+        if kp_v is not None and vegas_v is not None and act_v is not None and kp_v != vegas_v:
+            ats_str = "W" if (kp_v < vegas_v) == (act_v < vegas_v) else "L"
+        else:
+            ats_str = "–"
+
+        # ── O/U: show actual result (O/U) and whether KP was right ──
+        kp_t  = _f(r.get("kp_total"))
+        act_t = _f(r.get("actual_total"))
+        if kp_t is not None and vegas_t is not None and act_t is not None:
+            went_over   = act_t > vegas_t
+            kp_said_over = kp_t > vegas_t
+            ou_letter = "O" if went_over else "U"
+            ou_right  = went_over == kp_said_over
+            ou_str = f"{ou_letter} {'✓' if ou_right else '✗'}"
+        else:
+            ou_str = " –"
+
+        print(
+            f"{date:<{W_DATE}} {matchup:<{W_MATCHUP}} "
+            f"{kp_str:>{W_KP}} {bt_str:>{W_BT}} {vegas_str:>{W_VEGAS}} "
+            f"{score_str:>{W_SCORE}} {err_str:>{W_ERR}} {ats_str:>{W_ATS}} {ou_str:>{W_OU}}"
+        )
+
+    print("─" * sep_width)
+    print(f"  ⚡ = edge game (|KP vs Vegas| ≥ {EDGE_THRESHOLD:.0f} pts)   "
+          f"⚡⚡ = HIGH confidence")
+    print(f"  Spreads from home's perspective (– = home favored)   "
+          f"ATS: W/L = KP picked correct side vs Vegas")
+    print(f"  O/U: ✓ = KP predicted direction correctly, ✗ = wrong\n")
+
+
+def table_report(date_str: str | None = None, all_dates: bool = False) -> None:
+    """
+    Load results and print the game table.
+      date_str  : show only this date (YYYY-MM-DD). Defaults to yesterday.
+      all_dates : if True, ignore date_str and show full history.
+    """
+    if not Path(RESULTS_LOG).exists():
+        print("No results log found. Run the pipeline first.")
+        return
+
+    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
+    if not all_rows:
+        print("Results log is empty.")
+        return
+
+    if all_dates:
+        rows  = all_rows
+        label = f"ALL RESULTS — {len(all_rows)} games"
+    else:
+        target = date_str or (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        rows   = [r for r in all_rows if r.get("date") == target]
+        label  = f"RESULTS — {target}"
+        if not rows:
+            print(f"No results found for {target}.")
+            return
+
+    print_game_table(rows, label)
 
 
 # ══════════════════════════════════════════════════════
@@ -489,5 +862,13 @@ def run_results_pipeline():
 if __name__ == "__main__":
     if "--results" in sys.argv:
         enter_results()
+    elif "--table-all" in sys.argv:
+        # Full history table across all logged dates
+        table_report(all_dates=True)
+    elif "--table" in sys.argv:
+        # Table for yesterday only (default) or a specific date passed as next arg
+        idx = sys.argv.index("--table")
+        date_arg = sys.argv[idx + 1] if idx + 1 < len(sys.argv) and sys.argv[idx + 1].count("-") == 2 else None
+        table_report(date_str=date_arg)
     else:
         run_results_pipeline()

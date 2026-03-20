@@ -23,7 +23,8 @@ from kenpom_predictor import (
 from slate_results import RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS, _read_csv
 
 KENPOM_FILE = "kenpom_raw.txt"
-PREDICTOR_PATH = Path("kenpom_predictor.py")
+PREDICTOR_PATH  = Path("kenpom_predictor.py")
+MATCHUP_TS_PATH = Path("cloudflare-app/src/matchup.ts")
 
 
 # ══════════════════════════════════════════════════════
@@ -163,19 +164,38 @@ def optimize_hca(games: list[dict], lam: float, tempo_scale: float) -> tuple[flo
 
 
 # ══════════════════════════════════════════════════════
-# WRITE-BACK TO kenpom_predictor.py
+# WRITE-BACK TO kenpom_predictor.py AND matchup.ts
 # ══════════════════════════════════════════════════════
 def update_constant(name: str, new_value: float) -> bool:
-    """Update a numeric constant in kenpom_predictor.py using regex replacement."""
-    source = PREDICTOR_PATH.read_text(encoding="utf-8")
-    pattern = rf"^({name}\s*=\s*)[\d.]+(.*)$"
+    """
+    Update a numeric constant in kenpom_predictor.py using regex replacement.
+    Also mirrors the change to cloudflare-app/src/matchup.ts so both stay in sync.
+    """
     formatted = f"{new_value:.4f}" if abs(new_value) < 10 else f"{new_value:.2f}"
-    replacement = rf"\g<1>{formatted}\2"
-    new_source, count = re.subn(pattern, replacement, source, count=1, flags=re.MULTILINE)
-    if count == 0:
+
+    # ── kenpom_predictor.py (Python assignment: NAME = value) ──
+    py_source = PREDICTOR_PATH.read_text(encoding="utf-8")
+    py_pattern = rf"^({name}\s*=\s*)[\d.]+(.*)$"
+    new_py, py_count = re.subn(py_pattern, rf"\g<1>{formatted}\2", py_source, count=1, flags=re.MULTILINE)
+    if py_count == 0:
         print(f"  WARNING: Could not find {name} in {PREDICTOR_PATH}")
         return False
-    PREDICTOR_PATH.write_text(new_source, encoding="utf-8")
+    PREDICTOR_PATH.write_text(new_py, encoding="utf-8")
+
+    # ── matchup.ts (TypeScript: export const NAME = value;) ──
+    if MATCHUP_TS_PATH.exists():
+        ts_source = MATCHUP_TS_PATH.read_text(encoding="utf-8")
+        # Matches: export const NAME = <number>;
+        ts_pattern = rf"^(export\s+const\s+{name}\s*=\s*)[\d.]+(\s*;.*)$"
+        new_ts, ts_count = re.subn(ts_pattern, rf"\g<1>{formatted}\2", ts_source, count=1, flags=re.MULTILINE)
+        if ts_count > 0:
+            MATCHUP_TS_PATH.write_text(new_ts, encoding="utf-8")
+            print(f"  Also updated {name} in {MATCHUP_TS_PATH}")
+        else:
+            print(f"  NOTE: {name} not found in {MATCHUP_TS_PATH} — skipped Cloudflare sync.")
+    else:
+        print(f"  NOTE: {MATCHUP_TS_PATH} not found — skipped Cloudflare sync.")
+
     return True
 
 

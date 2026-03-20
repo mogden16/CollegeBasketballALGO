@@ -44,6 +44,112 @@ TEAM_ALIASES = {
     "michigan state": "Michigan St.",
 }
 
+# ── Tournament mode ────────────────────────────────────
+# When True, fuzzy matching is constrained to TOURNAMENT_2026_TEAMS only,
+# which prevents wrong-team matches across the full ~360-team KenPom dataset.
+TOURNAMENT_MODE = True
+
+# Maps ESPN shortDisplayName (lowercased) → KenPom canonical team name.
+# Covers all 68 teams in the 2026 NCAA Tournament (64 bracket + 4 First Four).
+# VERIFY these KenPom names match your kenpom_raw.txt exactly — common gotchas
+# are period style (e.g. "Iowa St." vs "Iowa State") and FL/OH suffixes.
+TOURNAMENT_2026_TEAMS: dict[str, str] = {
+    # ── EAST (1-seed: Duke) ──────────────────────────────
+    "duke":                 "Duke",
+    "uconn":                "Connecticut",
+    "connecticut":          "Connecticut",
+    "michigan st":          "Michigan St.",
+    "michigan state":       "Michigan St.",
+    "kansas":               "Kansas",
+    "st. john's":           "St. John's",
+    "st. johns":            "St. John's",
+    "louisville":           "Louisville",
+    "ucla":                 "UCLA",
+    "ohio st":              "Ohio St.",
+    "ohio state":           "Ohio St.",
+    "tcu":                  "TCU",
+    "ucf":                  "UCF",
+    "south florida":        "South Florida",
+    "northern iowa":        "Northern Iowa",
+    "n. iowa":              "Northern Iowa",
+    "cal baptist":          "Cal Baptist",
+    "california baptist":   "Cal Baptist",
+    "n. dakota st":         "N. Dakota St.",
+    "north dakota st":      "N. Dakota St.",
+    "north dakota state":   "N. Dakota St.",
+    "furman":               "Furman",
+    "siena":                "Siena",
+
+    # ── WEST (1-seed: Arizona) ───────────────────────────
+    "arizona":              "Arizona",
+    "purdue":               "Purdue",
+    "gonzaga":              "Gonzaga",
+    "arkansas":             "Arkansas",
+    "wisconsin":            "Wisconsin",
+    "byu":                  "BYU",
+    "miami":                "Miami FL",   # ESPN uses "Miami" for Florida — must NOT match Miami OH
+    "miami (fl)":           "Miami FL",
+    "miami fl":             "Miami FL",
+    "villanova":            "Villanova",
+    "utah st":              "Utah St.",
+    "utah state":           "Utah St.",
+    "missouri":             "Missouri",
+    "texas":                "Texas",
+    "nc state":             "N.C. State",
+    "n.c. state":           "N.C. State",
+    "high point":           "High Point",
+    "hawaii":               "Hawaii",
+    "kennesaw st":          "Kennesaw St.",
+    "kennesaw state":       "Kennesaw St.",
+    "queens":               "Queens",   # KenPom uses "Queens (NC)" — verify
+    "long island":          "LIU",
+
+    # ── SOUTH (1-seed: Florida) ──────────────────────────
+    "florida":              "Florida",
+    "houston":              "Houston",
+    "illinois":             "Illinois",
+    "nebraska":             "Nebraska",
+    "vanderbilt":           "Vanderbilt",
+    "north carolina":       "North Carolina",
+    "saint mary's":         "Saint Mary's",
+    "st. mary's":           "Saint Mary's",
+    "clemson":              "Clemson",
+    "iowa":                 "Iowa",
+    "texas a&m":            "Texas A&M",
+    "vcu":                  "VCU",
+    "mcneese":              "McNeese St.",   # ESPN drops "St." — verify KenPom spelling
+    "mcneese st":           "McNeese St.",
+    "mcneese state":        "McNeese St.",
+    "troy":                 "Troy",
+    "penn":                 "Penn",
+    "idaho":                "Idaho",
+    "prairie view a&m":     "Prairie View A&M",  # KenPom typically uses "Prairie View"
+    "prairie view":         "Prairie View A&M",
+    "lehigh":               "Lehigh",
+
+    # ── MIDWEST (1-seed: Michigan) ───────────────────────
+    "michigan":             "Michigan",
+    "iowa st":              "Iowa St.",
+    "virginia":             "Virginia",
+    "alabama":              "Alabama",
+    "texas tech":           "Texas Tech",
+    "tennessee":            "Tennessee",
+    "kentucky":             "Kentucky",
+    "georgia":              "Georgia",
+    "saint louis":          "Saint Louis",
+    "santa clara":          "Santa Clara",
+    "miami (oh)":           "Miami OH",      # ESPN uses "Miami (OH)" for Ohio — must NOT match Miami FL
+    "miami oh":             "Miami OH",
+    "smu":                  "SMU",
+    "akron":                "Akron",
+    "hofstra":              "Hofstra",
+    "wright st":            "Wright St.",
+    "wright state":         "Wright St.",
+    "tennessee st":         "Tennessee St.",
+    "tennessee state":      "Tennessee St.",
+    "howard":               "Howard",
+}
+
 # Discord webhook (set via environment variable)
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
@@ -226,11 +332,11 @@ def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_
     if alias and normalize_team_name(alias) in lookup:
         return lookup[normalize_team_name(alias)]
 
-    # 3) conservative fuzzy fallback
-    keys = list(team_dict.keys())
-    match, score = process.extractOne(query, keys)
+    # 3) conservative fuzzy fallback — run on normalized keys/query for consistency
+    norm_keys = list(lookup.keys())
+    match_norm, score = process.extractOne(query_norm, norm_keys)
     if score >= threshold:
-        return team_dict[match]
+        return lookup[match_norm]
     return None
 
 # ══════════════════════════════════════════════════════
@@ -482,9 +588,31 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt", run_date: str | None = None):
     entries = []
     no_data = []
 
+    # In tournament mode, constrain lookup to the 68 tournament teams only.
+    # Build the filtered dicts once outside the loop for efficiency.
+    if TOURNAMENT_MODE:
+        tournament_values = set(TOURNAMENT_2026_TEAMS.values())
+        tournament_kp = {k: v for k, v in kp_teams.items() if k in tournament_values}
+        tournament_bt = {k: v for k, v in bt_teams.items() if k in tournament_values} if bt_teams else {}
+        print(f"  Tournament mode: {len(tournament_kp)} KenPom teams matched to bracket.")
+        unmatched = tournament_values - set(tournament_kp.keys())
+        if unmatched:
+            print(f"  WARNING: These tournament teams not found in KenPom data -- check name spelling:")
+            for t in sorted(unmatched):
+                print(f"    {t}")
+
     for m in matchups:
-        kp_home = fuzzy_lookup(m.home, kp_teams)
-        kp_away = fuzzy_lookup(m.away, kp_teams)
+        # Resolve ESPN display name → KenPom name, with tournament map taking
+        # priority to prevent mismatches against the full ~360-team dataset.
+        if TOURNAMENT_MODE:
+            kp_home_name = TOURNAMENT_2026_TEAMS.get(m.home.lower())
+            kp_away_name = TOURNAMENT_2026_TEAMS.get(m.away.lower())
+            kp_home = kp_teams.get(kp_home_name) if kp_home_name else fuzzy_lookup(m.home, tournament_kp)
+            kp_away = kp_teams.get(kp_away_name) if kp_away_name else fuzzy_lookup(m.away, tournament_kp)
+        else:
+            kp_home_name = kp_away_name = None
+            kp_home = fuzzy_lookup(m.home, kp_teams)
+            kp_away = fuzzy_lookup(m.away, kp_teams)
 
         if not kp_home or not kp_away:
             no_data.append(f"  NO KENPOM DATA: {m.away} @ {m.home}")
@@ -505,8 +633,12 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt", run_date: str | None = None):
         bt_spread_edge = None
         bt_total_edge  = None
         if bt_teams:
-            bt_home = fuzzy_lookup(m.home, bt_teams)
-            bt_away = fuzzy_lookup(m.away, bt_teams)
+            if TOURNAMENT_MODE:
+                bt_home = bt_teams.get(kp_home_name) if kp_home_name else fuzzy_lookup(m.home, tournament_bt)
+                bt_away = bt_teams.get(kp_away_name) if kp_away_name else fuzzy_lookup(m.away, tournament_bt)
+            else:
+                bt_home = fuzzy_lookup(m.home, bt_teams)
+                bt_away = fuzzy_lookup(m.away, bt_teams)
             if bt_home and bt_away:
                 bt_result = predict_game(bt_home, bt_away, neutral=m.neutral)
                 if m.vegas_spread is not None:

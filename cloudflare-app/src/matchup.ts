@@ -52,9 +52,9 @@ export type MatchupResult = {
 };
 
 // ── Model constants (tuned coefficients) ────────────────────────────────────
-export const LAMBDA = 0.8905;         // regression-to-mean shrinkage factor
-export const HCA = 1.9895;            // home court advantage (points)
-export const TEMPO_SCALE = 0.9290;    // tempo regression multiplier
+export const LAMBDA = 0.8296;         // regression-to-mean shrinkage factor
+export const HCA = 3.1453;            // home court advantage (points)
+export const TEMPO_SCALE = 1.2398;    // tempo regression multiplier
 
 /**
  * Compute a score projection for a single matchup.

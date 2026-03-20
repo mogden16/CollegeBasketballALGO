@@ -5,6 +5,7 @@ This Worker app hosts:
 - **Date-based picks dashboard** (cached from `cloudflare-app/data/games-by-date.json`, with live ESPN schedule fallback for missing dates).
 - A **Quick Predict** form that calculates projected spread and total via `/api/quick-predict`.
 - **Vegas lines sourced from The Odds API using prioritized sportsbooks** (`spreads` + `totals`, pregame only, with partial-line fallback).
+- **Bundled KenPom SOS team info** so matchup SOS comparisons work the same in deployed Worker responses and local `wrangler dev`.
 
 ## Environment variables
 
@@ -15,8 +16,11 @@ This Worker app hosts:
 ```bash
 cd cloudflare-app
 npm install
+npm run refresh:models
 npm run dev
 ```
+
+The Worker reads bundled JSON under `cloudflare-app/data/`, so refreshing the model payload before `wrangler dev` or deploy keeps local and remote behavior aligned.
 
 ## Deploy
 
@@ -47,6 +51,19 @@ DATE_CHECK=2026-03-17 npm run check:deploy
 ```
 
 ## Data regeneration
+
+Refresh the Worker’s bundled team-model payload from the repo’s existing `kenpom_raw.txt` / `barttorvik_raw.txt` data:
+
+```bash
+python3 cloudflare-app/scripts/regenerate_team_models.py
+```
+
+Or rebuild all bundled app data in one shot:
+
+```bash
+cd cloudflare-app
+npm run refresh:data
+```
 
 Rebuild date-indexed cached game data from `predictions_log.csv` and enrich vegas lines from prioritized sportsbooks:
 

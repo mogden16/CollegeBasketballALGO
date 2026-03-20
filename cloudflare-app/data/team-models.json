@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-20T13:09:40Z",
+  "generatedAt": "2026-03-20T15:20:03Z",
   "kenpom": {
     "Duke": {
       "adjO": 127.9,
@@ -10,7 +10,9 @@
       "netRtg": 38.85,
       "ortg": 127.9,
       "drtg": 89.1,
-      "luck": 0.049
+      "luck": 0.049,
+      "sosNetRtg": 14.23,
+      "ncSosNetRtg": 10.06
     },
     "Arizona": {
       "adjO": 127.6,
@@ -21,7 +23,9 @@
       "netRtg": 37.6,
       "ortg": 127.6,
       "drtg": 90.0,
-      "luck": 0.023
+      "luck": 0.023,
+      "sosNetRtg": 14.91,
+      "ncSosNetRtg": 3.18
     },
     "Michigan": {
       "adjO": 126.6,
@@ -32,7 +36,9 @@
       "netRtg": 37.58,
       "ortg": 126.6,
       "drtg": 89.0,
-      "luck": 0.045
+      "luck": 0.045,
+      "sosNetRtg": 16.64,
+      "ncSosNetRtg": 12.46
     },
     "Florida": {
       "adjO": 125.5,
@@ -43,7 +49,9 @@
       "netRtg": 33.76,
       "ortg": 125.5,
       "drtg": 91.7,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": 15.98,
+      "ncSosNetRtg": 7.96
     },
     "Houston": {
       "adjO": 124.8,
@@ -54,7 +62,9 @@
       "netRtg": 33.36,
       "ortg": 124.8,
       "drtg": 91.4,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": 13.52,
+      "ncSosNetRtg": 0.8
     },
     "Iowa St.": {
       "adjO": 123.8,
@@ -65,7 +75,9 @@
       "netRtg": 32.37,
       "ortg": 123.8,
       "drtg": 91.4,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": 12.38,
+      "ncSosNetRtg": -3.57
     },
     "Illinois": {
       "adjO": 131.1,
@@ -76,7 +88,9 @@
       "netRtg": 32.1,
       "ortg": 131.1,
       "drtg": 99.0,
-      "luck": -0.05
+      "luck": -0.05,
+      "sosNetRtg": 13.63,
+      "ncSosNetRtg": 3.76
     },
     "Purdue": {
       "adjO": 131.6,
@@ -87,7 +101,9 @@
       "netRtg": 31.17,
       "ortg": 131.6,
       "drtg": 100.4,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": 15.85,
+      "ncSosNetRtg": 6.18
     },
     "Michigan St.": {
       "adjO": 123.0,
@@ -98,7 +114,9 @@
       "netRtg": 28.3,
       "ortg": 123.0,
       "drtg": 94.7,
-      "luck": 0.005
+      "luck": 0.005,
+      "sosNetRtg": 13.68,
+      "ncSosNetRtg": 3.62
     },
     "Gonzaga": {
       "adjO": 122.0,
@@ -109,7 +127,9 @@
       "netRtg": 28.18,
       "ortg": 122.0,
       "drtg": 93.8,
-      "luck": 0.072
+      "luck": 0.072,
+      "sosNetRtg": 5.98,
+      "ncSosNetRtg": 8.3
     },
     "Connecticut": {
       "adjO": 122.0,
@@ -120,7 +140,9 @@
       "netRtg": 27.86,
       "ortg": 122.0,
       "drtg": 94.1,
-      "luck": 0.055
+      "luck": 0.055,
+      "sosNetRtg": 12.0,
+      "ncSosNetRtg": 7.61
     },
     "Vanderbilt": {
       "adjO": 126.7,
@@ -131,7 +153,9 @@
       "netRtg": 27.46,
       "ortg": 126.7,
       "drtg": 99.3,
-      "luck": 0.018
+      "luck": 0.018,
+      "sosNetRtg": 14.5,
+      "ncSosNetRtg": 1.12
     },
     "Virginia": {
       "adjO": 122.5,
@@ -142,7 +166,9 @@
       "netRtg": 26.68,
       "ortg": 122.5,
       "drtg": 95.9,
-      "luck": 0.056
+      "luck": 0.056,
+      "sosNetRtg": 9.94,
+      "ncSosNetRtg": -3.18
     },
     "Nebraska": {
       "adjO": 118.5,
@@ -153,7 +179,9 @@
       "netRtg": 26.16,
       "ortg": 118.5,
       "drtg": 92.3,
-      "luck": 0.034
+      "luck": 0.034,
+      "sosNetRtg": 11.61,
+      "ncSosNetRtg": -6.02
     },
     "Arkansas": {
       "adjO": 127.6,
@@ -164,7 +192,9 @@
       "netRtg": 26.01,
       "ortg": 127.6,
       "drtg": 101.6,
-      "luck": 0.051
+      "luck": 0.051,
+      "sosNetRtg": 14.9,
+      "ncSosNetRtg": 4.43
     },
     "Tennessee": {
       "adjO": 121.0,
@@ -175,7 +205,9 @@
       "netRtg": 25.97,
       "ortg": 121.0,
       "drtg": 95.0,
-      "luck": -0.06
+      "luck": -0.06,
+      "sosNetRtg": 14.71,
+      "ncSosNetRtg": 0.74
     },
     "St. John's": {
       "adjO": 120.0,
@@ -186,7 +218,9 @@
       "netRtg": 25.88,
       "ortg": 120.0,
       "drtg": 94.1,
-      "luck": 0.061
+      "luck": 0.061,
+      "sosNetRtg": 11.49,
+      "ncSosNetRtg": 6.55
     },
     "Alabama": {
       "adjO": 129.0,
@@ -197,7 +231,9 @@
       "netRtg": 25.67,
       "ortg": 129.0,
       "drtg": 103.3,
-      "luck": 0.019
+      "luck": 0.019,
+      "sosNetRtg": 16.69,
+      "ncSosNetRtg": 13.4
     },
     "Louisville": {
       "adjO": 123.9,
@@ -208,7 +244,9 @@
       "netRtg": 25.31,
       "ortg": 123.9,
       "drtg": 98.6,
-      "luck": -0.02
+      "luck": -0.02,
+      "sosNetRtg": 12.42,
+      "ncSosNetRtg": 2.4
     },
     "Texas Tech": {
       "adjO": 125.0,
@@ -219,7 +257,9 @@
       "netRtg": 25.17,
       "ortg": 125.0,
       "drtg": 99.8,
-      "luck": 0.006
+      "luck": 0.006,
+      "sosNetRtg": 15.57,
+      "ncSosNetRtg": 7.69
     },
     "Kansas": {
       "adjO": 118.3,
@@ -230,7 +270,9 @@
       "netRtg": 24.4,
       "ortg": 118.3,
       "drtg": 93.9,
-      "luck": 0.053
+      "luck": 0.053,
+      "sosNetRtg": 16.9,
+      "ncSosNetRtg": 10.99
     },
     "Wisconsin": {
       "adjO": 125.3,
@@ -241,7 +283,9 @@
       "netRtg": 23.39,
       "ortg": 125.3,
       "drtg": 101.9,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": 13.93,
+      "ncSosNetRtg": -1.1
     },
     "BYU": {
       "adjO": 125.4,
@@ -252,7 +296,9 @@
       "netRtg": 23.23,
       "ortg": 125.4,
       "drtg": 102.2,
-      "luck": -0.017
+      "luck": -0.017,
+      "sosNetRtg": 14.26,
+      "ncSosNetRtg": 4.95
     },
     "Saint Mary's": {
       "adjO": 120.3,
@@ -263,7 +309,9 @@
       "netRtg": 23.15,
       "ortg": 120.3,
       "drtg": 97.2,
-      "luck": 0.011
+      "luck": 0.011,
+      "sosNetRtg": 5.07,
+      "ncSosNetRtg": 3.85
     },
     "Iowa": {
       "adjO": 121.7,
@@ -274,7 +322,9 @@
       "netRtg": 22.44,
       "ortg": 121.7,
       "drtg": 99.3,
-      "luck": -0.061
+      "luck": -0.061,
+      "sosNetRtg": 11.37,
+      "ncSosNetRtg": -7.2
     },
     "Ohio St.": {
       "adjO": 124.3,
@@ -285,7 +335,9 @@
       "netRtg": 22.23,
       "ortg": 124.3,
       "drtg": 102.0,
-      "luck": -0.031
+      "luck": -0.031,
+      "sosNetRtg": 13.66,
+      "ncSosNetRtg": -1.82
     },
     "UCLA": {
       "adjO": 123.7,
@@ -296,7 +348,9 @@
       "netRtg": 21.67,
       "ortg": 123.7,
       "drtg": 102.0,
-      "luck": 0.017
+      "luck": 0.017,
+      "sosNetRtg": 12.23,
+      "ncSosNetRtg": -2.16
     },
     "Kentucky": {
       "adjO": 120.5,
@@ -307,7 +361,9 @@
       "netRtg": 21.44,
       "ortg": 120.5,
       "drtg": 99.0,
-      "luck": -0.019
+      "luck": -0.019,
+      "sosNetRtg": 15.88,
+      "ncSosNetRtg": 1.28
     },
     "Utah St.": {
       "adjO": 122.2,
@@ -318,7 +374,9 @@
       "netRtg": 20.87,
       "ortg": 122.2,
       "drtg": 101.3,
-      "luck": 0.065
+      "luck": 0.065,
+      "sosNetRtg": 7.24,
+      "ncSosNetRtg": 2.06
     },
     "North Carolina": {
       "adjO": 121.3,
@@ -329,7 +387,9 @@
       "netRtg": 20.79,
       "ortg": 121.3,
       "drtg": 100.5,
-      "luck": 0.057
+      "luck": 0.057,
+      "sosNetRtg": 11.42,
+      "ncSosNetRtg": 1.34
     },
     "Miami FL": {
       "adjO": 121.3,
@@ -340,7 +400,9 @@
       "netRtg": 20.64,
       "ortg": 121.3,
       "drtg": 100.7,
-      "luck": 0.021
+      "luck": 0.021,
+      "sosNetRtg": 7.96,
+      "ncSosNetRtg": -7.26
     },
     "Georgia": {
       "adjO": 124.7,
@@ -351,7 +413,9 @@
       "netRtg": 20.45,
       "ortg": 124.7,
       "drtg": 104.2,
-      "luck": -0.005
+      "luck": -0.005,
+      "sosNetRtg": 10.74,
+      "ncSosNetRtg": -6.44
     },
     "Villanova": {
       "adjO": 120.3,
@@ -362,7 +426,9 @@
       "netRtg": 19.97,
       "ortg": 120.3,
       "drtg": 100.4,
-      "luck": 0.067
+      "luck": 0.067,
+      "sosNetRtg": 10.37,
+      "ncSosNetRtg": 2.94
     },
     "Santa Clara": {
       "adjO": 123.7,
@@ -373,7 +439,9 @@
       "netRtg": 19.51,
       "ortg": 123.7,
       "drtg": 104.1,
-      "luck": 0.015
+      "luck": 0.015,
+      "sosNetRtg": 6.13,
+      "ncSosNetRtg": 4.0
     },
     "N.C. State": {
       "adjO": 123.1,
@@ -384,7 +452,9 @@
       "netRtg": 19.46,
       "ortg": 123.1,
       "drtg": 103.7,
-      "luck": -0.043
+      "luck": -0.043,
+      "sosNetRtg": 12.2,
+      "ncSosNetRtg": 4.21
     },
     "Clemson": {
       "adjO": 116.5,
@@ -395,7 +465,9 @@
       "netRtg": 19.19,
       "ortg": 116.5,
       "drtg": 97.3,
-      "luck": 0.011
+      "luck": 0.011,
+      "sosNetRtg": 10.47,
+      "ncSosNetRtg": 0.64
     },
     "Texas": {
       "adjO": 124.1,
@@ -406,7 +478,9 @@
       "netRtg": 19.12,
       "ortg": 124.1,
       "drtg": 105.0,
-      "luck": -0.068
+      "luck": -0.068,
+      "sosNetRtg": 13.92,
+      "ncSosNetRtg": -6.36
     },
     "Auburn": {
       "adjO": 124.6,
@@ -417,7 +491,9 @@
       "netRtg": 18.68,
       "ortg": 124.6,
       "drtg": 105.9,
-      "luck": -0.045
+      "luck": -0.045,
+      "sosNetRtg": 15.89,
+      "ncSosNetRtg": 8.39
     },
     "Texas A&M": {
       "adjO": 119.7,
@@ -428,7 +504,9 @@
       "netRtg": 18.61,
       "ortg": 119.7,
       "drtg": 101.1,
-      "luck": -0.002
+      "luck": -0.002,
+      "sosNetRtg": 11.07,
+      "ncSosNetRtg": -5.82
     },
     "Saint Louis": {
       "adjO": 119.5,
@@ -439,7 +517,9 @@
       "netRtg": 18.57,
       "ortg": 119.5,
       "drtg": 100.9,
-      "luck": 0.03
+      "luck": 0.03,
+      "sosNetRtg": 1.26,
+      "ncSosNetRtg": -5.78
     },
     "Oklahoma": {
       "adjO": 124.2,
@@ -450,7 +530,9 @@
       "netRtg": 18.33,
       "ortg": 124.2,
       "drtg": 105.8,
-      "luck": -0.07
+      "luck": -0.07,
+      "sosNetRtg": 13.25,
+      "ncSosNetRtg": -5.54
     },
     "TCU": {
       "adjO": 115.3,
@@ -461,7 +543,9 @@
       "netRtg": 17.53,
       "ortg": 115.3,
       "drtg": 97.8,
-      "luck": 0.004
+      "luck": 0.004,
+      "sosNetRtg": 10.98,
+      "ncSosNetRtg": -6.95
     },
     "Cincinnati": {
       "adjO": 111.1,
@@ -472,7 +556,9 @@
       "netRtg": 17.47,
       "ortg": 111.1,
       "drtg": 93.7,
-      "luck": -0.073
+      "luck": -0.073,
+      "sosNetRtg": 11.01,
+      "ncSosNetRtg": -3.15
     },
     "VCU": {
       "adjO": 119.9,
@@ -483,7 +569,9 @@
       "netRtg": 17.44,
       "ortg": 119.9,
       "drtg": 102.5,
-      "luck": -0.007
+      "luck": -0.007,
+      "sosNetRtg": 3.73,
+      "ncSosNetRtg": -1.24
     },
     "SMU": {
       "adjO": 122.8,
@@ -494,7 +582,9 @@
       "netRtg": 17.2,
       "ortg": 122.8,
       "drtg": 105.6,
-      "luck": -0.049
+      "luck": -0.049,
+      "sosNetRtg": 11.04,
+      "ncSosNetRtg": 1.17
     },
     "Indiana": {
       "adjO": 120.3,
@@ -505,7 +595,9 @@
       "netRtg": 17.18,
       "ortg": 120.3,
       "drtg": 103.1,
-      "luck": -0.041
+      "luck": -0.041,
+      "sosNetRtg": 11.79,
+      "ncSosNetRtg": -4.95
     },
     "San Diego St.": {
       "adjO": 113.3,
@@ -516,7 +608,9 @@
       "netRtg": 16.44,
       "ortg": 113.3,
       "drtg": 96.8,
-      "luck": 0.015
+      "luck": 0.015,
+      "sosNetRtg": 8.63,
+      "ncSosNetRtg": 5.28
     },
     "South Florida": {
       "adjO": 117.3,
@@ -527,7 +621,9 @@
       "netRtg": 16.37,
       "ortg": 117.3,
       "drtg": 100.9,
-      "luck": -0.026
+      "luck": -0.026,
+      "sosNetRtg": 3.04,
+      "ncSosNetRtg": 4.92
     },
     "New Mexico": {
       "adjO": 117.8,
@@ -538,7 +634,9 @@
       "netRtg": 16.3,
       "ortg": 117.8,
       "drtg": 101.5,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": 5.52,
+      "ncSosNetRtg": 0.56
     },
     "Baylor": {
       "adjO": 122.9,
@@ -549,7 +647,9 @@
       "netRtg": 15.97,
       "ortg": 122.9,
       "drtg": 106.9,
-      "luck": -0.086
+      "luck": -0.086,
+      "sosNetRtg": 13.88,
+      "ncSosNetRtg": 1.15
     },
     "Seton Hall": {
       "adjO": 110.5,
@@ -560,7 +660,9 @@
       "netRtg": 15.7,
       "ortg": 110.5,
       "drtg": 94.8,
-      "luck": -0.033
+      "luck": -0.033,
+      "sosNetRtg": 8.97,
+      "ncSosNetRtg": -4.22
     },
     "Missouri": {
       "adjO": 119.5,
@@ -571,7 +673,9 @@
       "netRtg": 15.38,
       "ortg": 119.5,
       "drtg": 104.1,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": 11.49,
+      "ncSosNetRtg": -7.64
     },
     "Washington": {
       "adjO": 117.2,
@@ -582,7 +686,9 @@
       "netRtg": 15.15,
       "ortg": 117.2,
       "drtg": 102.1,
-      "luck": -0.101
+      "luck": -0.101,
+      "sosNetRtg": 12.0,
+      "ncSosNetRtg": -0.65
     },
     "UCF": {
       "adjO": 120.4,
@@ -593,7 +699,9 @@
       "netRtg": 14.99,
       "ortg": 120.4,
       "drtg": 105.4,
-      "luck": 0.097
+      "luck": 0.097,
+      "sosNetRtg": 11.86,
+      "ncSosNetRtg": -2.54
     },
     "Virginia Tech": {
       "adjO": 117.2,
@@ -604,7 +712,9 @@
       "netRtg": 13.66,
       "ortg": 117.2,
       "drtg": 103.5,
-      "luck": -0.01
+      "luck": -0.01,
+      "sosNetRtg": 9.95,
+      "ncSosNetRtg": -0.85
     },
     "Florida St.": {
       "adjO": 118.3,
@@ -615,7 +725,9 @@
       "netRtg": 13.47,
       "ortg": 118.3,
       "drtg": 104.8,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": 11.18,
+      "ncSosNetRtg": -3.16
     },
     "Northwestern": {
       "adjO": 117.4,
@@ -626,7 +738,9 @@
       "netRtg": 13.4,
       "ortg": 117.4,
       "drtg": 104.0,
-      "luck": -0.079
+      "luck": -0.079,
+      "sosNetRtg": 13.2,
+      "ncSosNetRtg": -1.71
     },
     "Stanford": {
       "adjO": 117.0,
@@ -637,7 +751,9 @@
       "netRtg": 13.36,
       "ortg": 117.0,
       "drtg": 103.7,
-      "luck": 0.03
+      "luck": 0.03,
+      "sosNetRtg": 8.77,
+      "ncSosNetRtg": -0.38
     },
     "Grand Canyon": {
       "adjO": 111.0,
@@ -648,7 +764,9 @@
       "netRtg": 13.29,
       "ortg": 111.0,
       "drtg": 97.7,
-      "luck": -0.068
+      "luck": -0.068,
+      "sosNetRtg": 3.87,
+      "ncSosNetRtg": -5.77
     },
     "Boise St.": {
       "adjO": 117.1,
@@ -659,7 +777,9 @@
       "netRtg": 13.24,
       "ortg": 117.1,
       "drtg": 103.9,
-      "luck": 0.028
+      "luck": 0.028,
+      "sosNetRtg": 8.5,
+      "ncSosNetRtg": 7.69
     },
     "West Virginia": {
       "adjO": 109.9,
@@ -670,7 +790,9 @@
       "netRtg": 13.21,
       "ortg": 109.9,
       "drtg": 96.7,
-      "luck": -0.033
+      "luck": -0.033,
+      "sosNetRtg": 9.25,
+      "ncSosNetRtg": -8.36
     },
     "LSU": {
       "adjO": 119.8,
@@ -681,7 +803,9 @@
       "netRtg": 13.18,
       "ortg": 119.8,
       "drtg": 106.6,
-      "luck": -0.092
+      "luck": -0.092,
+      "sosNetRtg": 10.87,
+      "ncSosNetRtg": -4.66
     },
     "Tulsa": {
       "adjO": 121.0,
@@ -692,7 +816,9 @@
       "netRtg": 12.85,
       "ortg": 121.0,
       "drtg": 108.1,
-      "luck": 0.029
+      "luck": 0.029,
+      "sosNetRtg": 0.7,
+      "ncSosNetRtg": -2.44
     },
     "Akron": {
       "adjO": 118.8,
@@ -703,7 +829,9 @@
       "netRtg": 12.76,
       "ortg": 118.8,
       "drtg": 106.1,
-      "luck": 0.018
+      "luck": 0.018,
+      "sosNetRtg": -3.7,
+      "ncSosNetRtg": -3.23
     },
     "Mississippi": {
       "adjO": 114.1,
@@ -714,7 +842,9 @@
       "netRtg": 12.59,
       "ortg": 114.1,
       "drtg": 101.5,
-      "luck": -0.07
+      "luck": -0.07,
+      "sosNetRtg": 14.17,
+      "ncSosNetRtg": -2.5
     },
     "McNeese": {
       "adjO": 114.3,
@@ -725,7 +855,9 @@
       "netRtg": 12.52,
       "ortg": 114.3,
       "drtg": 101.8,
-      "luck": 0.084
+      "luck": 0.084,
+      "sosNetRtg": -1.82,
+      "ncSosNetRtg": 9.16
     },
     "Arizona St.": {
       "adjO": 115.7,
@@ -736,7 +868,9 @@
       "netRtg": 12.49,
       "ortg": 115.7,
       "drtg": 103.2,
-      "luck": 0.062
+      "luck": 0.062,
+      "sosNetRtg": 14.46,
+      "ncSosNetRtg": 5.81
     },
     "Oklahoma St.": {
       "adjO": 119.9,
@@ -747,7 +881,9 @@
       "netRtg": 12.28,
       "ortg": 119.9,
       "drtg": 107.6,
-      "luck": 0.061
+      "luck": 0.061,
+      "sosNetRtg": 11.75,
+      "ncSosNetRtg": -0.92
     },
     "Belmont": {
       "adjO": 120.5,
@@ -758,7 +894,9 @@
       "netRtg": 12.05,
       "ortg": 120.5,
       "drtg": 108.5,
-      "luck": 0.035
+      "luck": 0.035,
+      "sosNetRtg": -0.35,
+      "ncSosNetRtg": -4.65
     },
     "Colorado": {
       "adjO": 118.9,
@@ -769,7 +907,9 @@
       "netRtg": 12.04,
       "ortg": 118.9,
       "drtg": 106.8,
-      "luck": 0.024
+      "luck": 0.024,
+      "sosNetRtg": 10.75,
+      "ncSosNetRtg": 0.01
     },
     "California": {
       "adjO": 114.5,
@@ -780,7 +920,9 @@
       "netRtg": 11.86,
       "ortg": 114.5,
       "drtg": 102.7,
-      "luck": 0.044
+      "luck": 0.044,
+      "sosNetRtg": 6.79,
+      "ncSosNetRtg": -6.43
     },
     "Dayton": {
       "adjO": 111.6,
@@ -791,7 +933,9 @@
       "netRtg": 11.82,
       "ortg": 111.6,
       "drtg": 99.8,
-      "luck": 0.043
+      "luck": 0.043,
+      "sosNetRtg": 5.12,
+      "ncSosNetRtg": 1.26
     },
     "Providence": {
       "adjO": 121.0,
@@ -802,7 +946,9 @@
       "netRtg": 11.79,
       "ortg": 121.0,
       "drtg": 109.2,
-      "luck": -0.09
+      "luck": -0.09,
+      "sosNetRtg": 10.98,
+      "ncSosNetRtg": -0.58
     },
     "Northern Iowa": {
       "adjO": 109.8,
@@ -813,7 +959,9 @@
       "netRtg": 11.57,
       "ortg": 109.8,
       "drtg": 98.3,
-      "luck": -0.07
+      "luck": -0.07,
+      "sosNetRtg": 1.02,
+      "ncSosNetRtg": -0.92
     },
     "Nevada": {
       "adjO": 115.8,
@@ -824,7 +972,9 @@
       "netRtg": 11.57,
       "ortg": 115.8,
       "drtg": 104.2,
-      "luck": 0.014
+      "luck": 0.014,
+      "sosNetRtg": 5.82,
+      "ncSosNetRtg": 2.84
     },
     "Wake Forest": {
       "adjO": 117.2,
@@ -835,7 +985,9 @@
       "netRtg": 11.32,
       "ortg": 117.2,
       "drtg": 105.9,
-      "luck": -0.014
+      "luck": -0.014,
+      "sosNetRtg": 10.71,
+      "ncSosNetRtg": 0.63
     },
     "Creighton": {
       "adjO": 116.2,
@@ -846,7 +998,9 @@
       "netRtg": 11.0,
       "ortg": 116.2,
       "drtg": 105.2,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": 11.7,
+      "ncSosNetRtg": 3.29
     },
     "Minnesota": {
       "adjO": 114.6,
@@ -857,7 +1011,9 @@
       "netRtg": 10.93,
       "ortg": 114.6,
       "drtg": 103.7,
-      "luck": -0.061
+      "luck": -0.061,
+      "sosNetRtg": 10.49,
+      "ncSosNetRtg": -8.59
     },
     "Georgetown": {
       "adjO": 114.5,
@@ -868,7 +1024,9 @@
       "netRtg": 10.9,
       "ortg": 114.5,
       "drtg": 103.6,
-      "luck": -0.049
+      "luck": -0.049,
+      "sosNetRtg": 10.56,
+      "ncSosNetRtg": -4.08
     },
     "USC": {
       "adjO": 113.5,
@@ -879,7 +1037,9 @@
       "netRtg": 10.83,
       "ortg": 113.5,
       "drtg": 102.7,
-      "luck": 0.068
+      "luck": 0.068,
+      "sosNetRtg": 12.24,
+      "ncSosNetRtg": -0.78
     },
     "Yale": {
       "adjO": 120.2,
@@ -890,7 +1050,9 @@
       "netRtg": 10.17,
       "ortg": 120.2,
       "drtg": 110.1,
-      "luck": 0.024
+      "luck": 0.024,
+      "sosNetRtg": -1.11,
+      "ncSosNetRtg": 1.2
     },
     "George Washington": {
       "adjO": 117.8,
@@ -901,7 +1063,9 @@
       "netRtg": 9.96,
       "ortg": 117.8,
       "drtg": 107.8,
-      "luck": -0.124
+      "luck": -0.124,
+      "sosNetRtg": 2.13,
+      "ncSosNetRtg": -2.88
     },
     "Wichita St.": {
       "adjO": 112.1,
@@ -912,7 +1076,9 @@
       "netRtg": 9.71,
       "ortg": 112.1,
       "drtg": 102.4,
-      "luck": -0.028
+      "luck": -0.028,
+      "sosNetRtg": 1.41,
+      "ncSosNetRtg": -2.19
     },
     "Syracuse": {
       "adjO": 114.5,
@@ -923,7 +1089,9 @@
       "netRtg": 9.68,
       "ortg": 114.5,
       "drtg": 104.9,
-      "luck": -0.046
+      "luck": -0.046,
+      "sosNetRtg": 10.27,
+      "ncSosNetRtg": -2.06
     },
     "Marquette": {
       "adjO": 111.8,
@@ -934,7 +1102,9 @@
       "netRtg": 9.67,
       "ortg": 111.8,
       "drtg": 102.1,
-      "luck": -0.111
+      "luck": -0.111,
+      "sosNetRtg": 10.99,
+      "ncSosNetRtg": 1.95
     },
     "Hofstra": {
       "adjO": 114.6,
@@ -945,7 +1115,9 @@
       "netRtg": 9.54,
       "ortg": 114.6,
       "drtg": 105.0,
-      "luck": -0.052
+      "luck": -0.052,
+      "sosNetRtg": -0.87,
+      "ncSosNetRtg": 3.08
     },
     "Butler": {
       "adjO": 116.0,
@@ -956,7 +1128,9 @@
       "netRtg": 9.46,
       "ortg": 116.0,
       "drtg": 106.6,
-      "luck": -0.031
+      "luck": -0.031,
+      "sosNetRtg": 9.91,
+      "ncSosNetRtg": -3.06
     },
     "Miami OH": {
       "adjO": 117.7,
@@ -967,7 +1141,9 @@
       "netRtg": 9.3,
       "ortg": 117.7,
       "drtg": 108.4,
-      "luck": 0.096
+      "luck": 0.096,
+      "sosNetRtg": -4.67,
+      "ncSosNetRtg": -9.84
     },
     "Colorado St.": {
       "adjO": 118.2,
@@ -978,7 +1154,9 @@
       "netRtg": 8.95,
       "ortg": 118.2,
       "drtg": 109.3,
-      "luck": 0.026
+      "luck": 0.026,
+      "sosNetRtg": 4.8,
+      "ncSosNetRtg": -2.24
     },
     "Notre Dame": {
       "adjO": 115.5,
@@ -989,7 +1167,9 @@
       "netRtg": 8.82,
       "ortg": 115.5,
       "drtg": 106.6,
-      "luck": -0.059
+      "luck": -0.059,
+      "sosNetRtg": 10.67,
+      "ncSosNetRtg": 1.38
     },
     "Stephen F. Austin": {
       "adjO": 112.5,
@@ -1000,7 +1180,9 @@
       "netRtg": 8.57,
       "ortg": 112.5,
       "drtg": 104.0,
-      "luck": 0.017
+      "luck": 0.017,
+      "sosNetRtg": -3.01,
+      "ncSosNetRtg": -3.77
     },
     "Utah Valley": {
       "adjO": 112.7,
@@ -1011,7 +1193,9 @@
       "netRtg": 8.56,
       "ortg": 112.7,
       "drtg": 104.2,
-      "luck": 0.014
+      "luck": 0.014,
+      "sosNetRtg": -0.22,
+      "ncSosNetRtg": 2.46
     },
     "High Point": {
       "adjO": 117.0,
@@ -1022,7 +1206,9 @@
       "netRtg": 8.4,
       "ortg": 117.0,
       "drtg": 108.6,
-      "luck": 0.048
+      "luck": 0.048,
+      "sosNetRtg": -9.23,
+      "ncSosNetRtg": -8.91
     },
     "Pittsburgh": {
       "adjO": 113.7,
@@ -1033,7 +1219,9 @@
       "netRtg": 7.53,
       "ortg": 113.7,
       "drtg": 106.1,
-      "luck": -0.067
+      "luck": -0.067,
+      "sosNetRtg": 10.78,
+      "ncSosNetRtg": 0.4
     },
     "South Carolina": {
       "adjO": 112.5,
@@ -1044,7 +1232,9 @@
       "netRtg": 7.51,
       "ortg": 112.5,
       "drtg": 105.0,
-      "luck": -0.062
+      "luck": -0.062,
+      "sosNetRtg": 11.0,
+      "ncSosNetRtg": -8.76
     },
     "Wyoming": {
       "adjO": 114.6,
@@ -1055,7 +1245,9 @@
       "netRtg": 7.5,
       "ortg": 114.6,
       "drtg": 107.1,
-      "luck": -0.037
+      "luck": -0.037,
+      "sosNetRtg": 4.39,
+      "ncSosNetRtg": -5.44
     },
     "Xavier": {
       "adjO": 116.9,
@@ -1066,7 +1258,9 @@
       "netRtg": 7.46,
       "ortg": 116.9,
       "drtg": 109.4,
-      "luck": 0.016
+      "luck": 0.016,
+      "sosNetRtg": 11.4,
+      "ncSosNetRtg": 1.08
     },
     "George Mason": {
       "adjO": 112.9,
@@ -1077,7 +1271,9 @@
       "netRtg": 7.04,
       "ortg": 112.9,
       "drtg": 105.9,
-      "luck": 0.042
+      "luck": 0.042,
+      "sosNetRtg": 0.54,
+      "ncSosNetRtg": -7.89
     },
     "Oregon": {
       "adjO": 111.6,
@@ -1088,7 +1284,9 @@
       "netRtg": 7.01,
       "ortg": 111.6,
       "drtg": 104.6,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": 12.61,
+      "ncSosNetRtg": 1.47
     },
     "Illinois St.": {
       "adjO": 110.3,
@@ -1099,7 +1297,9 @@
       "netRtg": 6.99,
       "ortg": 110.3,
       "drtg": 103.3,
-      "luck": -0.008
+      "luck": -0.008,
+      "sosNetRtg": 0.91,
+      "ncSosNetRtg": -2.8
     },
     "Mississippi St.": {
       "adjO": 112.6,
@@ -1110,7 +1310,9 @@
       "netRtg": 6.95,
       "ortg": 112.6,
       "drtg": 105.7,
-      "luck": -0.001
+      "luck": -0.001,
+      "sosNetRtg": 13.17,
+      "ncSosNetRtg": 0.46
     },
     "Kansas St.": {
       "adjO": 113.2,
@@ -1121,7 +1323,9 @@
       "netRtg": 6.95,
       "ortg": 113.2,
       "drtg": 106.2,
-      "luck": -0.074
+      "luck": -0.074,
+      "sosNetRtg": 12.96,
+      "ncSosNetRtg": -0.16
     },
     "DePaul": {
       "adjO": 107.1,
@@ -1132,7 +1336,9 @@
       "netRtg": 6.83,
       "ortg": 107.1,
       "drtg": 100.3,
-      "luck": -0.014
+      "luck": -0.014,
+      "sosNetRtg": 7.97,
+      "ncSosNetRtg": -9.9
     },
     "UNLV": {
       "adjO": 115.0,
@@ -1143,7 +1349,9 @@
       "netRtg": 6.29,
       "ortg": 115.0,
       "drtg": 108.7,
-      "luck": 0.016
+      "luck": 0.016,
+      "sosNetRtg": 6.65,
+      "ncSosNetRtg": 1.28
     },
     "UNC Wilmington": {
       "adjO": 111.6,
@@ -1154,7 +1362,9 @@
       "netRtg": 6.21,
       "ortg": 111.6,
       "drtg": 105.4,
-      "luck": 0.038
+      "luck": 0.038,
+      "sosNetRtg": -4.46,
+      "ncSosNetRtg": -8.33
     },
     "Cal Baptist": {
       "adjO": 107.8,
@@ -1165,7 +1375,9 @@
       "netRtg": 5.91,
       "ortg": 107.8,
       "drtg": 101.9,
-      "luck": 0.091
+      "luck": 0.091,
+      "sosNetRtg": -2.03,
+      "ncSosNetRtg": -3.32
     },
     "Hawaii": {
       "adjO": 107.1,
@@ -1176,7 +1388,9 @@
       "netRtg": 5.86,
       "ortg": 107.1,
       "drtg": 101.2,
-      "luck": 0.038
+      "luck": 0.038,
+      "sosNetRtg": -3.48,
+      "ncSosNetRtg": -11.26
     },
     "UC Irvine": {
       "adjO": 104.5,
@@ -1187,7 +1401,9 @@
       "netRtg": 5.85,
       "ortg": 104.5,
       "drtg": 98.7,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": -0.71,
+      "ncSosNetRtg": 0.51
     },
     "Pacific": {
       "adjO": 110.7,
@@ -1198,7 +1414,9 @@
       "netRtg": 5.54,
       "ortg": 110.7,
       "drtg": 105.2,
-      "luck": -0.02
+      "luck": -0.02,
+      "sosNetRtg": 3.03,
+      "ncSosNetRtg": 0.03
     },
     "Illinois Chicago": {
       "adjO": 110.4,
@@ -1209,7 +1427,9 @@
       "netRtg": 5.53,
       "ortg": 110.4,
       "drtg": 104.8,
-      "luck": -0.058
+      "luck": -0.058,
+      "sosNetRtg": 1.87,
+      "ncSosNetRtg": -2.36
     },
     "Davidson": {
       "adjO": 109.8,
@@ -1220,7 +1440,9 @@
       "netRtg": 5.43,
       "ortg": 109.8,
       "drtg": 104.4,
-      "luck": 0.019
+      "luck": 0.019,
+      "sosNetRtg": 2.81,
+      "ncSosNetRtg": -0.05
     },
     "Saint Joseph's": {
       "adjO": 107.2,
@@ -1231,7 +1453,9 @@
       "netRtg": 5.36,
       "ortg": 107.2,
       "drtg": 101.9,
-      "luck": 0.095
+      "luck": 0.095,
+      "sosNetRtg": 2.01,
+      "ncSosNetRtg": -4.98
     },
     "Sam Houston St.": {
       "adjO": 113.7,
@@ -1242,7 +1466,9 @@
       "netRtg": 5.22,
       "ortg": 113.7,
       "drtg": 108.5,
-      "luck": 0.006
+      "luck": 0.006,
+      "sosNetRtg": 0.51,
+      "ncSosNetRtg": 6.0
     },
     "Seattle": {
       "adjO": 101.9,
@@ -1253,7 +1479,9 @@
       "netRtg": 5.18,
       "ortg": 101.9,
       "drtg": 96.7,
-      "luck": 0.015
+      "luck": 0.015,
+      "sosNetRtg": 1.6,
+      "ncSosNetRtg": -3.54
     },
     "St. Thomas": {
       "adjO": 112.9,
@@ -1264,7 +1492,9 @@
       "netRtg": 5.08,
       "ortg": 112.9,
       "drtg": 107.8,
-      "luck": -0.032
+      "luck": -0.032,
+      "sosNetRtg": -5.27,
+      "ncSosNetRtg": -1.0
     },
     "North Dakota St.": {
       "adjO": 111.6,
@@ -1275,7 +1505,9 @@
       "netRtg": 4.94,
       "ortg": 111.6,
       "drtg": 106.7,
-      "luck": 0.04
+      "luck": 0.04,
+      "sosNetRtg": -6.0,
+      "ncSosNetRtg": -1.05
     },
     "Liberty": {
       "adjO": 118.0,
@@ -1286,7 +1518,9 @@
       "netRtg": 4.62,
       "ortg": 118.0,
       "drtg": 113.3,
-      "luck": 0.146
+      "luck": 0.146,
+      "sosNetRtg": -1.3,
+      "ncSosNetRtg": 0.64
     },
     "UT Rio Grande Valley": {
       "adjO": 110.9,
@@ -1297,7 +1531,9 @@
       "netRtg": 4.59,
       "ortg": 110.9,
       "drtg": 106.3,
-      "luck": -0.056
+      "luck": -0.056,
+      "sosNetRtg": -1.21,
+      "ncSosNetRtg": 8.29
     },
     "UC San Diego": {
       "adjO": 107.7,
@@ -1308,7 +1544,9 @@
       "netRtg": 4.43,
       "ortg": 107.7,
       "drtg": 103.3,
-      "luck": 0.01
+      "luck": 0.01,
+      "sosNetRtg": -1.12,
+      "ncSosNetRtg": 0.26
     },
     "Southern Illinois": {
       "adjO": 103.6,
@@ -1319,7 +1557,9 @@
       "netRtg": 4.35,
       "ortg": 103.6,
       "drtg": 99.3,
-      "luck": -0.094
+      "luck": -0.094,
+      "sosNetRtg": 1.59,
+      "ncSosNetRtg": -0.15
     },
     "San Francisco": {
       "adjO": 113.6,
@@ -1330,7 +1570,9 @@
       "netRtg": 4.27,
       "ortg": 113.6,
       "drtg": 109.3,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": 4.14,
+      "ncSosNetRtg": 0.23
     },
     "Maryland": {
       "adjO": 111.1,
@@ -1341,7 +1583,9 @@
       "netRtg": 4.27,
       "ortg": 111.1,
       "drtg": 106.8,
-      "luck": 0.016
+      "luck": 0.016,
+      "sosNetRtg": 14.69,
+      "ncSosNetRtg": 1.64
     },
     "Rutgers": {
       "adjO": 110.4,
@@ -1352,7 +1596,9 @@
       "netRtg": 3.93,
       "ortg": 110.4,
       "drtg": 106.5,
-      "luck": 0.043
+      "luck": 0.043,
+      "sosNetRtg": 11.23,
+      "ncSosNetRtg": -7.43
     },
     "Murray St.": {
       "adjO": 115.9,
@@ -1363,7 +1609,9 @@
       "netRtg": 3.71,
       "ortg": 115.9,
       "drtg": 112.2,
-      "luck": 0.037
+      "luck": 0.037,
+      "sosNetRtg": 1.43,
+      "ncSosNetRtg": -3.86
     },
     "Duquesne": {
       "adjO": 110.8,
@@ -1374,7 +1622,9 @@
       "netRtg": 3.66,
       "ortg": 110.8,
       "drtg": 107.1,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": 2.8,
+      "ncSosNetRtg": -6.38
     },
     "Utah": {
       "adjO": 114.6,
@@ -1385,7 +1635,9 @@
       "netRtg": 3.61,
       "ortg": 114.6,
       "drtg": 111.0,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": 12.08,
+      "ncSosNetRtg": 0.16
     },
     "UAB": {
       "adjO": 109.8,
@@ -1396,7 +1648,9 @@
       "netRtg": 3.47,
       "ortg": 109.8,
       "drtg": 106.4,
-      "luck": 0.006
+      "luck": 0.006,
+      "sosNetRtg": -0.78,
+      "ncSosNetRtg": -5.43
     },
     "Florida Atlantic": {
       "adjO": 109.7,
@@ -1407,7 +1661,9 @@
       "netRtg": 3.33,
       "ortg": 109.7,
       "drtg": 106.3,
-      "luck": -0.034
+      "luck": -0.034,
+      "sosNetRtg": 1.93,
+      "ncSosNetRtg": 2.93
     },
     "Toledo": {
       "adjO": 114.5,
@@ -1418,7 +1674,9 @@
       "netRtg": 3.22,
       "ortg": 114.5,
       "drtg": 111.3,
-      "luck": -0.055
+      "luck": -0.055,
+      "sosNetRtg": -0.74,
+      "ncSosNetRtg": 2.15
     },
     "Fresno St.": {
       "adjO": 107.5,
@@ -1429,7 +1687,9 @@
       "netRtg": 3.12,
       "ortg": 107.5,
       "drtg": 104.3,
-      "luck": -0.078
+      "luck": -0.078,
+      "sosNetRtg": 4.81,
+      "ncSosNetRtg": -3.12
     },
     "UC Santa Barbara": {
       "adjO": 113.7,
@@ -1440,7 +1700,9 @@
       "netRtg": 3.08,
       "ortg": 113.7,
       "drtg": 110.6,
-      "luck": -0.067
+      "luck": -0.067,
+      "sosNetRtg": -1.13,
+      "ncSosNetRtg": -0.46
     },
     "Bradley": {
       "adjO": 111.8,
@@ -1451,7 +1713,9 @@
       "netRtg": 3.08,
       "ortg": 111.8,
       "drtg": 108.8,
-      "luck": 0.038
+      "luck": 0.038,
+      "sosNetRtg": 0.76,
+      "ncSosNetRtg": -5.35
     },
     "Montana St.": {
       "adjO": 110.9,
@@ -1462,7 +1726,9 @@
       "netRtg": 2.91,
       "ortg": 110.9,
       "drtg": 108.0,
-      "luck": -0.083
+      "luck": -0.083,
+      "sosNetRtg": -0.08,
+      "ncSosNetRtg": 6.22
     },
     "Rhode Island": {
       "adjO": 105.9,
@@ -1473,7 +1739,9 @@
       "netRtg": 2.59,
       "ortg": 105.9,
       "drtg": 103.3,
-      "luck": -0.048
+      "luck": -0.048,
+      "sosNetRtg": 0.87,
+      "ncSosNetRtg": -5.58
     },
     "Memphis": {
       "adjO": 107.2,
@@ -1484,7 +1752,9 @@
       "netRtg": 2.53,
       "ortg": 107.2,
       "drtg": 104.6,
-      "luck": -0.053
+      "luck": -0.053,
+      "sosNetRtg": 5.45,
+      "ncSosNetRtg": 10.84
     },
     "North Texas": {
       "adjO": 103.4,
@@ -1495,7 +1765,9 @@
       "netRtg": 2.5,
       "ortg": 103.4,
       "drtg": 100.9,
-      "luck": 0.01
+      "luck": 0.01,
+      "sosNetRtg": 1.03,
+      "ncSosNetRtg": 0.27
     },
     "Washington St.": {
       "adjO": 114.0,
@@ -1506,7 +1778,9 @@
       "netRtg": 2.39,
       "ortg": 114.0,
       "drtg": 111.6,
-      "luck": -0.094
+      "luck": -0.094,
+      "sosNetRtg": 5.11,
+      "ncSosNetRtg": 4.91
     },
     "St. Bonaventure": {
       "adjO": 113.7,
@@ -1517,7 +1791,9 @@
       "netRtg": 2.31,
       "ortg": 113.7,
       "drtg": 111.4,
-      "luck": -0.044
+      "luck": -0.044,
+      "sosNetRtg": 1.56,
+      "ncSosNetRtg": -4.5
     },
     "Penn St.": {
       "adjO": 114.0,
@@ -1528,7 +1804,9 @@
       "netRtg": 2.17,
       "ortg": 114.0,
       "drtg": 111.8,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": 10.72,
+      "ncSosNetRtg": -7.29
     },
     "Wright St.": {
       "adjO": 112.0,
@@ -1539,7 +1817,9 @@
       "netRtg": 2.06,
       "ortg": 112.0,
       "drtg": 110.0,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -4.03,
+      "ncSosNetRtg": 0.97
     },
     "Troy": {
       "adjO": 110.7,
@@ -1550,7 +1830,9 @@
       "netRtg": 1.79,
       "ortg": 110.7,
       "drtg": 108.9,
-      "luck": 0.024
+      "luck": 0.024,
+      "sosNetRtg": -3.17,
+      "ncSosNetRtg": 4.1
     },
     "Northern Colorado": {
       "adjO": 112.2,
@@ -1561,7 +1843,9 @@
       "netRtg": 1.78,
       "ortg": 112.2,
       "drtg": 110.4,
-      "luck": -0.024
+      "luck": -0.024,
+      "sosNetRtg": -2.19,
+      "ncSosNetRtg": -0.37
     },
     "Navy": {
       "adjO": 107.6,
@@ -1572,7 +1856,9 @@
       "netRtg": 1.71,
       "ortg": 107.6,
       "drtg": 105.9,
-      "luck": 0.043
+      "luck": 0.043,
+      "sosNetRtg": -11.53,
+      "ncSosNetRtg": -9.56
     },
     "Robert Morris": {
       "adjO": 110.7,
@@ -1583,7 +1869,9 @@
       "netRtg": 1.66,
       "ortg": 110.7,
       "drtg": 109.0,
-      "luck": 0.029
+      "luck": 0.029,
+      "sosNetRtg": -4.57,
+      "ncSosNetRtg": -1.5
     },
     "William & Mary": {
       "adjO": 111.0,
@@ -1594,7 +1882,9 @@
       "netRtg": 1.6,
       "ortg": 111.0,
       "drtg": 109.4,
-      "luck": 0.024
+      "luck": 0.024,
+      "sosNetRtg": -2.0,
+      "ncSosNetRtg": 0.43
     },
     "Bowling Green": {
       "adjO": 107.2,
@@ -1605,7 +1895,9 @@
       "netRtg": 1.58,
       "ortg": 107.2,
       "drtg": 105.7,
-      "luck": -0.095
+      "luck": -0.095,
+      "sosNetRtg": -3.27,
+      "ncSosNetRtg": -6.37
     },
     "Arkansas St.": {
       "adjO": 110.6,
@@ -1616,7 +1908,9 @@
       "netRtg": 1.46,
       "ortg": 110.6,
       "drtg": 109.2,
-      "luck": 0.008
+      "luck": 0.008,
+      "sosNetRtg": -3.75,
+      "ncSosNetRtg": 2.73
     },
     "Portland St.": {
       "adjO": 103.4,
@@ -1627,7 +1921,9 @@
       "netRtg": 1.45,
       "ortg": 103.4,
       "drtg": 102.0,
-      "luck": 0.008
+      "luck": 0.008,
+      "sosNetRtg": -2.06,
+      "ncSosNetRtg": 1.34
     },
     "Idaho": {
       "adjO": 108.7,
@@ -1638,7 +1934,9 @@
       "netRtg": 1.45,
       "ortg": 108.7,
       "drtg": 107.3,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": -1.75,
+      "ncSosNetRtg": 0.63
     },
     "Penn": {
       "adjO": 107.3,
@@ -1649,7 +1947,9 @@
       "netRtg": 1.36,
       "ortg": 107.3,
       "drtg": 106.0,
-      "luck": 0.068
+      "luck": 0.068,
+      "sosNetRtg": -0.78,
+      "ncSosNetRtg": 0.56
     },
     "Central Arkansas": {
       "adjO": 110.1,
@@ -1660,7 +1960,9 @@
       "netRtg": 1.25,
       "ortg": 110.1,
       "drtg": 108.9,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": -5.41,
+      "ncSosNetRtg": 5.62
     },
     "Winthrop": {
       "adjO": 111.6,
@@ -1671,7 +1973,9 @@
       "netRtg": 1.14,
       "ortg": 111.6,
       "drtg": 110.5,
-      "luck": 0.025
+      "luck": 0.025,
+      "sosNetRtg": -4.75,
+      "ncSosNetRtg": 1.12
     },
     "Harvard": {
       "adjO": 106.5,
@@ -1682,7 +1986,9 @@
       "netRtg": 1.13,
       "ortg": 106.5,
       "drtg": 105.4,
-      "luck": -0.015
+      "luck": -0.015,
+      "sosNetRtg": -3.5,
+      "ncSosNetRtg": -5.17
     },
     "Towson": {
       "adjO": 105.7,
@@ -1693,7 +1999,9 @@
       "netRtg": 1.07,
       "ortg": 105.7,
       "drtg": 104.7,
-      "luck": 0.012
+      "luck": 0.012,
+      "sosNetRtg": -0.92,
+      "ncSosNetRtg": 2.78
     },
     "UT Arlington": {
       "adjO": 102.5,
@@ -1704,7 +2012,9 @@
       "netRtg": 1.06,
       "ortg": 102.5,
       "drtg": 101.5,
-      "luck": 0.03
+      "luck": 0.03,
+      "sosNetRtg": 0.46,
+      "ncSosNetRtg": 3.37
     },
     "Boston College": {
       "adjO": 103.7,
@@ -1715,7 +2025,9 @@
       "netRtg": 1.05,
       "ortg": 103.7,
       "drtg": 102.6,
-      "luck": -0.035
+      "luck": -0.035,
+      "sosNetRtg": 6.58,
+      "ncSosNetRtg": -7.41
     },
     "Richmond": {
       "adjO": 111.4,
@@ -1726,7 +2038,9 @@
       "netRtg": 0.99,
       "ortg": 111.4,
       "drtg": 110.4,
-      "luck": -0.092
+      "luck": -0.092,
+      "sosNetRtg": 0.04,
+      "ncSosNetRtg": -9.06
     },
     "Kent St.": {
       "adjO": 111.2,
@@ -1737,7 +2051,9 @@
       "netRtg": 0.95,
       "ortg": 111.2,
       "drtg": 110.2,
-      "luck": 0.14
+      "luck": 0.14,
+      "sosNetRtg": -2.08,
+      "ncSosNetRtg": -3.32
     },
     "UC Davis": {
       "adjO": 107.9,
@@ -1748,7 +2064,9 @@
       "netRtg": 0.82,
       "ortg": 107.9,
       "drtg": 107.1,
-      "luck": 0.04
+      "luck": 0.04,
+      "sosNetRtg": -0.29,
+      "ncSosNetRtg": 1.75
     },
     "Loyola Marymount": {
       "adjO": 106.5,
@@ -1759,7 +2077,9 @@
       "netRtg": 0.8,
       "ortg": 106.5,
       "drtg": 105.7,
-      "luck": -0.045
+      "luck": -0.045,
+      "sosNetRtg": 0.68,
+      "ncSosNetRtg": -5.76
     },
     "Valparaiso": {
       "adjO": 108.0,
@@ -1770,7 +2090,9 @@
       "netRtg": 0.75,
       "ortg": 108.0,
       "drtg": 107.2,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": 0.58,
+      "ncSosNetRtg": -5.95
     },
     "Fordham": {
       "adjO": 104.7,
@@ -1781,7 +2103,9 @@
       "netRtg": 0.64,
       "ortg": 104.7,
       "drtg": 104.0,
-      "luck": -0.056
+      "luck": -0.056,
+      "sosNetRtg": -2.02,
+      "ncSosNetRtg": -16.18
     },
     "Kennesaw St.": {
       "adjO": 110.6,
@@ -1792,7 +2116,9 @@
       "netRtg": 0.64,
       "ortg": 110.6,
       "drtg": 110.0,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -2.17,
+      "ncSosNetRtg": -5.15
     },
     "Georgia Tech": {
       "adjO": 107.6,
@@ -1803,7 +2129,9 @@
       "netRtg": 0.58,
       "ortg": 107.6,
       "drtg": 107.1,
-      "luck": -0.039
+      "luck": -0.039,
+      "sosNetRtg": 6.29,
+      "ncSosNetRtg": -9.76
     },
     "Temple": {
       "adjO": 111.7,
@@ -1814,7 +2142,9 @@
       "netRtg": 0.54,
       "ortg": 111.7,
       "drtg": 111.1,
-      "luck": -0.073
+      "luck": -0.073,
+      "sosNetRtg": -1.47,
+      "ncSosNetRtg": -3.02
     },
     "East Tennessee St.": {
       "adjO": 109.7,
@@ -1825,7 +2155,9 @@
       "netRtg": 0.51,
       "ortg": 109.7,
       "drtg": 109.1,
-      "luck": -0.021
+      "luck": -0.021,
+      "sosNetRtg": -7.97,
+      "ncSosNetRtg": -4.15
     },
     "Cornell": {
       "adjO": 119.8,
@@ -1836,7 +2168,9 @@
       "netRtg": 0.34,
       "ortg": 119.8,
       "drtg": 119.4,
-      "luck": -0.032
+      "luck": -0.032,
+      "sosNetRtg": -1.56,
+      "ncSosNetRtg": -0.82
     },
     "Cal St. Fullerton": {
       "adjO": 109.3,
@@ -1847,7 +2181,9 @@
       "netRtg": 0.24,
       "ortg": 109.3,
       "drtg": 109.1,
-      "luck": 0.047
+      "luck": 0.047,
+      "sosNetRtg": 1.28,
+      "ncSosNetRtg": 6.29
     },
     "Oakland": {
       "adjO": 115.2,
@@ -1858,7 +2194,9 @@
       "netRtg": 0.19,
       "ortg": 115.2,
       "drtg": 115.0,
-      "luck": 0.016
+      "luck": 0.016,
+      "sosNetRtg": -0.13,
+      "ncSosNetRtg": 17.24
     },
     "Western Kentucky": {
       "adjO": 108.5,
@@ -1869,7 +2207,9 @@
       "netRtg": 0.09,
       "ortg": 108.5,
       "drtg": 108.5,
-      "luck": 0.008
+      "luck": 0.008,
+      "sosNetRtg": -0.78,
+      "ncSosNetRtg": 1.38
     },
     "Eastern Washington": {
       "adjO": 113.0,
@@ -1880,7 +2220,9 @@
       "netRtg": -0.04,
       "ortg": 113.0,
       "drtg": 113.1,
-      "luck": -0.061
+      "luck": -0.061,
+      "sosNetRtg": 0.8,
+      "ncSosNetRtg": 7.6
     },
     "Charleston": {
       "adjO": 108.1,
@@ -1891,7 +2233,9 @@
       "netRtg": -0.13,
       "ortg": 108.1,
       "drtg": 108.2,
-      "luck": 0.105
+      "luck": 0.105,
+      "sosNetRtg": -2.02,
+      "ncSosNetRtg": -1.6
     },
     "Austin Peay": {
       "adjO": 108.0,
@@ -1902,7 +2246,9 @@
       "netRtg": -0.28,
       "ortg": 108.0,
       "drtg": 108.3,
-      "luck": 0.033
+      "luck": 0.033,
+      "sosNetRtg": -6.59,
+      "ncSosNetRtg": 2.04
     },
     "Texas A&M Corpus Chris": {
       "adjO": 104.8,
@@ -1913,7 +2259,9 @@
       "netRtg": -0.28,
       "ortg": 104.8,
       "drtg": 105.1,
-      "luck": 0.003
+      "luck": 0.003,
+      "sosNetRtg": -0.1,
+      "ncSosNetRtg": 16.28
     },
     "CSUN": {
       "adjO": 108.9,
@@ -1924,7 +2272,9 @@
       "netRtg": -0.48,
       "ortg": 108.9,
       "drtg": 109.3,
-      "luck": 0.078
+      "luck": 0.078,
+      "sosNetRtg": -0.08,
+      "ncSosNetRtg": 1.0
     },
     "Northern Kentucky": {
       "adjO": 109.5,
@@ -1935,7 +2285,9 @@
       "netRtg": -0.6,
       "ortg": 109.5,
       "drtg": 110.1,
-      "luck": -0.022
+      "luck": -0.022,
+      "sosNetRtg": -4.41,
+      "ncSosNetRtg": -4.18
     },
     "Oregon St.": {
       "adjO": 109.2,
@@ -1946,7 +2298,9 @@
       "netRtg": -0.61,
       "ortg": 109.2,
       "drtg": 109.8,
-      "luck": 0.097
+      "luck": 0.097,
+      "sosNetRtg": 3.13,
+      "ncSosNetRtg": -1.82
     },
     "Middle Tennessee": {
       "adjO": 109.1,
@@ -1957,7 +2311,9 @@
       "netRtg": -0.64,
       "ortg": 109.1,
       "drtg": 109.7,
-      "luck": 0.012
+      "luck": 0.012,
+      "sosNetRtg": 0.83,
+      "ncSosNetRtg": 11.08
     },
     "Monmouth": {
       "adjO": 106.1,
@@ -1968,7 +2324,9 @@
       "netRtg": -0.86,
       "ortg": 106.1,
       "drtg": 106.9,
-      "luck": 0.013
+      "luck": 0.013,
+      "sosNetRtg": -2.53,
+      "ncSosNetRtg": -3.77
     },
     "Merrimack": {
       "adjO": 106.5,
@@ -1979,7 +2337,9 @@
       "netRtg": -0.88,
       "ortg": 106.5,
       "drtg": 107.3,
-      "luck": 0.115
+      "luck": 0.115,
+      "sosNetRtg": -5.82,
+      "ncSosNetRtg": 3.17
     },
     "Campbell": {
       "adjO": 111.2,
@@ -1990,7 +2350,9 @@
       "netRtg": -1.39,
       "ortg": 111.2,
       "drtg": 112.6,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": 0.84,
+      "ncSosNetRtg": 7.58
     },
     "Queens": {
       "adjO": 115.7,
@@ -2001,7 +2363,9 @@
       "netRtg": -1.42,
       "ortg": 115.7,
       "drtg": 117.2,
-      "luck": 0.067
+      "luck": 0.067,
+      "sosNetRtg": -5.65,
+      "ncSosNetRtg": 5.71
     },
     "Charlotte": {
       "adjO": 113.0,
@@ -2012,7 +2376,9 @@
       "netRtg": -1.47,
       "ortg": 113.0,
       "drtg": 114.5,
-      "luck": 0.024
+      "luck": 0.024,
+      "sosNetRtg": 0.54,
+      "ncSosNetRtg": -0.87
     },
     "New Mexico St.": {
       "adjO": 108.7,
@@ -2023,7 +2389,9 @@
       "netRtg": -1.52,
       "ortg": 108.7,
       "drtg": 110.2,
-      "luck": -0.061
+      "luck": -0.061,
+      "sosNetRtg": -1.28,
+      "ncSosNetRtg": 0.69
     },
     "Montana": {
       "adjO": 106.7,
@@ -2034,7 +2402,9 @@
       "netRtg": -1.79,
       "ortg": 106.7,
       "drtg": 108.5,
-      "luck": 0.047
+      "luck": 0.047,
+      "sosNetRtg": -0.19,
+      "ncSosNetRtg": 5.23
     },
     "Tennessee St.": {
       "adjO": 109.1,
@@ -2045,7 +2415,9 @@
       "netRtg": -1.83,
       "ortg": 109.1,
       "drtg": 110.9,
-      "luck": 0.07
+      "luck": 0.07,
+      "sosNetRtg": -8.27,
+      "ncSosNetRtg": 5.47
     },
     "UMBC": {
       "adjO": 108.8,
@@ -2056,7 +2428,9 @@
       "netRtg": -1.9,
       "ortg": 108.8,
       "drtg": 110.7,
-      "luck": 0.028
+      "luck": 0.028,
+      "sosNetRtg": -14.46,
+      "ncSosNetRtg": -6.92
     },
     "Furman": {
       "adjO": 107.5,
@@ -2067,7 +2441,9 @@
       "netRtg": -1.94,
       "ortg": 107.5,
       "drtg": 109.4,
-      "luck": 0.01
+      "luck": 0.01,
+      "sosNetRtg": -6.25,
+      "ncSosNetRtg": -0.66
     },
     "Mercer": {
       "adjO": 111.7,
@@ -2078,7 +2454,9 @@
       "netRtg": -1.94,
       "ortg": 111.7,
       "drtg": 113.7,
-      "luck": -0.021
+      "luck": -0.021,
+      "sosNetRtg": -5.35,
+      "ncSosNetRtg": 4.0
     },
     "Utah Tech": {
       "adjO": 110.8,
@@ -2089,7 +2467,9 @@
       "netRtg": -1.96,
       "ortg": 110.8,
       "drtg": 112.8,
-      "luck": 0.099
+      "luck": 0.099,
+      "sosNetRtg": 0.62,
+      "ncSosNetRtg": 3.63
     },
     "Columbia": {
       "adjO": 108.5,
@@ -2100,7 +2480,9 @@
       "netRtg": -2.08,
       "ortg": 108.5,
       "drtg": 110.5,
-      "luck": 0.012
+      "luck": 0.012,
+      "sosNetRtg": -3.59,
+      "ncSosNetRtg": -5.51
     },
     "Siena": {
       "adjO": 107.1,
@@ -2111,7 +2493,9 @@
       "netRtg": -2.14,
       "ortg": 107.1,
       "drtg": 109.2,
-      "luck": 0.005
+      "luck": 0.005,
+      "sosNetRtg": -9.52,
+      "ncSosNetRtg": -7.81
     },
     "FIU": {
       "adjO": 107.4,
@@ -2122,7 +2506,9 @@
       "netRtg": -2.17,
       "ortg": 107.4,
       "drtg": 109.5,
-      "luck": -0.051
+      "luck": -0.051,
+      "sosNetRtg": -1.27,
+      "ncSosNetRtg": -0.13
     },
     "New Orleans": {
       "adjO": 109.7,
@@ -2133,7 +2519,9 @@
       "netRtg": -2.17,
       "ortg": 109.7,
       "drtg": 111.9,
-      "luck": 0.038
+      "luck": 0.038,
+      "sosNetRtg": 0.56,
+      "ncSosNetRtg": 14.02
     },
     "Appalachian St.": {
       "adjO": 105.8,
@@ -2144,7 +2532,9 @@
       "netRtg": -2.26,
       "ortg": 105.8,
       "drtg": 108.1,
-      "luck": 0.015
+      "luck": 0.015,
+      "sosNetRtg": -5.46,
+      "ncSosNetRtg": -3.27
     },
     "Massachusetts": {
       "adjO": 108.7,
@@ -2155,7 +2545,9 @@
       "netRtg": -2.49,
       "ortg": 108.7,
       "drtg": 111.2,
-      "luck": -0.045
+      "luck": -0.045,
+      "sosNetRtg": -3.58,
+      "ncSosNetRtg": -6.62
     },
     "Buffalo": {
       "adjO": 112.5,
@@ -2166,7 +2558,9 @@
       "netRtg": -2.72,
       "ortg": 112.5,
       "drtg": 115.2,
-      "luck": -0.028
+      "luck": -0.028,
+      "sosNetRtg": -3.54,
+      "ncSosNetRtg": -6.69
     },
     "South Alabama": {
       "adjO": 107.2,
@@ -2177,7 +2571,9 @@
       "netRtg": -2.75,
       "ortg": 107.2,
       "drtg": 109.9,
-      "luck": 0.053
+      "luck": 0.053,
+      "sosNetRtg": -5.22,
+      "ncSosNetRtg": -5.26
     },
     "Weber St.": {
       "adjO": 111.5,
@@ -2188,7 +2584,9 @@
       "netRtg": -2.75,
       "ortg": 111.5,
       "drtg": 114.2,
-      "luck": -0.031
+      "luck": -0.031,
+      "sosNetRtg": -2.06,
+      "ncSosNetRtg": -1.25
     },
     "Lipscomb": {
       "adjO": 106.9,
@@ -2199,7 +2597,9 @@
       "netRtg": -2.81,
       "ortg": 106.9,
       "drtg": 109.7,
-      "luck": 0.044
+      "luck": 0.044,
+      "sosNetRtg": -5.2,
+      "ncSosNetRtg": 4.69
     },
     "Louisiana Tech": {
       "adjO": 102.9,
@@ -2210,7 +2610,9 @@
       "netRtg": -2.82,
       "ortg": 102.9,
       "drtg": 105.7,
-      "luck": 0.05
+      "luck": 0.05,
+      "sosNetRtg": -2.93,
+      "ncSosNetRtg": -7.08
     },
     "Portland": {
       "adjO": 106.1,
@@ -2221,7 +2623,9 @@
       "netRtg": -2.83,
       "ortg": 106.1,
       "drtg": 108.9,
-      "luck": 0.064
+      "luck": 0.064,
+      "sosNetRtg": 3.68,
+      "ncSosNetRtg": 0.5
     },
     "Drake": {
       "adjO": 109.8,
@@ -2232,7 +2636,9 @@
       "netRtg": -2.88,
       "ortg": 109.8,
       "drtg": 112.6,
-      "luck": -0.06
+      "luck": -0.06,
+      "sosNetRtg": 1.8,
+      "ncSosNetRtg": -4.21
     },
     "Howard": {
       "adjO": 104.1,
@@ -2243,7 +2649,9 @@
       "netRtg": -2.88,
       "ortg": 104.1,
       "drtg": 107.0,
-      "luck": 0.003
+      "luck": 0.003,
+      "sosNetRtg": -14.01,
+      "ncSosNetRtg": -1.66
     },
     "Marshall": {
       "adjO": 112.1,
@@ -2254,7 +2662,9 @@
       "netRtg": -3.05,
       "ortg": 112.1,
       "drtg": 115.1,
-      "luck": 0.034
+      "luck": 0.034,
+      "sosNetRtg": -4.11,
+      "ncSosNetRtg": -0.96
     },
     "Indiana St.": {
       "adjO": 106.0,
@@ -2265,7 +2675,9 @@
       "netRtg": -3.07,
       "ortg": 106.0,
       "drtg": 109.1,
-      "luck": -0.11
+      "luck": -0.11,
+      "sosNetRtg": 1.04,
+      "ncSosNetRtg": -5.44
     },
     "Missouri St.": {
       "adjO": 108.9,
@@ -2276,7 +2688,9 @@
       "netRtg": -3.09,
       "ortg": 108.9,
       "drtg": 112.0,
-      "luck": -0.043
+      "luck": -0.043,
+      "sosNetRtg": -1.6,
+      "ncSosNetRtg": -1.16
     },
     "Marist": {
       "adjO": 99.5,
@@ -2287,7 +2701,9 @@
       "netRtg": -3.13,
       "ortg": 99.5,
       "drtg": 102.6,
-      "luck": -0.027
+      "luck": -0.027,
+      "sosNetRtg": -8.99,
+      "ncSosNetRtg": -7.47
     },
     "Jacksonville St.": {
       "adjO": 105.1,
@@ -2298,7 +2714,9 @@
       "netRtg": -3.29,
       "ortg": 105.1,
       "drtg": 108.4,
-      "luck": -0.057
+      "luck": -0.057,
+      "sosNetRtg": -2.85,
+      "ncSosNetRtg": -6.26
     },
     "Green Bay": {
       "adjO": 112.5,
@@ -2309,7 +2727,9 @@
       "netRtg": -3.54,
       "ortg": 112.5,
       "drtg": 116.0,
-      "luck": 0.064
+      "luck": 0.064,
+      "sosNetRtg": -2.15,
+      "ncSosNetRtg": 6.11
     },
     "Tulane": {
       "adjO": 107.7,
@@ -2320,7 +2740,9 @@
       "netRtg": -3.61,
       "ortg": 107.7,
       "drtg": 111.3,
-      "luck": 0.121
+      "luck": 0.121,
+      "sosNetRtg": 0.26,
+      "ncSosNetRtg": -3.74
     },
     "Cal Poly": {
       "adjO": 109.4,
@@ -2331,7 +2753,9 @@
       "netRtg": -3.73,
       "ortg": 109.4,
       "drtg": 113.1,
-      "luck": -0.003
+      "luck": -0.003,
+      "sosNetRtg": 1.2,
+      "ncSosNetRtg": 5.2
     },
     "James Madison": {
       "adjO": 109.1,
@@ -2342,7 +2766,9 @@
       "netRtg": -3.85,
       "ortg": 109.1,
       "drtg": 113.0,
-      "luck": 0.017
+      "luck": 0.017,
+      "sosNetRtg": -4.84,
+      "ncSosNetRtg": -2.74
     },
     "Samford": {
       "adjO": 109.6,
@@ -2353,7 +2779,9 @@
       "netRtg": -3.9,
       "ortg": 109.6,
       "drtg": 113.5,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -5.95,
+      "ncSosNetRtg": 0.22
     },
     "Youngstown St.": {
       "adjO": 105.5,
@@ -2364,7 +2792,9 @@
       "netRtg": -3.93,
       "ortg": 105.5,
       "drtg": 109.4,
-      "luck": -0.092
+      "luck": -0.092,
+      "sosNetRtg": -3.77,
+      "ncSosNetRtg": -1.48
     },
     "LIU": {
       "adjO": 105.6,
@@ -2375,7 +2805,9 @@
       "netRtg": -3.96,
       "ortg": 105.6,
       "drtg": 109.6,
-      "luck": 0.104
+      "luck": 0.104,
+      "sosNetRtg": -9.99,
+      "ncSosNetRtg": 2.1
     },
     "Southern Miss": {
       "adjO": 105.2,
@@ -2386,7 +2818,9 @@
       "netRtg": -4.09,
       "ortg": 105.2,
       "drtg": 109.3,
-      "luck": 0.043
+      "luck": 0.043,
+      "sosNetRtg": -3.6,
+      "ncSosNetRtg": 1.19
     },
     "Detroit Mercy": {
       "adjO": 107.9,
@@ -2397,7 +2831,9 @@
       "netRtg": -4.19,
       "ortg": 107.9,
       "drtg": 112.1,
-      "luck": 0.067
+      "luck": 0.067,
+      "sosNetRtg": -2.4,
+      "ncSosNetRtg": 7.58
     },
     "Quinnipiac": {
       "adjO": 104.1,
@@ -2408,7 +2844,9 @@
       "netRtg": -4.29,
       "ortg": 104.1,
       "drtg": 108.4,
-      "luck": 0.027
+      "luck": 0.027,
+      "sosNetRtg": -7.51,
+      "ncSosNetRtg": 1.23
     },
     "Tarleton St.": {
       "adjO": 104.2,
@@ -2419,7 +2857,9 @@
       "netRtg": -4.47,
       "ortg": 104.2,
       "drtg": 108.6,
-      "luck": -0.041
+      "luck": -0.041,
+      "sosNetRtg": 0.58,
+      "ncSosNetRtg": 3.89
     },
     "South Dakota St.": {
       "adjO": 107.9,
@@ -2430,7 +2870,9 @@
       "netRtg": -4.52,
       "ortg": 107.9,
       "drtg": 112.4,
-      "luck": -0.117
+      "luck": -0.117,
+      "sosNetRtg": -3.32,
+      "ncSosNetRtg": 2.38
     },
     "Drexel": {
       "adjO": 102.4,
@@ -2441,7 +2883,9 @@
       "netRtg": -4.64,
       "ortg": 102.4,
       "drtg": 107.0,
-      "luck": 0.003
+      "luck": 0.003,
+      "sosNetRtg": -4.35,
+      "ncSosNetRtg": -7.93
     },
     "Tennessee Martin": {
       "adjO": 100.4,
@@ -2452,7 +2896,9 @@
       "netRtg": -4.82,
       "ortg": 100.4,
       "drtg": 105.2,
-      "luck": 0.048
+      "luck": 0.048,
+      "sosNetRtg": -8.76,
+      "ncSosNetRtg": 0.38
     },
     "San Diego": {
       "adjO": 108.2,
@@ -2463,7 +2909,9 @@
       "netRtg": -4.9,
       "ortg": 108.2,
       "drtg": 113.1,
-      "luck": 0.003
+      "luck": 0.003,
+      "sosNetRtg": 2.33,
+      "ncSosNetRtg": -2.18
     },
     "San Jose St.": {
       "adjO": 112.2,
@@ -2474,7 +2922,9 @@
       "netRtg": -4.93,
       "ortg": 112.2,
       "drtg": 117.1,
-      "luck": -0.012
+      "luck": -0.012,
+      "sosNetRtg": 7.21,
+      "ncSosNetRtg": 1.91
     },
     "Rice": {
       "adjO": 108.6,
@@ -2485,7 +2935,9 @@
       "netRtg": -5.22,
       "ortg": 108.6,
       "drtg": 113.8,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -0.3,
+      "ncSosNetRtg": -2.08
     },
     "Stony Brook": {
       "adjO": 105.2,
@@ -2496,7 +2948,9 @@
       "netRtg": -5.47,
       "ortg": 105.2,
       "drtg": 110.6,
-      "luck": 0.064
+      "luck": 0.064,
+      "sosNetRtg": -2.88,
+      "ncSosNetRtg": -4.32
     },
     "Ohio": {
       "adjO": 107.9,
@@ -2507,7 +2961,9 @@
       "netRtg": -5.5,
       "ortg": 107.9,
       "drtg": 113.4,
-      "luck": 0.025
+      "luck": 0.025,
+      "sosNetRtg": -1.27,
+      "ncSosNetRtg": 0.99
     },
     "Western Carolina": {
       "adjO": 109.1,
@@ -2518,7 +2974,9 @@
       "netRtg": -5.55,
       "ortg": 109.1,
       "drtg": 114.7,
-      "luck": -0.015
+      "luck": -0.015,
+      "sosNetRtg": -3.98,
+      "ncSosNetRtg": 9.67
     },
     "Elon": {
       "adjO": 110.1,
@@ -2529,7 +2987,9 @@
       "netRtg": -5.64,
       "ortg": 110.1,
       "drtg": 115.7,
-      "luck": -0.03
+      "luck": -0.03,
+      "sosNetRtg": -2.32,
+      "ncSosNetRtg": -3.1
     },
     "La Salle": {
       "adjO": 105.7,
@@ -2540,7 +3000,9 @@
       "netRtg": -5.69,
       "ortg": 105.7,
       "drtg": 111.4,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": 5.36,
+      "ncSosNetRtg": 3.93
     },
     "Long Beach St.": {
       "adjO": 105.5,
@@ -2551,7 +3013,9 @@
       "netRtg": -5.84,
       "ortg": 105.5,
       "drtg": 111.4,
-      "luck": -0.03
+      "luck": -0.03,
+      "sosNetRtg": 0.9,
+      "ncSosNetRtg": 4.5
     },
     "Southeast Missouri": {
       "adjO": 102.1,
@@ -2562,7 +3026,9 @@
       "netRtg": -5.88,
       "ortg": 102.1,
       "drtg": 108.0,
-      "luck": 0.031
+      "luck": 0.031,
+      "sosNetRtg": -8.09,
+      "ncSosNetRtg": 4.29
     },
     "Georgia Southern": {
       "adjO": 110.2,
@@ -2573,7 +3039,9 @@
       "netRtg": -5.96,
       "ortg": 110.2,
       "drtg": 116.2,
-      "luck": 0.057
+      "luck": 0.057,
+      "sosNetRtg": -5.71,
+      "ncSosNetRtg": -6.63
     },
     "Denver": {
       "adjO": 115.9,
@@ -2584,7 +3052,9 @@
       "netRtg": -6.17,
       "ortg": 115.9,
       "drtg": 122.1,
-      "luck": 0.007
+      "luck": 0.007,
+      "sosNetRtg": -1.86,
+      "ncSosNetRtg": 7.76
     },
     "Nicholls": {
       "adjO": 105.7,
@@ -2595,7 +3065,9 @@
       "netRtg": -6.23,
       "ortg": 105.7,
       "drtg": 112.0,
-      "luck": 0.044
+      "luck": 0.044,
+      "sosNetRtg": -0.12,
+      "ncSosNetRtg": 9.59
     },
     "Lamar": {
       "adjO": 103.1,
@@ -2606,7 +3078,9 @@
       "netRtg": -6.27,
       "ortg": 103.1,
       "drtg": 109.3,
-      "luck": -0.089
+      "luck": -0.089,
+      "sosNetRtg": -2.73,
+      "ncSosNetRtg": -0.71
     },
     "Eastern Michigan": {
       "adjO": 101.9,
@@ -2617,7 +3091,9 @@
       "netRtg": -6.37,
       "ortg": 101.9,
       "drtg": 108.3,
-      "luck": -0.096
+      "luck": -0.096,
+      "sosNetRtg": -0.51,
+      "ncSosNetRtg": 1.83
     },
     "Bethune Cookman": {
       "adjO": 103.6,
@@ -2628,7 +3104,9 @@
       "netRtg": -6.4,
       "ortg": 103.6,
       "drtg": 110.0,
-      "luck": 0.069
+      "luck": 0.069,
+      "sosNetRtg": -6.94,
+      "ncSosNetRtg": 13.8
     },
     "Charleston Southern": {
       "adjO": 105.7,
@@ -2639,7 +3117,9 @@
       "netRtg": -6.45,
       "ortg": 105.7,
       "drtg": 112.2,
-      "luck": -0.09
+      "luck": -0.09,
+      "sosNetRtg": -6.4,
+      "ncSosNetRtg": -5.54
     },
     "American": {
       "adjO": 105.5,
@@ -2650,7 +3130,9 @@
       "netRtg": -6.46,
       "ortg": 105.5,
       "drtg": 111.9,
-      "luck": -0.024
+      "luck": -0.024,
+      "sosNetRtg": -8.05,
+      "ncSosNetRtg": 0.76
     },
     "Vermont": {
       "adjO": 106.0,
@@ -2661,7 +3143,9 @@
       "netRtg": -6.51,
       "ortg": 106.0,
       "drtg": 112.5,
-      "luck": 0.008
+      "luck": 0.008,
+      "sosNetRtg": -11.02,
+      "ncSosNetRtg": -2.42
     },
     "Texas St.": {
       "adjO": 104.0,
@@ -2672,7 +3156,9 @@
       "netRtg": -6.56,
       "ortg": 104.0,
       "drtg": 110.6,
-      "luck": 0.084
+      "luck": 0.084,
+      "sosNetRtg": -6.77,
+      "ncSosNetRtg": -9.09
     },
     "Florida Gulf Coast": {
       "adjO": 105.5,
@@ -2683,7 +3169,9 @@
       "netRtg": -6.58,
       "ortg": 105.5,
       "drtg": 112.1,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": -5.84,
+      "ncSosNetRtg": 0.24
     },
     "Abilene Christian": {
       "adjO": 101.0,
@@ -2694,7 +3182,9 @@
       "netRtg": -6.62,
       "ortg": 101.0,
       "drtg": 107.6,
-      "luck": 0.029
+      "luck": 0.029,
+      "sosNetRtg": 0.13,
+      "ncSosNetRtg": 0.89
     },
     "UNC Asheville": {
       "adjO": 104.7,
@@ -2705,7 +3195,9 @@
       "netRtg": -6.73,
       "ortg": 104.7,
       "drtg": 111.4,
-      "luck": -0.016
+      "luck": -0.016,
+      "sosNetRtg": -3.73,
+      "ncSosNetRtg": 1.12
     },
     "Coastal Carolina": {
       "adjO": 101.8,
@@ -2716,7 +3208,9 @@
       "netRtg": -6.75,
       "ortg": 101.8,
       "drtg": 108.6,
-      "luck": 0.132
+      "luck": 0.132,
+      "sosNetRtg": -4.87,
+      "ncSosNetRtg": -2.06
     },
     "Old Dominion": {
       "adjO": 106.0,
@@ -2727,7 +3221,9 @@
       "netRtg": -6.9,
       "ortg": 106.0,
       "drtg": 112.9,
-      "luck": -0.073
+      "luck": -0.073,
+      "sosNetRtg": -2.96,
+      "ncSosNetRtg": 4.78
     },
     "Idaho St.": {
       "adjO": 109.4,
@@ -2738,7 +3234,9 @@
       "netRtg": -7.15,
       "ortg": 109.4,
       "drtg": 116.6,
-      "luck": -0.035
+      "luck": -0.035,
+      "sosNetRtg": -0.75,
+      "ncSosNetRtg": 3.33
     },
     "Colgate": {
       "adjO": 107.6,
@@ -2749,7 +3247,9 @@
       "netRtg": -7.21,
       "ortg": 107.6,
       "drtg": 114.8,
-      "luck": 0.044
+      "luck": 0.044,
+      "sosNetRtg": -7.14,
+      "ncSosNetRtg": 5.22
     },
     "Southern Utah": {
       "adjO": 106.5,
@@ -2760,7 +3260,9 @@
       "netRtg": -7.21,
       "ortg": 106.5,
       "drtg": 113.7,
-      "luck": -0.053
+      "luck": -0.053,
+      "sosNetRtg": 2.03,
+      "ncSosNetRtg": 5.71
     },
     "Princeton": {
       "adjO": 105.4,
@@ -2771,7 +3273,9 @@
       "netRtg": -7.25,
       "ortg": 105.4,
       "drtg": 112.6,
-      "luck": -0.077
+      "luck": -0.077,
+      "sosNetRtg": -1.05,
+      "ncSosNetRtg": -0.61
     },
     "Wofford": {
       "adjO": 109.1,
@@ -2782,7 +3286,9 @@
       "netRtg": -7.33,
       "ortg": 109.1,
       "drtg": 116.5,
-      "luck": 0.073
+      "luck": 0.073,
+      "sosNetRtg": -7.61,
+      "ncSosNetRtg": -4.42
     },
     "East Carolina": {
       "adjO": 103.6,
@@ -2793,7 +3299,9 @@
       "netRtg": -7.39,
       "ortg": 103.6,
       "drtg": 111.0,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": -0.49,
+      "ncSosNetRtg": -2.89
     },
     "Saint Peter's": {
       "adjO": 102.9,
@@ -2804,7 +3312,9 @@
       "netRtg": -7.54,
       "ortg": 102.9,
       "drtg": 110.5,
-      "luck": 0.066
+      "luck": 0.066,
+      "sosNetRtg": -8.07,
+      "ncSosNetRtg": -1.07
     },
     "SIUE": {
       "adjO": 99.4,
@@ -2815,7 +3325,9 @@
       "netRtg": -7.61,
       "ortg": 99.4,
       "drtg": 107.1,
-      "luck": -0.007
+      "luck": -0.007,
+      "sosNetRtg": -10.82,
+      "ncSosNetRtg": -7.82
     },
     "Radford": {
       "adjO": 106.2,
@@ -2826,7 +3338,9 @@
       "netRtg": -7.66,
       "ortg": 106.2,
       "drtg": 113.9,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": -7.14,
+      "ncSosNetRtg": -6.41
     },
     "Iona": {
       "adjO": 103.9,
@@ -2837,7 +3351,9 @@
       "netRtg": -7.75,
       "ortg": 103.9,
       "drtg": 111.7,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": -8.72,
+      "ncSosNetRtg": -3.15
     },
     "UC Riverside": {
       "adjO": 103.9,
@@ -2848,7 +3364,9 @@
       "netRtg": -7.8,
       "ortg": 103.9,
       "drtg": 111.7,
-      "luck": -0.048
+      "luck": -0.048,
+      "sosNetRtg": 1.42,
+      "ncSosNetRtg": 6.35
     },
     "Purdue Fort Wayne": {
       "adjO": 105.3,
@@ -2859,7 +3377,9 @@
       "netRtg": -7.84,
       "ortg": 105.3,
       "drtg": 113.1,
-      "luck": 0.118
+      "luck": 0.118,
+      "sosNetRtg": -1.8,
+      "ncSosNetRtg": 7.73
     },
     "Pepperdine": {
       "adjO": 105.3,
@@ -2870,7 +3390,9 @@
       "netRtg": -8.06,
       "ortg": 105.3,
       "drtg": 113.3,
-      "luck": -0.018
+      "luck": -0.018,
+      "sosNetRtg": 3.02,
+      "ncSosNetRtg": -2.27
     },
     "Fairfield": {
       "adjO": 105.8,
@@ -2881,7 +3403,9 @@
       "netRtg": -8.13,
       "ortg": 105.8,
       "drtg": 113.9,
-      "luck": 0.078
+      "luck": 0.078,
+      "sosNetRtg": -9.67,
+      "ncSosNetRtg": -8.74
     },
     "Boston University": {
       "adjO": 111.6,
@@ -2892,7 +3416,9 @@
       "netRtg": -8.2,
       "ortg": 111.6,
       "drtg": 119.8,
-      "luck": -0.022
+      "luck": -0.022,
+      "sosNetRtg": -8.73,
+      "ncSosNetRtg": -4.96
     },
     "Nebraska Omaha": {
       "adjO": 106.0,
@@ -2903,7 +3429,9 @@
       "netRtg": -8.2,
       "ortg": 106.0,
       "drtg": 114.2,
-      "luck": 0.033
+      "luck": 0.033,
+      "sosNetRtg": -3.0,
+      "ncSosNetRtg": 3.0
     },
     "Sacramento St.": {
       "adjO": 105.8,
@@ -2914,7 +3442,9 @@
       "netRtg": -8.36,
       "ortg": 105.8,
       "drtg": 114.2,
-      "luck": -0.022
+      "luck": -0.022,
+      "sosNetRtg": 1.37,
+      "ncSosNetRtg": 8.91
     },
     "Incarnate Word": {
       "adjO": 108.8,
@@ -2925,7 +3455,9 @@
       "netRtg": -8.49,
       "ortg": 108.8,
       "drtg": 117.3,
-      "luck": -0.028
+      "luck": -0.028,
+      "sosNetRtg": -1.5,
+      "ncSosNetRtg": 6.52
     },
     "Lindenwood": {
       "adjO": 100.4,
@@ -2936,7 +3468,9 @@
       "netRtg": -8.52,
       "ortg": 100.4,
       "drtg": 109.0,
-      "luck": 0.017
+      "luck": 0.017,
+      "sosNetRtg": -8.89,
+      "ncSosNetRtg": 2.01
     },
     "Milwaukee": {
       "adjO": 106.4,
@@ -2947,7 +3481,9 @@
       "netRtg": -8.88,
       "ortg": 106.4,
       "drtg": 115.3,
-      "luck": 0.013
+      "luck": 0.013,
+      "sosNetRtg": -1.68,
+      "ncSosNetRtg": 6.3
     },
     "Central Michigan": {
       "adjO": 105.9,
@@ -2958,7 +3494,9 @@
       "netRtg": -9.01,
       "ortg": 105.9,
       "drtg": 114.9,
-      "luck": -0.098
+      "luck": -0.098,
+      "sosNetRtg": -1.59,
+      "ncSosNetRtg": 1.44
     },
     "Presbyterian": {
       "adjO": 103.1,
@@ -2969,7 +3507,9 @@
       "netRtg": -9.05,
       "ortg": 103.1,
       "drtg": 112.2,
-      "luck": -0.02
+      "luck": -0.02,
+      "sosNetRtg": -4.92,
+      "ncSosNetRtg": -2.0
     },
     "Hampton": {
       "adjO": 102.5,
@@ -2980,7 +3520,9 @@
       "netRtg": -9.11,
       "ortg": 102.5,
       "drtg": 111.6,
-      "luck": -0.013
+      "luck": -0.013,
+      "sosNetRtg": -3.72,
+      "ncSosNetRtg": -7.47
     },
     "Longwood": {
       "adjO": 103.4,
@@ -2991,7 +3533,9 @@
       "netRtg": -9.12,
       "ortg": 103.4,
       "drtg": 112.5,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": -8.39,
+      "ncSosNetRtg": -10.63
     },
     "Western Michigan": {
       "adjO": 107.7,
@@ -3002,7 +3546,9 @@
       "netRtg": -9.17,
       "ortg": 107.7,
       "drtg": 116.9,
-      "luck": -0.036
+      "luck": -0.036,
+      "sosNetRtg": -1.24,
+      "ncSosNetRtg": -2.11
     },
     "UTEP": {
       "adjO": 100.9,
@@ -3013,7 +3559,9 @@
       "netRtg": -9.48,
       "ortg": 100.9,
       "drtg": 110.4,
-      "luck": 0.01
+      "luck": 0.01,
+      "sosNetRtg": -0.28,
+      "ncSosNetRtg": 3.52
     },
     "Dartmouth": {
       "adjO": 104.7,
@@ -3024,7 +3572,9 @@
       "netRtg": -9.5,
       "ortg": 104.7,
       "drtg": 114.2,
-      "luck": 0.0
+      "luck": 0.0,
+      "sosNetRtg": -2.41,
+      "ncSosNetRtg": -4.63
     },
     "Southern": {
       "adjO": 104.8,
@@ -3035,7 +3585,9 @@
       "netRtg": -9.53,
       "ortg": 104.8,
       "drtg": 114.3,
-      "luck": 0.06
+      "luck": 0.06,
+      "sosNetRtg": -6.14,
+      "ncSosNetRtg": 15.21
     },
     "Mount St. Mary's": {
       "adjO": 99.4,
@@ -3046,7 +3598,9 @@
       "netRtg": -9.62,
       "ortg": 99.4,
       "drtg": 109.0,
-      "luck": 0.028
+      "luck": 0.028,
+      "sosNetRtg": -7.26,
+      "ncSosNetRtg": 0.83
     },
     "Bellarmine": {
       "adjO": 116.5,
@@ -3057,7 +3611,9 @@
       "netRtg": -9.65,
       "ortg": 116.5,
       "drtg": 126.1,
-      "luck": -0.013
+      "luck": -0.013,
+      "sosNetRtg": -4.77,
+      "ncSosNetRtg": 2.31
     },
     "North Dakota": {
       "adjO": 106.7,
@@ -3068,7 +3624,9 @@
       "netRtg": -9.71,
       "ortg": 106.7,
       "drtg": 116.4,
-      "luck": 0.111
+      "luck": 0.111,
+      "sosNetRtg": -3.84,
+      "ncSosNetRtg": -0.51
     },
     "Prairie View A&M": {
       "adjO": 101.2,
@@ -3079,7 +3637,9 @@
       "netRtg": -9.88,
       "ortg": 101.2,
       "drtg": 111.0,
-      "luck": 0.016
+      "luck": 0.016,
+      "sosNetRtg": -9.5,
+      "ncSosNetRtg": 8.91
     },
     "Loyola Chicago": {
       "adjO": 103.4,
@@ -3090,7 +3650,9 @@
       "netRtg": -9.97,
       "ortg": 103.4,
       "drtg": 113.4,
-      "luck": 0.057
+      "luck": 0.057,
+      "sosNetRtg": 3.02,
+      "ncSosNetRtg": -4.68
     },
     "Northwestern St.": {
       "adjO": 102.2,
@@ -3101,7 +3663,9 @@
       "netRtg": -10.16,
       "ortg": 102.2,
       "drtg": 112.4,
-      "luck": -0.013
+      "luck": -0.013,
+      "sosNetRtg": -0.9,
+      "ncSosNetRtg": 7.83
     },
     "Morehead St.": {
       "adjO": 106.8,
@@ -3112,7 +3676,9 @@
       "netRtg": -10.38,
       "ortg": 106.8,
       "drtg": 117.2,
-      "luck": 0.16
+      "luck": 0.16,
+      "sosNetRtg": -7.06,
+      "ncSosNetRtg": 6.14
     },
     "South Dakota": {
       "adjO": 104.3,
@@ -3123,7 +3689,9 @@
       "netRtg": -10.4,
       "ortg": 104.3,
       "drtg": 114.7,
-      "luck": 0.056
+      "luck": 0.056,
+      "sosNetRtg": -5.86,
+      "ncSosNetRtg": -3.63
     },
     "Southeastern Louisiana": {
       "adjO": 99.7,
@@ -3134,7 +3702,9 @@
       "netRtg": -10.54,
       "ortg": 99.7,
       "drtg": 110.2,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": -0.87,
+      "ncSosNetRtg": 5.37
     },
     "Northeastern": {
       "adjO": 107.5,
@@ -3145,7 +3715,9 @@
       "netRtg": -10.55,
       "ortg": 107.5,
       "drtg": 118.0,
-      "luck": -0.061
+      "luck": -0.061,
+      "sosNetRtg": -1.74,
+      "ncSosNetRtg": -0.93
     },
     "Mercyhurst": {
       "adjO": 101.2,
@@ -3156,7 +3728,9 @@
       "netRtg": -10.63,
       "ortg": 101.2,
       "drtg": 111.8,
-      "luck": -0.013
+      "luck": -0.013,
+      "sosNetRtg": -10.79,
+      "ncSosNetRtg": 0.34
     },
     "East Texas A&M": {
       "adjO": 100.6,
@@ -3167,7 +3741,9 @@
       "netRtg": -10.8,
       "ortg": 100.6,
       "drtg": 111.5,
-      "luck": 0.001
+      "luck": 0.001,
+      "sosNetRtg": -0.81,
+      "ncSosNetRtg": 6.7
     },
     "North Carolina A&T": {
       "adjO": 105.2,
@@ -3178,7 +3754,9 @@
       "netRtg": -10.86,
       "ortg": 105.2,
       "drtg": 116.1,
-      "luck": -0.023
+      "luck": -0.023,
+      "sosNetRtg": -3.64,
+      "ncSosNetRtg": -8.8
     },
     "Brown": {
       "adjO": 97.9,
@@ -3189,7 +3767,9 @@
       "netRtg": -10.96,
       "ortg": 97.9,
       "drtg": 108.8,
-      "luck": -0.05
+      "luck": -0.05,
+      "sosNetRtg": -4.08,
+      "ncSosNetRtg": -8.83
     },
     "Houston Christian": {
       "adjO": 102.9,
@@ -3200,7 +3780,9 @@
       "netRtg": -11.11,
       "ortg": 102.9,
       "drtg": 114.0,
-      "luck": 0.034
+      "luck": 0.034,
+      "sosNetRtg": -2.43,
+      "ncSosNetRtg": -0.97
     },
     "Lehigh": {
       "adjO": 101.9,
@@ -3211,7 +3793,9 @@
       "netRtg": -11.14,
       "ortg": 101.9,
       "drtg": 113.0,
-      "luck": 0.077
+      "luck": 0.077,
+      "sosNetRtg": -8.79,
+      "ncSosNetRtg": -0.58
     },
     "Delaware": {
       "adjO": 104.4,
@@ -3222,7 +3806,9 @@
       "netRtg": -11.21,
       "ortg": 104.4,
       "drtg": 115.6,
-      "luck": 0.006
+      "luck": 0.006,
+      "sosNetRtg": -2.72,
+      "ncSosNetRtg": -6.96
     },
     "Ball St.": {
       "adjO": 98.5,
@@ -3233,7 +3819,9 @@
       "netRtg": -11.29,
       "ortg": 98.5,
       "drtg": 109.8,
-      "luck": -0.005
+      "luck": -0.005,
+      "sosNetRtg": -4.04,
+      "ncSosNetRtg": -6.47
     },
     "Jacksonville": {
       "adjO": 103.0,
@@ -3244,7 +3832,9 @@
       "netRtg": -11.44,
       "ortg": 103.0,
       "drtg": 114.5,
-      "luck": -0.03
+      "luck": -0.03,
+      "sosNetRtg": -4.04,
+      "ncSosNetRtg": 5.2
     },
     "Grambling St.": {
       "adjO": 96.9,
@@ -3255,7 +3845,9 @@
       "netRtg": -11.58,
       "ortg": 96.9,
       "drtg": 108.5,
-      "luck": -0.053
+      "luck": -0.053,
+      "sosNetRtg": -9.02,
+      "ncSosNetRtg": 2.16
     },
     "Sacred Heart": {
       "adjO": 107.1,
@@ -3266,7 +3858,9 @@
       "netRtg": -11.59,
       "ortg": 107.1,
       "drtg": 118.7,
-      "luck": 0.001
+      "luck": 0.001,
+      "sosNetRtg": -7.57,
+      "ncSosNetRtg": -2.08
     },
     "Eastern Kentucky": {
       "adjO": 109.1,
@@ -3277,7 +3871,9 @@
       "netRtg": -11.62,
       "ortg": 109.1,
       "drtg": 120.7,
-      "luck": -0.017
+      "luck": -0.017,
+      "sosNetRtg": -4.04,
+      "ncSosNetRtg": 3.09
     },
     "Le Moyne": {
       "adjO": 102.0,
@@ -3288,7 +3884,9 @@
       "netRtg": -11.81,
       "ortg": 102.0,
       "drtg": 113.8,
-      "luck": -0.018
+      "luck": -0.018,
+      "sosNetRtg": -10.62,
+      "ncSosNetRtg": -1.7
     },
     "UNC Greensboro": {
       "adjO": 107.6,
@@ -3299,7 +3897,9 @@
       "netRtg": -12.16,
       "ortg": 107.6,
       "drtg": 119.7,
-      "luck": 0.056
+      "luck": 0.056,
+      "sosNetRtg": -6.09,
+      "ncSosNetRtg": -0.8
     },
     "Chattanooga": {
       "adjO": 105.4,
@@ -3310,7 +3910,9 @@
       "netRtg": -12.22,
       "ortg": 105.4,
       "drtg": 117.6,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": -7.03,
+      "ncSosNetRtg": -2.57
     },
     "USC Upstate": {
       "adjO": 99.0,
@@ -3321,7 +3923,9 @@
       "netRtg": -12.37,
       "ortg": 99.0,
       "drtg": 111.3,
-      "luck": 0.025
+      "luck": 0.025,
+      "sosNetRtg": -5.52,
+      "ncSosNetRtg": -1.35
     },
     "Stetson": {
       "adjO": 105.2,
@@ -3332,7 +3936,9 @@
       "netRtg": -12.52,
       "ortg": 105.2,
       "drtg": 117.7,
-      "luck": 0.008
+      "luck": 0.008,
+      "sosNetRtg": -3.84,
+      "ncSosNetRtg": 4.76
     },
     "West Georgia": {
       "adjO": 101.5,
@@ -3343,7 +3949,9 @@
       "netRtg": -12.52,
       "ortg": 101.5,
       "drtg": 114.1,
-      "luck": 0.072
+      "luck": 0.072,
+      "sosNetRtg": -6.65,
+      "ncSosNetRtg": 0.28
     },
     "Alabama A&M": {
       "adjO": 104.1,
@@ -3354,7 +3962,9 @@
       "netRtg": -12.53,
       "ortg": 104.1,
       "drtg": 116.6,
-      "luck": 0.058
+      "luck": 0.058,
+      "sosNetRtg": -10.69,
+      "ncSosNetRtg": -2.04
     },
     "Wagner": {
       "adjO": 102.5,
@@ -3365,7 +3975,9 @@
       "netRtg": -12.68,
       "ortg": 102.5,
       "drtg": 115.2,
-      "luck": -0.001
+      "luck": -0.001,
+      "sosNetRtg": -9.01,
+      "ncSosNetRtg": 6.4
     },
     "Central Connecticut": {
       "adjO": 104.6,
@@ -3376,7 +3988,9 @@
       "netRtg": -12.72,
       "ortg": 104.6,
       "drtg": 117.3,
-      "luck": 0.116
+      "luck": 0.116,
+      "sosNetRtg": -11.12,
+      "ncSosNetRtg": -2.01
     },
     "Florida A&M": {
       "adjO": 98.0,
@@ -3387,7 +4001,9 @@
       "netRtg": -12.84,
       "ortg": 98.0,
       "drtg": 110.8,
-      "luck": 0.071
+      "luck": 0.071,
+      "sosNetRtg": -8.7,
+      "ncSosNetRtg": 7.91
     },
     "Georgia St.": {
       "adjO": 99.3,
@@ -3398,7 +4014,9 @@
       "netRtg": -12.87,
       "ortg": 99.3,
       "drtg": 112.2,
-      "luck": -0.04
+      "luck": -0.04,
+      "sosNetRtg": -3.92,
+      "ncSosNetRtg": -0.36
     },
     "Little Rock": {
       "adjO": 102.7,
@@ -3409,7 +4027,9 @@
       "netRtg": -12.99,
       "ortg": 102.7,
       "drtg": 115.7,
-      "luck": -0.033
+      "luck": -0.033,
+      "sosNetRtg": -6.48,
+      "ncSosNetRtg": 4.56
     },
     "Evansville": {
       "adjO": 101.8,
@@ -3420,7 +4040,9 @@
       "netRtg": -13.06,
       "ortg": 101.8,
       "drtg": 114.8,
-      "luck": -0.011
+      "luck": -0.011,
+      "sosNetRtg": 4.29,
+      "ncSosNetRtg": 3.65
     },
     "Oral Roberts": {
       "adjO": 101.9,
@@ -3431,7 +4053,9 @@
       "netRtg": -13.08,
       "ortg": 101.9,
       "drtg": 115.0,
-      "luck": -0.055
+      "luck": -0.055,
+      "sosNetRtg": -1.9,
+      "ncSosNetRtg": 5.49
     },
     "Arkansas Pine Bluff": {
       "adjO": 104.1,
@@ -3442,7 +4066,9 @@
       "netRtg": -13.13,
       "ortg": 104.1,
       "drtg": 117.2,
-      "luck": 0.025
+      "luck": 0.025,
+      "sosNetRtg": -5.37,
+      "ncSosNetRtg": 14.4
     },
     "Texas Southern": {
       "adjO": 101.8,
@@ -3453,7 +4079,9 @@
       "netRtg": -13.15,
       "ortg": 101.8,
       "drtg": 114.9,
-      "luck": -0.033
+      "luck": -0.033,
+      "sosNetRtg": -8.43,
+      "ncSosNetRtg": 12.36
     },
     "Louisiana": {
       "adjO": 100.1,
@@ -3464,7 +4092,9 @@
       "netRtg": -13.18,
       "ortg": 100.1,
       "drtg": 113.3,
-      "luck": 0.033
+      "luck": 0.033,
+      "sosNetRtg": -4.43,
+      "ncSosNetRtg": -1.88
     },
     "Tennessee Tech": {
       "adjO": 102.5,
@@ -3475,7 +4105,9 @@
       "netRtg": -13.35,
       "ortg": 102.5,
       "drtg": 115.8,
-      "luck": -0.028
+      "luck": -0.028,
+      "sosNetRtg": -7.63,
+      "ncSosNetRtg": 2.99
     },
     "IU Indy": {
       "adjO": 105.4,
@@ -3486,7 +4118,9 @@
       "netRtg": -13.9,
       "ortg": 105.4,
       "drtg": 119.3,
-      "luck": -0.033
+      "luck": -0.033,
+      "sosNetRtg": -3.47,
+      "ncSosNetRtg": -1.02
     },
     "Alabama St.": {
       "adjO": 99.3,
@@ -3497,7 +4131,9 @@
       "netRtg": -14.26,
       "ortg": 99.3,
       "drtg": 113.5,
-      "luck": -0.071
+      "luck": -0.071,
+      "sosNetRtg": -6.65,
+      "ncSosNetRtg": 8.19
     },
     "Northern Arizona": {
       "adjO": 105.0,
@@ -3508,7 +4144,9 @@
       "netRtg": -14.56,
       "ortg": 105.0,
       "drtg": 119.6,
-      "luck": 0.031
+      "luck": 0.031,
+      "sosNetRtg": -1.16,
+      "ncSosNetRtg": 0.05
     },
     "Cleveland St.": {
       "adjO": 109.4,
@@ -3519,7 +4157,9 @@
       "netRtg": -14.66,
       "ortg": 109.4,
       "drtg": 124.0,
-      "luck": 0.04
+      "luck": 0.04,
+      "sosNetRtg": -2.0,
+      "ncSosNetRtg": 4.18
     },
     "UMass Lowell": {
       "adjO": 102.5,
@@ -3530,7 +4170,9 @@
       "netRtg": -14.73,
       "ortg": 102.5,
       "drtg": 117.2,
-      "luck": 0.017
+      "luck": 0.017,
+      "sosNetRtg": -9.26,
+      "ncSosNetRtg": 1.96
     },
     "Eastern Illinois": {
       "adjO": 96.8,
@@ -3541,7 +4183,9 @@
       "netRtg": -14.89,
       "ortg": 96.8,
       "drtg": 111.7,
-      "luck": 0.037
+      "luck": 0.037,
+      "sosNetRtg": -6.16,
+      "ncSosNetRtg": 12.47
     },
     "Loyola MD": {
       "adjO": 104.1,
@@ -3552,7 +4196,9 @@
       "netRtg": -14.97,
       "ortg": 104.1,
       "drtg": 119.1,
-      "luck": -0.027
+      "luck": -0.027,
+      "sosNetRtg": -9.41,
+      "ncSosNetRtg": -6.8
     },
     "Albany": {
       "adjO": 103.2,
@@ -3563,7 +4209,9 @@
       "netRtg": -15.02,
       "ortg": 103.2,
       "drtg": 118.2,
-      "luck": -0.086
+      "luck": -0.086,
+      "sosNetRtg": -7.44,
+      "ncSosNetRtg": 4.18
     },
     "Norfolk St.": {
       "adjO": 101.4,
@@ -3574,7 +4222,9 @@
       "netRtg": -15.27,
       "ortg": 101.4,
       "drtg": 116.6,
-      "luck": -0.019
+      "luck": -0.019,
+      "sosNetRtg": -11.79,
+      "ncSosNetRtg": 0.48
     },
     "Lafayette": {
       "adjO": 100.6,
@@ -3585,7 +4235,9 @@
       "netRtg": -15.32,
       "ortg": 100.6,
       "drtg": 116.0,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -7.73,
+      "ncSosNetRtg": -0.61
     },
     "Cal St. Bakersfield": {
       "adjO": 101.8,
@@ -3596,7 +4248,9 @@
       "netRtg": -15.36,
       "ortg": 101.8,
       "drtg": 117.2,
-      "luck": 0.012
+      "luck": 0.012,
+      "sosNetRtg": 0.33,
+      "ncSosNetRtg": 0.65
     },
     "New Haven": {
       "adjO": 96.1,
@@ -3607,7 +4261,9 @@
       "netRtg": -16.09,
       "ortg": 96.1,
       "drtg": 112.2,
-      "luck": 0.041
+      "luck": 0.041,
+      "sosNetRtg": -9.46,
+      "ncSosNetRtg": 2.89
     },
     "Manhattan": {
       "adjO": 104.3,
@@ -3618,7 +4274,9 @@
       "netRtg": -16.48,
       "ortg": 104.3,
       "drtg": 120.8,
-      "luck": 0.053
+      "luck": 0.053,
+      "sosNetRtg": -8.21,
+      "ncSosNetRtg": -2.89
     },
     "Holy Cross": {
       "adjO": 100.7,
@@ -3629,7 +4287,9 @@
       "netRtg": -16.6,
       "ortg": 100.7,
       "drtg": 117.3,
-      "luck": -0.007
+      "luck": -0.007,
+      "sosNetRtg": -7.23,
+      "ncSosNetRtg": -0.09
     },
     "Bucknell": {
       "adjO": 98.0,
@@ -3640,7 +4300,9 @@
       "netRtg": -16.78,
       "ortg": 98.0,
       "drtg": 114.8,
-      "luck": 0.015
+      "luck": 0.015,
+      "sosNetRtg": -6.13,
+      "ncSosNetRtg": 2.05
     },
     "NJIT": {
       "adjO": 96.5,
@@ -3651,7 +4313,9 @@
       "netRtg": -16.92,
       "ortg": 96.5,
       "drtg": 113.4,
-      "luck": 0.115
+      "luck": 0.115,
+      "sosNetRtg": -9.31,
+      "ncSosNetRtg": 1.01
     },
     "Northern Illinois": {
       "adjO": 97.0,
@@ -3662,7 +4326,9 @@
       "netRtg": -17.22,
       "ortg": 97.0,
       "drtg": 114.2,
-      "luck": 0.014
+      "luck": 0.014,
+      "sosNetRtg": -1.06,
+      "ncSosNetRtg": 2.18
     },
     "Stonehill": {
       "adjO": 91.7,
@@ -3673,7 +4339,9 @@
       "netRtg": -17.34,
       "ortg": 91.7,
       "drtg": 109.0,
-      "luck": -0.007
+      "luck": -0.007,
+      "sosNetRtg": -10.37,
+      "ncSosNetRtg": -3.41
     },
     "North Florida": {
       "adjO": 107.0,
@@ -3684,7 +4352,9 @@
       "netRtg": -17.4,
       "ortg": 107.0,
       "drtg": 124.4,
-      "luck": -0.029
+      "luck": -0.029,
+      "sosNetRtg": -3.34,
+      "ncSosNetRtg": 8.12
     },
     "Fairleigh Dickinson": {
       "adjO": 100.8,
@@ -3695,7 +4365,9 @@
       "netRtg": -17.63,
       "ortg": 100.8,
       "drtg": 118.4,
-      "luck": -0.006
+      "luck": -0.006,
+      "sosNetRtg": -8.57,
+      "ncSosNetRtg": 5.28
     },
     "Niagara": {
       "adjO": 99.6,
@@ -3706,7 +4378,9 @@
       "netRtg": -18.48,
       "ortg": 99.6,
       "drtg": 118.1,
-      "luck": -0.038
+      "luck": -0.038,
+      "sosNetRtg": -8.23,
+      "ncSosNetRtg": -3.85
     },
     "Army": {
       "adjO": 100.0,
@@ -3717,7 +4391,9 @@
       "netRtg": -18.58,
       "ortg": 100.0,
       "drtg": 118.6,
-      "luck": 0.044
+      "luck": 0.044,
+      "sosNetRtg": -7.98,
+      "ncSosNetRtg": -2.04
     },
     "UTSA": {
       "adjO": 99.7,
@@ -3728,7 +4404,9 @@
       "netRtg": -18.6,
       "ortg": 99.7,
       "drtg": 118.3,
-      "luck": -0.001
+      "luck": -0.001,
+      "sosNetRtg": 1.47,
+      "ncSosNetRtg": 1.82
     },
     "Southern Indiana": {
       "adjO": 95.5,
@@ -3739,7 +4417,9 @@
       "netRtg": -18.66,
       "ortg": 95.5,
       "drtg": 114.1,
-      "luck": -0.105
+      "luck": -0.105,
+      "sosNetRtg": -8.3,
+      "ncSosNetRtg": -1.84
     },
     "Jackson St.": {
       "adjO": 100.1,
@@ -3750,7 +4430,9 @@
       "netRtg": -18.66,
       "ortg": 100.1,
       "drtg": 118.7,
-      "luck": 0.101
+      "luck": 0.101,
+      "sosNetRtg": -6.09,
+      "ncSosNetRtg": 13.62
     },
     "Canisius": {
       "adjO": 95.2,
@@ -3761,7 +4443,9 @@
       "netRtg": -19.21,
       "ortg": 95.2,
       "drtg": 114.4,
-      "luck": 0.019
+      "luck": 0.019,
+      "sosNetRtg": -7.87,
+      "ncSosNetRtg": -3.23
     },
     "North Alabama": {
       "adjO": 99.5,
@@ -3772,7 +4456,9 @@
       "netRtg": -19.23,
       "ortg": 99.5,
       "drtg": 118.7,
-      "luck": 0.057
+      "luck": 0.057,
+      "sosNetRtg": -4.74,
+      "ncSosNetRtg": 1.89
     },
     "Chicago St.": {
       "adjO": 99.4,
@@ -3783,7 +4469,9 @@
       "netRtg": -19.58,
       "ortg": 99.4,
       "drtg": 118.9,
-      "luck": -0.032
+      "luck": -0.032,
+      "sosNetRtg": -4.59,
+      "ncSosNetRtg": 10.64
     },
     "Air Force": {
       "adjO": 95.6,
@@ -3794,7 +4482,9 @@
       "netRtg": -19.87,
       "ortg": 95.6,
       "drtg": 115.5,
-      "luck": 0.0
+      "luck": 0.0,
+      "sosNetRtg": 5.17,
+      "ncSosNetRtg": -4.79
     },
     "Alcorn St.": {
       "adjO": 96.5,
@@ -3805,7 +4495,9 @@
       "netRtg": -19.95,
       "ortg": 96.5,
       "drtg": 116.4,
-      "luck": 0.039
+      "luck": 0.039,
+      "sosNetRtg": -4.95,
+      "ncSosNetRtg": 13.49
     },
     "The Citadel": {
       "adjO": 100.6,
@@ -3816,7 +4508,9 @@
       "netRtg": -20.24,
       "ortg": 100.6,
       "drtg": 120.9,
-      "luck": 0.028
+      "luck": 0.028,
+      "sosNetRtg": -5.64,
+      "ncSosNetRtg": -1.86
     },
     "Maine": {
       "adjO": 91.5,
@@ -3827,7 +4521,9 @@
       "netRtg": -20.38,
       "ortg": 91.5,
       "drtg": 111.9,
-      "luck": -0.031
+      "luck": -0.031,
+      "sosNetRtg": -9.25,
+      "ncSosNetRtg": -1.39
     },
     "Maryland Eastern Shore": {
       "adjO": 94.6,
@@ -3838,7 +4534,9 @@
       "netRtg": -20.77,
       "ortg": 94.6,
       "drtg": 115.4,
-      "luck": -0.052
+      "luck": -0.052,
+      "sosNetRtg": -9.19,
+      "ncSosNetRtg": 5.03
     },
     "New Hampshire": {
       "adjO": 95.1,
@@ -3849,7 +4547,9 @@
       "netRtg": -20.81,
       "ortg": 95.1,
       "drtg": 115.9,
-      "luck": -0.002
+      "luck": -0.002,
+      "sosNetRtg": -8.19,
+      "ncSosNetRtg": 5.17
     },
     "Louisiana Monroe": {
       "adjO": 101.2,
@@ -3860,7 +4560,9 @@
       "netRtg": -20.96,
       "ortg": 101.2,
       "drtg": 122.1,
-      "luck": -0.099
+      "luck": -0.099,
+      "sosNetRtg": -3.63,
+      "ncSosNetRtg": -1.33
     },
     "North Carolina Central": {
       "adjO": 100.0,
@@ -3871,7 +4573,9 @@
       "netRtg": -21.02,
       "ortg": 100.0,
       "drtg": 121.0,
-      "luck": 0.071
+      "luck": 0.071,
+      "sosNetRtg": -10.22,
+      "ncSosNetRtg": 9.4
     },
     "Morgan St.": {
       "adjO": 99.3,
@@ -3882,7 +4586,9 @@
       "netRtg": -21.68,
       "ortg": 99.3,
       "drtg": 121.0,
-      "luck": 0.103
+      "luck": 0.103,
+      "sosNetRtg": -12.69,
+      "ncSosNetRtg": -1.5
     },
     "Saint Francis": {
       "adjO": 99.5,
@@ -3893,7 +4599,9 @@
       "netRtg": -22.28,
       "ortg": 99.5,
       "drtg": 121.7,
-      "luck": -0.025
+      "luck": -0.025,
+      "sosNetRtg": -6.84,
+      "ncSosNetRtg": 7.27
     },
     "Bryant": {
       "adjO": 96.5,
@@ -3904,7 +4612,9 @@
       "netRtg": -23.1,
       "ortg": 96.5,
       "drtg": 119.6,
-      "luck": 0.009
+      "luck": 0.009,
+      "sosNetRtg": -8.05,
+      "ncSosNetRtg": 2.37
     },
     "South Carolina St.": {
       "adjO": 95.2,
@@ -3915,7 +4625,9 @@
       "netRtg": -23.45,
       "ortg": 95.2,
       "drtg": 118.6,
-      "luck": 0.033
+      "luck": 0.033,
+      "sosNetRtg": -8.8,
+      "ncSosNetRtg": 3.28
     },
     "Rider": {
       "adjO": 95.6,
@@ -3926,7 +4638,9 @@
       "netRtg": -24.45,
       "ortg": 95.6,
       "drtg": 120.1,
-      "luck": -0.024
+      "luck": -0.024,
+      "sosNetRtg": -5.03,
+      "ncSosNetRtg": 11.17
     },
     "Kansas City": {
       "adjO": 91.9,
@@ -3937,7 +4651,9 @@
       "netRtg": -25.29,
       "ortg": 91.9,
       "drtg": 117.2,
-      "luck": -0.017
+      "luck": -0.017,
+      "sosNetRtg": -1.81,
+      "ncSosNetRtg": 5.84
     },
     "Binghamton": {
       "adjO": 97.5,
@@ -3948,7 +4664,9 @@
       "netRtg": -25.59,
       "ortg": 97.5,
       "drtg": 123.1,
-      "luck": -0.019
+      "luck": -0.019,
+      "sosNetRtg": -12.39,
+      "ncSosNetRtg": -8.33
     },
     "VMI": {
       "adjO": 98.6,
@@ -3959,7 +4677,9 @@
       "netRtg": -26.24,
       "ortg": 98.6,
       "drtg": 124.8,
-      "luck": -0.011
+      "luck": -0.011,
+      "sosNetRtg": -5.69,
+      "ncSosNetRtg": -2.02
     },
     "Gardner Webb": {
       "adjO": 95.5,
@@ -3970,7 +4690,9 @@
       "netRtg": -26.39,
       "ortg": 95.5,
       "drtg": 121.9,
-      "luck": -0.001
+      "luck": -0.001,
+      "sosNetRtg": -1.24,
+      "ncSosNetRtg": 5.34
     },
     "Delaware St.": {
       "adjO": 87.1,
@@ -3981,7 +4703,9 @@
       "netRtg": -27.17,
       "ortg": 87.1,
       "drtg": 114.2,
-      "luck": -0.013
+      "luck": -0.013,
+      "sosNetRtg": -11.57,
+      "ncSosNetRtg": 1.93
     },
     "Coppin St.": {
       "adjO": 92.1,
@@ -3992,7 +4716,9 @@
       "netRtg": -27.45,
       "ortg": 92.1,
       "drtg": 119.5,
-      "luck": 0.037
+      "luck": 0.037,
+      "sosNetRtg": -7.45,
+      "ncSosNetRtg": 3.56
     },
     "Western Illinois": {
       "adjO": 92.8,
@@ -4003,7 +4729,9 @@
       "netRtg": -28.51,
       "ortg": 92.8,
       "drtg": 121.3,
-      "luck": -0.052
+      "luck": -0.052,
+      "sosNetRtg": -7.74,
+      "ncSosNetRtg": -1.78
     },
     "Mississippi Valley St.": {
       "adjO": 90.4,
@@ -4014,7 +4742,9 @@
       "netRtg": -31.16,
       "ortg": 90.4,
       "drtg": 121.6,
-      "luck": -0.026
+      "luck": -0.026,
+      "sosNetRtg": -6.98,
+      "ncSosNetRtg": 5.64
     }
   },
   "trank": {

@@ -26,6 +26,8 @@ const KP_INFO_LABELS = [
   { key: "defRating", label: "Def Rating", format: "fixed1" },
   { key: "adjTempo", label: "Adj Tempo", format: "fixed1" },
   { key: "luck", label: "Luck", format: "signed3" },
+  { key: "sosNetRating", label: "SOS Net", format: "signed1" },
+  { key: "ncSosNetRating", label: "NC SOS", format: "signed1" },
 ] as const;
 
 const TEAM_ALIASES: Record<string, string> = {
@@ -85,6 +87,24 @@ const buildKenPomTeamInfo = (teamName: string | null, team: TeamRatings | undefi
     defRating : toFiniteNumber(team.drtg ?? team.adjD),
     adjTempo  : toFiniteNumber(team.adjT),
     luck      : toFiniteNumber(team.luck),
+    sosNetRating: toFiniteNumber(team.sosNetRtg),
+    ncSosNetRating: toFiniteNumber(team.ncSosNetRtg),
+  };
+};
+
+const buildMatchupSos = (away: TeamRatings | undefined, home: TeamRatings | undefined) => {
+  const awaySos = toFiniteNumber(away?.sosNetRtg);
+  const homeSos = toFiniteNumber(home?.sosNetRtg);
+  if (awaySos === null || homeSos === null) {
+    return null;
+  }
+  const sosDiff = +(awaySos - homeSos).toFixed(2);
+  return {
+    awaySos,
+    homeSos,
+    sosDiff,
+    absSosDiff: +Math.abs(sosDiff).toFixed(2),
+    avgSos: +((awaySos + homeSos) / 2).toFixed(2),
   };
 };
 
@@ -110,6 +130,8 @@ const handleMatchup = async (request: Request): Promise<Response> => {
   const resolvedBKp = resolveTeamName(teamBInput, kenpomLookup);
   const resolvedATr = resolveTeamName(teamAInput, trankLookup);
   const resolvedBTr = resolveTeamName(teamBInput, trankLookup);
+  const kpAwayTeam = resolvedAKp ? teamModels.kenpom[resolvedAKp] : undefined;
+  const kpHomeTeam = resolvedBKp ? teamModels.kenpom[resolvedBKp] : undefined;
 
   const notes: string[] = [];
   let kenpomProj  = null;
@@ -140,9 +162,10 @@ const handleMatchup = async (request: Request): Promise<Response> => {
     trank       : trankProj,
     consensus   : consensusProj,
     kenpomTeamInfo: {
-      teamA: buildKenPomTeamInfo(resolvedAKp, resolvedAKp ? teamModels.kenpom[resolvedAKp] : undefined),
-      teamB: buildKenPomTeamInfo(resolvedBKp, resolvedBKp ? teamModels.kenpom[resolvedBKp] : undefined),
+      teamA: buildKenPomTeamInfo(resolvedAKp, kpAwayTeam),
+      teamB: buildKenPomTeamInfo(resolvedBKp, kpHomeTeam),
     },
+    matchupSos: buildMatchupSos(kpAwayTeam, kpHomeTeam),
     notes,
   };
 
@@ -246,6 +269,8 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .stat-box .s-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
 .stat-box .s-value{font-size:1.15rem;font-weight:700}
 .confidence-row{display:flex;align-items:center;gap:.75rem;margin-top:1rem;flex-wrap:wrap}
+.sos-summary{margin-top:.9rem;padding:.8rem .95rem;border-radius:10px;background:var(--card2);border:1px solid var(--border);font-size:.86rem;color:var(--text)}
+.sos-summary .label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.25rem}
 .badge{display:inline-block;padding:.28rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .badge.toss-up{background:rgba(123,146,175,.15);color:#7b92af;border:1px solid rgba(123,146,175,.3)}
 .badge.lean{background:var(--amber-d);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
@@ -393,6 +418,10 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
       <div class="confidence-row">
         <span id="confidence-badge" class="badge toss-up">Toss-up</span>
         <span id="lean-badge" class="badge pass">Model Lean: —</span>
+      </div>
+      <div class="sos-summary" id="summary-sos">
+        <div class="label">Strength of Schedule</div>
+        <div id="summary-sos-text">SOS comparison unavailable.</div>
       </div>
     </section>
 
@@ -660,6 +689,18 @@ function formatKenPomValue(value, format) {
   if (format === 'signed1') return (num >= 0 ? '+' : '') + num.toFixed(1);
   return num.toFixed(1);
 }
+function formatSosSummary(matchupSos, teamA, teamB) {
+  if (!matchupSos) return 'SOS comparison unavailable.';
+  var diff = matchupSos.sosDiff;
+  var leader = Math.abs(diff) < 0.05 ? 'Even schedules'
+    : diff > 0 ? teamA + ' faced the harder schedule'
+    : teamB + ' faced the harder schedule';
+  return leader
+    + ' \u2022 Away SOS ' + formatKenPomValue(matchupSos.awaySos, 'signed1')
+    + ' \u2022 Home SOS ' + formatKenPomValue(matchupSos.homeSos, 'signed1')
+    + ' \u2022 Diff ' + formatKenPomValue(diff, 'signed1')
+    + ' \u2022 Avg ' + formatKenPomValue(matchupSos.avgSos, 'signed1');
+}
 function renderKenPomTeamPanel(info) {
   if (!info) {
     return '<div class="kenpom-team-panel"><div class="kenpom-team-name">\u2014</div><div style="color:var(--muted);font-size:.84rem">KenPom details unavailable.</div></div>';
@@ -799,6 +840,7 @@ function renderSummary(sim, fs, ft) {
   document.getElementById('stat-margin').textContent = fmtMargin(sim.median, tA, tB);
   document.getElementById('stat-total').textContent  = ft.toFixed(1);
   document.getElementById('stat-model-spread').textContent = fmtMargin(fs, tA, tB);
+  document.getElementById('summary-sos-text').textContent = formatSosSummary(appData.matchupSos, tA, tB);
   var c = confLabel(sim.pA);
   document.getElementById('stat-confidence').textContent = c.text;
   setBadge('confidence-badge', c.text, c.cls);

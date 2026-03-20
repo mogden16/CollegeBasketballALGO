@@ -8,6 +8,8 @@ export type TeamRatings = {
   ortg?: number | null;
   drtg?: number | null;
   luck?: number | null;
+  sosNetRtg?: number | null;
+  ncSosNetRtg?: number | null;
 };
 
 export type KenPomTeamInfo = {
@@ -18,6 +20,16 @@ export type KenPomTeamInfo = {
   defRating: number | null;
   adjTempo: number | null;
   luck: number | null;
+  sosNetRating: number | null;
+  ncSosNetRating: number | null;
+};
+
+export type MatchupSosInfo = {
+  awaySos: number | null;
+  homeSos: number | null;
+  sosDiff: number | null;
+  absSosDiff: number | null;
+  avgSos: number | null;
 };
 
 /** Projection from a single source model (KenPom or T-Rank). */
@@ -48,6 +60,7 @@ export type MatchupResult = {
     teamA: KenPomTeamInfo | null;
     teamB: KenPomTeamInfo | null;
   };
+  matchupSos: MatchupSosInfo | null;
   notes: string[];
 };
 

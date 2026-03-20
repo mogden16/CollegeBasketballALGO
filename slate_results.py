@@ -427,6 +427,26 @@ def _send_discord_report(text: str) -> None:
         print(f"  Discord: failed to send report -- {exc}")
 
 
+def _send_discord_table(text: str, label: str) -> None:
+    """Post a pre-formatted game table to Discord, chunking if needed."""
+    if not DISCORD_WEBHOOK_URL:
+        return
+    # Discord embed description cap is 4096 chars; leave room for ``` wrapper (8 chars)
+    CHUNK = 3800
+    chunks = [text[i:i + CHUNK] for i in range(0, len(text), CHUNK)]
+    total  = len(chunks)
+    for idx, chunk in enumerate(chunks):
+        title = f"📋 {label}" if total == 1 else f"📋 {label}  ({idx + 1}/{total})"
+        payload = {"embeds": [{"title": title, "description": f"```\n{chunk}\n```", "color": 0x2ECC71}]}
+        try:
+            resp = requests.post(DISCORD_WEBHOOK_URL, json=payload,
+                                 headers={"Content-Type": "application/json"}, timeout=10)
+            status = "posted" if resp.status_code == 204 else f"status {resp.status_code}"
+            print(f"  Discord table: {status}")
+        except Exception as exc:
+            print(f"  Discord table: failed — {exc}")
+
+
 def performance_report():
     """Print model accuracy summary from results_log.csv and send to Discord."""
     if not Path(RESULTS_LOG).exists():
@@ -686,11 +706,12 @@ def print_game_table(rows: list[dict], label: str = "") -> None:
         f"{'Score':>{W_SCORE}} {'Err':>{W_ERR}} {'ATS':>{W_ATS}} {'O/U':>{W_OU}}"
     )
 
+    lines = []
     if label:
-        print(f"\n{'═' * sep_width}")
-        print(f"  {label}")
-    print(f"\n{hdr}")
-    print("─" * sep_width)
+        lines.append(f"\n{'═' * sep_width}")
+        lines.append(f"  {label}")
+    lines.append(f"\n{hdr}")
+    lines.append("─" * sep_width)
 
     prev_date = None
     for r in sorted(rows, key=lambda x: (x.get("date", ""), x.get("home_team", ""))):
@@ -700,7 +721,7 @@ def print_game_table(rows: list[dict], label: str = "") -> None:
 
         # Blank line between dates for readability
         if prev_date and date != prev_date:
-            print()
+            lines.append("")
         prev_date = date
 
         # ── Edge flag ──
@@ -793,25 +814,31 @@ def print_game_table(rows: list[dict], label: str = "") -> None:
         else:
             ou_str = " –"
 
-        print(
+        lines.append(
             f"{date:<{W_DATE}} {matchup:<{W_MATCHUP}} "
             f"{kp_str:>{W_KP}} {bt_str:>{W_BT}} {vegas_str:>{W_VEGAS}} "
             f"{score_str:>{W_SCORE}} {err_str:>{W_ERR}} {ats_str:>{W_ATS}} {ou_str:>{W_OU}}"
         )
 
-    print("─" * sep_width)
-    print(f"  ⚡ = edge game (|KP vs Vegas| ≥ {EDGE_THRESHOLD:.0f} pts)   "
-          f"⚡⚡ = HIGH confidence")
-    print(f"  Spreads from home's perspective (– = home favored)   "
-          f"ATS: W/L = KP picked correct side vs Vegas")
-    print(f"  O/U: ✓ = KP predicted direction correctly, ✗ = wrong\n")
+    lines.append("─" * sep_width)
+    lines.append(f"  ⚡ = edge game (|KP vs Vegas| ≥ {EDGE_THRESHOLD:.0f} pts)   "
+                 f"⚡⚡ = HIGH confidence")
+    lines.append(f"  Spreads from home's perspective (– = home favored)   "
+                 f"ATS: W/L = KP picked correct side vs Vegas")
+    lines.append(f"  O/U: ✓ = KP predicted direction correctly, ✗ = wrong")
+
+    output = "\n".join(lines)
+    print(output)
+    return output
 
 
-def table_report(date_str: str | None = None, all_dates: bool = False) -> None:
+def table_report(date_str: str | None = None, all_dates: bool = False,
+                 send_discord: bool = False) -> None:
     """
     Load results and print the game table.
-      date_str  : show only this date (YYYY-MM-DD). Defaults to yesterday.
-      all_dates : if True, ignore date_str and show full history.
+      date_str     : show only this date (YYYY-MM-DD). Defaults to yesterday.
+      all_dates    : if True, ignore date_str and show full history.
+      send_discord : if True, also post the table to Discord.
     """
     if not Path(RESULTS_LOG).exists():
         print("No results log found. Run the pipeline first.")
@@ -833,7 +860,9 @@ def table_report(date_str: str | None = None, all_dates: bool = False) -> None:
             print(f"No results found for {target}.")
             return
 
-    print_game_table(rows, label)
+    text = print_game_table(rows, label)
+    if send_discord and text:
+        _send_discord_table(text, label)
 
 
 # ══════════════════════════════════════════════════════
@@ -854,6 +883,9 @@ def run_results_pipeline():
 
     # Step 2: Performance report + Discord
     performance_report()
+
+    # Step 3: Game table for yesterday — printed and posted to Discord
+    table_report(send_discord=True)
 
 
 # ══════════════════════════════════════════════════════

@@ -427,24 +427,191 @@ def _send_discord_report(text: str) -> None:
         print(f"  Discord: failed to send report -- {exc}")
 
 
-def _send_discord_table(text: str, label: str) -> None:
-    """Post a pre-formatted game table to Discord, chunking if needed."""
+DISCORD_EMBED_FIELD_LIMIT = 25
+DISCORD_EMBED_LIMIT = 10
+DISCORD_FIELD_VALUE_LIMIT = 1024
+DISCORD_EMBED_TEXT_LIMIT = 6000
+DISCORD_EMBED_COLOR = 0x2ECC71
+
+
+def _safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _clean_team_name(name: str) -> str:
+    clean = " ".join((name or "").split())
+    return clean or "N/A"
+
+
+def _format_signed_number(value, decimals: int = 1) -> str:
+    if value is None:
+        return "N/A"
+    return f"{value:+.{decimals}f}"
+
+
+def _format_number(value, decimals: int = 1) -> str:
+    if value is None:
+        return "N/A"
+    return f"{value:.{decimals}f}"
+
+
+def _format_score_value(value) -> str:
+    if value is None:
+        return "N/A"
+    if float(value).is_integer():
+        return str(int(value))
+    return f"{value:.1f}"
+
+
+def _format_game_embed_field(row: dict) -> dict:
+    """Format one game's results into a Discord embed field."""
+    away = _clean_team_name(row.get("away_team", ""))
+    home = _clean_team_name(row.get("home_team", ""))
+
+    vegas_spread = _safe_float(row.get("vegas_spread"))
+    vegas_total = _safe_float(row.get("vegas_total"))
+    kp_spread = _safe_float(row.get("kp_spread"))
+    actual_home = _safe_float(row.get("actual_home_score"))
+    actual_away = _safe_float(row.get("actual_away_score"))
+    spread_error = _safe_float(row.get("spread_error"))
+    actual_spread = _safe_float(row.get("actual_spread"))
+    kp_total = _safe_float(row.get("kp_total"))
+    actual_total = _safe_float(row.get("actual_total"))
+
+    if actual_away is not None and actual_home is not None:
+        winner_side = "H" if actual_home > actual_away else "A"
+        final_line = f"F: {_format_score_value(actual_away)}-{_format_score_value(actual_home)} {winner_side}"
+    else:
+        final_line = "F: N/A"
+
+    if kp_spread is not None and vegas_spread is not None and actual_spread is not None and kp_spread != vegas_spread:
+        ats_result = "W" if (kp_spread < vegas_spread) == (actual_spread < vegas_spread) else "L"
+    else:
+        ats_result = "N/A"
+
+    if kp_total is not None and vegas_total is not None and actual_total is not None:
+        went_over = actual_total > vegas_total
+        kp_said_over = kp_total > vegas_total
+        ou_result = "O" if went_over else "U"
+        ou_result += "✓" if went_over == kp_said_over else "✗"
+    else:
+        ou_result = "N/A"
+
+    value = "\n".join([
+        f"V: {_format_signed_number(vegas_spread)} / {_format_number(vegas_total)}",
+        final_line,
+        f"E: {_format_signed_number(spread_error)} | ATS: {ats_result} | OU: {ou_result} | KP: {_format_signed_number(kp_spread)}",
+    ])
+
+    if len(value) > DISCORD_FIELD_VALUE_LIMIT:
+        value = value[:DISCORD_FIELD_VALUE_LIMIT - 1] + "…"
+
+    return {
+        "name": f"{away} @ {home}",
+        "value": value,
+        "inline": False,
+    }
+
+
+def _build_results_summary_content(rows: list[dict], result_date: str) -> str:
+    """Build the short summary line that appears above the full-card embeds."""
+    ats_wins = ats_losses = ou_over = ou_under = 0
+
+    for row in rows:
+        kp_spread = _safe_float(row.get("kp_spread"))
+        vegas_spread = _safe_float(row.get("vegas_spread"))
+        actual_spread = _safe_float(row.get("actual_spread"))
+        if kp_spread is not None and vegas_spread is not None and actual_spread is not None and kp_spread != vegas_spread:
+            if (kp_spread < vegas_spread) == (actual_spread < vegas_spread):
+                ats_wins += 1
+            else:
+                ats_losses += 1
+
+        vegas_total = _safe_float(row.get("vegas_total"))
+        actual_total = _safe_float(row.get("actual_total"))
+        if vegas_total is not None and actual_total is not None:
+            if actual_total > vegas_total:
+                ou_over += 1
+            else:
+                ou_under += 1
+
+    return f"Results {result_date}: {ats_wins}-{ats_losses} ATS, {ou_over}-{ou_under} O/U. Full card below."
+
+
+def _build_results_webhook_payloads(rows: list[dict], result_date: str) -> list[dict]:
+    """Build webhook payloads while respecting Discord field, embed, and message limits."""
+    fields = [_format_game_embed_field(row) for row in rows]
+    payloads = []
+    title = f"Results • {result_date}"
+    summary_content = _build_results_summary_content(rows, result_date)
+    index = 0
+
+    # Discord limits each embed to 25 fields, each message to 10 embeds,
+    # and the combined embed text in one message to 6000 characters.
+    while index < len(fields):
+        embeds = []
+        message_text_size = 0
+        while index < len(fields) and len(embeds) < DISCORD_EMBED_LIMIT:
+            embed_fields = []
+            embed_text_size = len(title)
+            while index < len(fields) and len(embed_fields) < DISCORD_EMBED_FIELD_LIMIT:
+                field = fields[index]
+                projected_size = embed_text_size + len(field["name"]) + len(field["value"])
+                if embed_fields and message_text_size + projected_size > DISCORD_EMBED_TEXT_LIMIT:
+                    break
+                embed_fields.append(field)
+                embed_text_size = projected_size
+                index += 1
+
+            if not embed_fields:
+                field = fields[index]
+                embed_fields = [field]
+                embed_text_size = len(title) + len(field["name"]) + len(field["value"])
+                index += 1
+
+            embeds.append({
+                "title": title,
+                "color": DISCORD_EMBED_COLOR,
+                "fields": embed_fields,
+            })
+            message_text_size += embed_text_size
+
+            if message_text_size >= DISCORD_EMBED_TEXT_LIMIT:
+                break
+
+        payloads.append({
+            "content": summary_content if not payloads else None,
+            "embeds": embeds,
+        })
+
+    return payloads
+
+
+def _send_discord_table(rows: list[dict], label: str) -> None:
+    """Post results to Discord as embeds; keep the plain-text table for local logs only."""
     if not DISCORD_WEBHOOK_URL:
         return
-    # Discord embed description cap is 4096 chars; leave room for ``` wrapper (8 chars)
-    CHUNK = 3800
-    chunks = [text[i:i + CHUNK] for i in range(0, len(text), CHUNK)]
-    total  = len(chunks)
-    for idx, chunk in enumerate(chunks):
-        title = f"📋 {label}" if total == 1 else f"📋 {label}  ({idx + 1}/{total})"
-        payload = {"embeds": [{"title": title, "description": f"```\n{chunk}\n```", "color": 0x2ECC71}]}
+
+    result_date = label.replace("RESULTS — ", "") if label.startswith("RESULTS — ") else label
+    payloads = _build_results_webhook_payloads(rows, result_date)
+
+    for idx, payload in enumerate(payloads, start=1):
         try:
-            resp = requests.post(DISCORD_WEBHOOK_URL, json=payload,
-                                 headers={"Content-Type": "application/json"}, timeout=10)
+            resp = requests.post(
+                DISCORD_WEBHOOK_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
             status = "posted" if resp.status_code == 204 else f"status {resp.status_code}"
-            print(f"  Discord table: {status}")
+            print(f"  Discord results payload {idx}/{len(payloads)}: {status}")
+            if resp.status_code != 204:
+                print(f"  Discord response: {resp.text}")
         except Exception as exc:
-            print(f"  Discord table: failed — {exc}")
+            print(f"  Discord results payload {idx}/{len(payloads)} failed — {exc}")
 
 
 def performance_report():
@@ -862,7 +1029,7 @@ def table_report(date_str: str | None = None, all_dates: bool = False,
 
     text = print_game_table(rows, label)
     if send_discord and text:
-        _send_discord_table(text, label)
+        _send_discord_table(rows, label)
 
 
 # ══════════════════════════════════════════════════════

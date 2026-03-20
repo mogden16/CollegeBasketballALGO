@@ -175,6 +175,8 @@ class Team:
     adj_o: float
     adj_d: float
     adj_t: float
+    sos_netrtg: float | None = None
+    ncsos_netrtg: float | None = None
 
 @dataclass
 class Matchup:
@@ -210,28 +212,105 @@ def parse_kenpom(filepath: str) -> dict[str, Team]:
     Paste the KenPom table directly into kenpom_raw.txt, no editing needed.
     """
     teams = {}
-    with open(filepath, "r") as f:
-        for line in f:
-            line = line.strip()
+
+    def _to_float(value: str) -> float | None:
+        cleaned = (value or "").strip()
+        if not cleaned:
+            return None
+        try:
+            return float(cleaned)
+        except ValueError:
+            return None
+
+    def _clean_team_fragment(raw_team: str) -> str:
+        # KenPom's pasted text often appends a seed or annotation immediately
+        # before the W-L token (e.g. "Duke 1"). Remove trailing numeric-only
+        # tokens but preserve legitimate punctuation/spaces inside team names.
+        cleaned = re.sub(r"\s+", " ", raw_team.strip())
+        cleaned = re.sub(r"\s+\d+$", "", cleaned)
+        cleaned = re.sub(r"^\d+\s*", "", cleaned)
+        return cleaned.strip()
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
             if not line:
                 continue
-            parts = line.split("\t")
-            # Skip header rows
-            if not parts[0].strip().isdigit():
+
+            parts = [part.strip() for part in line.split("\t") if part.strip()]
+            if not parts or not parts[0].isdigit():
                 continue
-            if len(parts) < 10:
+
+            record_idx = next((i for i, token in enumerate(parts) if re.fullmatch(r"\d{1,2}-\d{1,2}", token)), None)
+            if record_idx is None or record_idx < 2:
                 continue
-            try:
-                # KenPom copy-pastes can include numeric annotations next to team names.
-                # Strip leading/trailing ranking numbers before matching.
-                name  = re.sub(r"\s+", " ", re.sub(r"\s*\d+$", "", re.sub(r"^\d+\s*", "", parts[1].strip()))).strip()
-                adj_o = float(parts[5].strip())
-                adj_d = float(parts[7].strip())
-                adj_t = float(parts[9].strip())
-                teams[name] = Team(name=name, adj_o=adj_o, adj_d=adj_d, adj_t=adj_t)
-            except (ValueError, IndexError):
+
+            team_name = _clean_team_fragment(parts[1])
+            metric_tokens = parts[record_idx + 1:]
+            if len(metric_tokens) < 16:
                 continue
+
+            # After the W-L anchor, the pasted KenPom layout contains:
+            # NetRtg, AdjO, AdjO_rk, AdjD, AdjD_rk, AdjT, AdjT_rk, Luck,
+            # Luck_rk, SOS NetRtg, SOS_rk, SOS ORtg, SOS ORtg_rk,
+            # SOS DRtg, SOS DRtg_rk, NCSOS NetRtg, NCSOS_rk.
+            adj_o = _to_float(metric_tokens[1])
+            adj_d = _to_float(metric_tokens[3])
+            adj_t = _to_float(metric_tokens[5])
+            sos_netrtg = _to_float(metric_tokens[9])
+            ncsos_netrtg = _to_float(metric_tokens[15])
+
+            if team_name and adj_o is not None and adj_d is not None and adj_t is not None:
+                teams[team_name] = Team(
+                    name=team_name,
+                    adj_o=adj_o,
+                    adj_d=adj_d,
+                    adj_t=adj_t,
+                    sos_netrtg=sos_netrtg,
+                    ncsos_netrtg=ncsos_netrtg,
+                )
     return teams
+
+
+def build_kenpom_sos_lookup(teams: dict[str, Team]) -> dict[str, dict[str, float | str | None]]:
+    """Build a normalized team-keyed SOS lookup from parsed KenPom teams."""
+    lookup = {}
+    for team in teams.values():
+        lookup[normalize_team_name(team.name)] = {
+            "team": team.name,
+            "sos_netrtg": team.sos_netrtg,
+            "ncsos_netrtg": team.ncsos_netrtg,
+        }
+    return lookup
+
+
+def get_matchup_sos_features(home: Team | None, away: Team | None) -> dict[str, float | None]:
+    """Build SOS features for a matchup, safely handling missing values."""
+    home_sos = home.sos_netrtg if home else None
+    away_sos = away.sos_netrtg if away else None
+    if home_sos is None or away_sos is None:
+        return {
+            "home_sos": home_sos,
+            "away_sos": away_sos,
+            "sos_diff": None,
+            "abs_sos_diff": None,
+            "avg_sos": None,
+        }
+    sos_diff = round(away_sos - home_sos, 2)
+    return {
+        "home_sos": home_sos,
+        "away_sos": away_sos,
+        "sos_diff": sos_diff,
+        "abs_sos_diff": round(abs(sos_diff), 2),
+        "avg_sos": round((away_sos + home_sos) / 2, 2),
+    }
+
+
+def optional_sos_adjusted_margin(base_margin: float, sos_diff: float | None, alpha: float = 0.0) -> float:
+    """Optional future hook for experiments; disabled by default with alpha=0."""
+    if sos_diff is None:
+        return round(base_margin, 1)
+    return round(base_margin + alpha * sos_diff, 1)
 
 # ══════════════════════════════════════════════════════
 # STEP 1b: LOAD BARTTORVIK T-RANK
@@ -679,6 +758,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt", run_date: str | None = None):
             "is_total_edge": is_total_edge,
             "confidence": confidence,
         }
+        entry.update(get_matchup_sos_features(kp_home, kp_away))
 
         entries.append(entry)
 
@@ -766,6 +846,7 @@ PREDICTIONS_HEADERS = [
     "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
     "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
     "vegas_spread", "vegas_total",
+    "away_sos", "home_sos", "sos_diff", "abs_sos_diff", "avg_sos",
     "kp_spread_edge", "kp_total_edge", "bt_spread_edge", "bt_total_edge",
     "is_edge", "confidence"
 ]
@@ -799,6 +880,11 @@ def log_predictions(entries: list[dict]):
                 "bt_spread":        bt["spread"]     if bt else "",
                 "vegas_spread":     e["vegas_spread"] if e["vegas_spread"] is not None else "",
                 "vegas_total":      e["vegas_total"]  if e["vegas_total"]  is not None else "",
+                "away_sos":         e["away_sos"] if e["away_sos"] is not None else "",
+                "home_sos":         e["home_sos"] if e["home_sos"] is not None else "",
+                "sos_diff":         e["sos_diff"] if e["sos_diff"] is not None else "",
+                "abs_sos_diff":     e["abs_sos_diff"] if e["abs_sos_diff"] is not None else "",
+                "avg_sos":          e["avg_sos"] if e["avg_sos"] is not None else "",
                 "kp_spread_edge":   e["spread_edge"]    if e["spread_edge"]    is not None else "",
                 "kp_total_edge":    e["total_edge"]     if e["total_edge"]     is not None else "",
                 "bt_spread_edge":   e["bt_spread_edge"] if e["bt_spread_edge"] is not None else "",

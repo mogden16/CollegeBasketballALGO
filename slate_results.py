@@ -17,7 +17,9 @@ from thefuzz import process
 from kenpom_predictor import (
     PREDICTIONS_LOG, PREDICTIONS_HEADERS, RESULTS_LOG, FUZZY_THRESHOLD,
     DISCORD_WEBHOOK_URL, fetch_scores_for_date, EDGE_THRESHOLD,
+    parse_kenpom, build_kenpom_sos_lookup,
 )
+from team_name_utils import normalize_team_name
 
 # ══════════════════════════════════════════════════════
 # RESULTS CSV SCHEMA
@@ -28,6 +30,7 @@ RESULTS_HEADERS = [
     "kp_home_score", "kp_away_score", "kp_total", "kp_spread",
     "bt_home_score", "bt_away_score", "bt_total", "bt_spread",
     "vegas_spread", "vegas_total",
+    "away_sos", "home_sos", "sos_diff", "abs_sos_diff", "avg_sos",
     "spread_error", "total_error",
     "spread_vs_vegas_error", "model_beat_vegas",
     # Edge context — carried over from predictions_log so results can be
@@ -110,11 +113,11 @@ def enter_results():
         print("No predictions log found. Run the predictor first.")
         return
 
-    predictions = _read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS)
+    predictions = _backfill_sos_fields(_read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS))
 
     resolved = set()
     if Path(RESULTS_LOG).exists():
-        for row in _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS):
+        for row in _backfill_sos_fields(_read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)):
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 
     pending = [
@@ -197,6 +200,11 @@ def enter_results():
                 "bt_spread":            p.get("bt_spread", ""),
                 "vegas_spread":         p["vegas_spread"],
                 "vegas_total":          p["vegas_total"],
+                "away_sos":             p.get("away_sos", ""),
+                "home_sos":             p.get("home_sos", ""),
+                "sos_diff":             p.get("sos_diff", ""),
+                "abs_sos_diff":         p.get("abs_sos_diff", ""),
+                "avg_sos":              p.get("avg_sos", ""),
                 "spread_error":         spread_error,
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,
@@ -400,6 +408,94 @@ def performance_summary(rows: list[dict], label: str) -> str:
 
     return "\n".join(lines)
 
+
+SOS_BUCKETS = [
+    ("away much harder schedule", None, -8.0),
+    ("away somewhat harder schedule", -8.0, -3.0),
+    ("even schedules", -3.0, 3.0),
+    ("home somewhat harder schedule", 3.0, 8.0),
+    ("home much harder schedule", 8.0, None),
+]
+
+
+def _sos_bucket_label(sos_diff: float | None) -> str | None:
+    if sos_diff is None:
+        return None
+    if sos_diff <= -8.0:
+        return "away much harder schedule"
+    if -8.0 < sos_diff <= -3.0:
+        return "away somewhat harder schedule"
+    if -3.0 < sos_diff < 3.0:
+        return "even schedules"
+    if 3.0 <= sos_diff < 8.0:
+        return "home somewhat harder schedule"
+    return "home much harder schedule"
+
+
+def sos_performance_summary(rows: list[dict]) -> str:
+    """Analyze spread error by SOS bucket using stored matchup SOS features."""
+    if not rows:
+        return "\n  SOS ANALYSIS: No data."
+
+    buckets = {
+        label: {
+            "games": 0,
+            "spread_error_sum": 0.0,
+            "abs_spread_error_sum": 0.0,
+            "ats_wins": 0,
+            "ats_total": 0,
+        }
+        for label, _, _ in SOS_BUCKETS
+    }
+
+    for row in rows:
+        sos_diff = _safe_float(row.get("sos_diff"))
+        predicted_margin = _safe_float(row.get("kp_spread"))
+        actual_margin = _safe_float(row.get("actual_spread"))
+        vegas_spread = _safe_float(row.get("vegas_spread"))
+
+        if predicted_margin is None and actual_margin is None:
+            continue
+
+        label = _sos_bucket_label(sos_diff)
+        if label is None:
+            continue
+
+        if actual_margin is None or predicted_margin is None:
+            continue
+        spread_error = round(actual_margin - predicted_margin, 1)
+
+        bucket = buckets[label]
+        bucket["games"] += 1
+        bucket["spread_error_sum"] += spread_error
+        bucket["abs_spread_error_sum"] += abs(spread_error)
+
+        if vegas_spread is not None and actual_margin is not None and predicted_margin != vegas_spread:
+            bucket["ats_total"] += 1
+            if (predicted_margin < vegas_spread) == (actual_margin < vegas_spread):
+                bucket["ats_wins"] += 1
+
+    lines = []
+    lines.append(f"\n  SOS ANALYSIS (KenPom SOS NetRtg buckets)")
+    lines.append(f"  {'Bucket':<30} {'Games':>5} {'Avg Err':>9} {'Avg Abs Err':>13} {'ATS Win%':>10}")
+    lines.append(f"  {'-' * 30} {'-' * 5} {'-' * 9} {'-' * 13} {'-' * 10}")
+
+    for label, _, _ in SOS_BUCKETS:
+        bucket = buckets[label]
+        games = bucket["games"]
+        avg_error = bucket["spread_error_sum"] / games if games else None
+        avg_abs_error = bucket["abs_spread_error_sum"] / games if games else None
+        ats_pct = (100 * bucket["ats_wins"] / bucket["ats_total"]) if bucket["ats_total"] else None
+        lines.append(
+            f"  {label:<30} "
+            f"{games:>5} "
+            f"{(f'{avg_error:+.2f}' if avg_error is not None else 'N/A'):>9} "
+            f"{(f'{avg_abs_error:.2f}' if avg_abs_error is not None else 'N/A'):>13} "
+            f"{(f'{ats_pct:.1f}%' if ats_pct is not None else 'N/A'):>10}"
+        )
+
+    return "\n".join(lines)
+
 # ══════════════════════════════════════════════════════
 # PERFORMANCE REPORT + DISCORD
 # ══════════════════════════════════════════════════════
@@ -439,6 +535,55 @@ def _safe_float(value):
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _compute_sos_features(home_sos: float | None, away_sos: float | None) -> dict[str, float | None]:
+    if home_sos is None or away_sos is None:
+        return {
+            "home_sos": home_sos,
+            "away_sos": away_sos,
+            "sos_diff": None,
+            "abs_sos_diff": None,
+            "avg_sos": None,
+        }
+    sos_diff = round(away_sos - home_sos, 2)
+    return {
+        "home_sos": home_sos,
+        "away_sos": away_sos,
+        "sos_diff": sos_diff,
+        "abs_sos_diff": round(abs(sos_diff), 2),
+        "avg_sos": round((away_sos + home_sos) / 2, 2),
+    }
+
+
+def _backfill_sos_fields(rows: list[dict], kenpom_file: str = "kenpom_raw.txt") -> list[dict]:
+    """Backfill missing SOS fields on legacy prediction/result rows from KenPom data."""
+    if not rows or not Path(kenpom_file).exists():
+        return rows
+
+    sos_lookup = build_kenpom_sos_lookup(parse_kenpom(kenpom_file))
+    if not sos_lookup:
+        return rows
+
+    enriched_rows = []
+    for row in rows:
+        enriched = dict(row)
+        home_norm = normalize_team_name(row.get("home_team", ""))
+        away_norm = normalize_team_name(row.get("away_team", ""))
+        home_sos = _safe_float(enriched.get("home_sos"))
+        away_sos = _safe_float(enriched.get("away_sos"))
+
+        if home_sos is None:
+            home_sos = _safe_float((sos_lookup.get(home_norm) or {}).get("sos_netrtg"))
+        if away_sos is None:
+            away_sos = _safe_float((sos_lookup.get(away_norm) or {}).get("sos_netrtg"))
+
+        features = _compute_sos_features(home_sos, away_sos)
+        for key, value in features.items():
+            if enriched.get(key, "") in ("", None):
+                enriched[key] = "" if value is None else value
+        enriched_rows.append(enriched)
+    return enriched_rows
 
 
 def _clean_team_name(name: str) -> str:
@@ -620,7 +765,7 @@ def performance_report():
         print("No results log found. Enter some actual scores first with --results.")
         return
 
-    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
+    all_rows = _backfill_sos_fields(_read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS))
 
     if not all_rows:
         print("Results log is empty.")
@@ -635,6 +780,7 @@ def performance_report():
 
     report_parts = []
     report_parts.append(performance_summary(rows, f"SLATE RESULTS — {yesterday}"))
+    report_parts.append(sos_performance_summary(rows))
 
     # Edge game detail — best/worst within the flagged set
     # Use the same dynamic-fallback logic as performance_summary for legacy rows.
@@ -711,7 +857,7 @@ def check_results():
         print("No predictions log found. Run the predictor first.")
         return []
 
-    predictions = _read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS)
+    predictions = _backfill_sos_fields(_read_csv(PREDICTIONS_LOG, PREDICTIONS_HEADERS))
 
     if not predictions:
         print("  No predictions found in log.")
@@ -723,7 +869,7 @@ def check_results():
     resolved = set()
     existing_rows = []
     if Path(RESULTS_LOG).exists():
-        existing_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
+        existing_rows = _backfill_sos_fields(_read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS))
         for row in existing_rows:
             resolved.add((row["date"], row["home_team"], row["away_team"]))
 
@@ -810,6 +956,11 @@ def check_results():
                 "bt_spread":            p.get("bt_spread", ""),
                 "vegas_spread":         p.get("vegas_spread", ""),
                 "vegas_total":          p.get("vegas_total", ""),
+                "away_sos":             p.get("away_sos", ""),
+                "home_sos":             p.get("home_sos", ""),
+                "sos_diff":             p.get("sos_diff", ""),
+                "abs_sos_diff":         p.get("abs_sos_diff", ""),
+                "avg_sos":              p.get("avg_sos", ""),
                 "spread_error":         spread_error,
                 "total_error":          total_error,
                 "spread_vs_vegas_error": spread_vs_vegas,
@@ -1011,7 +1162,7 @@ def table_report(date_str: str | None = None, all_dates: bool = False,
         print("No results log found. Run the pipeline first.")
         return
 
-    all_rows = _read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS)
+    all_rows = _backfill_sos_fields(_read_csv(RESULTS_LOG, RESULTS_HEADERS, _LEGACY_RESULTS_HEADERS_V2, _LEGACY_RESULTS_HEADERS))
     if not all_rows:
         print("Results log is empty.")
         return

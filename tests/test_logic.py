@@ -1,8 +1,10 @@
 import unittest
 from datetime import datetime, timezone
+from tempfile import NamedTemporaryFile
 
 from team_name_utils import normalize_team_name
-from kenpom_predictor import Team, predict_game, LAMBDA, TEMPO_SCALE
+from kenpom_predictor import Team, parse_kenpom, predict_game, LAMBDA, TEMPO_SCALE
+from slate_results import sos_performance_summary
 
 
 def compute_side_edge(kp_edge, tr_edge, threshold, distance=None):
@@ -54,6 +56,42 @@ class LogicTests(unittest.TestCase):
     def test_today_date_behavior(self):
         dt = datetime(2026, 3, 12, 1, 30, tzinfo=timezone.utc)
         self.assertRegex(local_iso_date(dt), r"\d{4}-\d{2}-\d{2}")
+
+    def test_parse_kenpom_extracts_sos_fields_from_pasted_text(self):
+        raw = (
+            "Rk\tTeam\tConf\tW-L\tNetRtg\tORtg\tDRtg\tAdjT\tLuck\tNetRtg\tORtg\tDRtg\tNetRtg\n"
+            "1\tDuke 1\tACC\t32-2\t+38.85\t127.9\t4\t89.1\t2\t65.4\t287\t+.049\t61\t+14.23\t16\t116.9\t23\t102.7\t11\t+10.06\t18\n"
+        )
+        with NamedTemporaryFile("w+", encoding="utf-8", delete=False) as tmp:
+            tmp.write(raw)
+            tmp.flush()
+            teams = parse_kenpom(tmp.name)
+
+        self.assertIn("Duke", teams)
+        self.assertEqual(teams["Duke"].sos_netrtg, 14.23)
+        self.assertEqual(teams["Duke"].ncsos_netrtg, 10.06)
+
+    def test_sos_performance_summary_groups_bucket_counts(self):
+        summary = sos_performance_summary([
+            {
+                "sos_diff": "-9",
+                "kp_spread": "-4",
+                "actual_spread": "-6",
+                "vegas_spread": "-5",
+                "spread_error": "-2",
+            },
+            {
+                "sos_diff": "4",
+                "kp_spread": "2",
+                "actual_spread": "1",
+                "vegas_spread": "1.5",
+                "spread_error": "-1",
+            },
+        ])
+
+        self.assertIn("away much harder schedule", summary)
+        self.assertIn("home somewhat harder schedule", summary)
+        self.assertIn("even schedules", summary)
 
 
 if __name__ == "__main__":

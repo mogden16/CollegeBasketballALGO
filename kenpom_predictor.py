@@ -17,7 +17,8 @@ import csv
 import re
 import requests
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from thefuzz import process
 from pathlib import Path
 from dotenv import load_dotenv
@@ -33,6 +34,7 @@ ODDS_API_KEY    = os.getenv("ODDS_API_KEY")   # Free at the-odds-api.com
 ODDS_BOOK       = "draftkings"          # draftkings, fanduel, betmgm, etc.
 EDGE_THRESHOLD  = 3.0                   # Flag if model vs line differs >= this
 FUZZY_THRESHOLD = 75                    # Min fuzzy match score (0-100)
+LOCAL_TIMEZONE  = ZoneInfo("America/New_York")
 
 TEAM_ALIASES = {
     "uconn": "Connecticut",
@@ -160,11 +162,11 @@ BARTTORVIK_FILE = "barttorvik_raw.txt"
 
 # Model constants
 AVG_TEMPO_2026     = 68.4
-LAMBDA             = 0.8296
-TEMPO_SCALE        = 1.2398
+LAMBDA             = 0.7970
+TEMPO_SCALE        = 1.2799
 TEMPO_EXP          = 0.48
 TEMPO_LEAGUE_EXP   = 0.04
-HCA                = 3.1453
+HCA                = 4.2514
 
 # ══════════════════════════════════════════════════════
 # DATA STRUCTURES
@@ -339,6 +341,22 @@ def fuzzy_lookup(query: str, team_dict: dict[str, Team], threshold: int = FUZZY_
         return lookup[match_norm]
     return None
 
+
+def _default_run_date() -> str:
+    """Return today's date in the local sportsbook / scoreboard timezone."""
+    return datetime.now(LOCAL_TIMEZONE).strftime("%Y-%m-%d")
+
+
+def _event_on_local_date(commence_time: str, date_str: str) -> bool:
+    """Check whether an Odds API event falls on the requested local date."""
+    if not commence_time:
+        return True
+    try:
+        event_dt = datetime.fromisoformat(commence_time.replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    return event_dt.astimezone(LOCAL_TIMEZONE).strftime("%Y-%m-%d") == date_str
+
 # ══════════════════════════════════════════════════════
 # STEP 2: PULL TODAY'S MATCHUPS FROM ESPN
 # ══════════════════════════════════════════════════════
@@ -347,7 +365,7 @@ def get_matchups_for_date(date_str: str | None = None) -> list[Matchup]:
     Pull NCAAB schedule for a date (YYYY-MM-DD) from ESPN's unofficial API.
     No API key required.
     """
-    selected = date_str or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    selected = date_str or _default_run_date()
     yyyymmdd = selected.replace("-", "")
     url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={yyyymmdd}&groups=50"
     
@@ -434,7 +452,7 @@ def fetch_scores_for_date(date_str: str) -> dict[tuple[str, str], tuple[float, f
 # ══════════════════════════════════════════════════════
 # STEP 3: PULL LINES FROM THE ODDS API
 # ══════════════════════════════════════════════════════
-def get_odds(matchups: list[Matchup]) -> list[Matchup]:
+def get_odds(matchups: list[Matchup], date_str: str | None = None) -> list[Matchup]:
     """
     Fetch live NCAAB lines from The Odds API (free tier).
     Attaches vegas_spread and vegas_total to each matchup via fuzzy team match.
@@ -444,6 +462,7 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
         print("WARNING: No Odds API key set. Skipping lines -- set ODDS_API_KEY in config.")
         return matchups
 
+    selected = date_str or _default_run_date()
     url = (
         "https://api.the-odds-api.com/v4/sports/basketball_ncaab/odds/"
         f"?apiKey={ODDS_API_KEY}&regions=us&markets=spreads,totals&bookmakers={ODDS_BOOK}"
@@ -456,6 +475,11 @@ def get_odds(matchups: list[Matchup]) -> list[Matchup]:
     except Exception as e:
         print(f"ERROR: Could not fetch odds -- {e}")
         return matchups
+
+    odds_data = [
+        game for game in odds_data
+        if _event_on_local_date(game.get("commence_time", ""), selected)
+    ]
 
     # Build odds lookup: (home_team, away_team) -> {spread_home, spread_away, total}
     odds_lookup = {}
@@ -583,7 +607,7 @@ def run_slate(kenpom_file: str = "kenpom_raw.txt", run_date: str | None = None):
         return
 
     # Attach lines
-    matchups = get_odds(matchups)
+    matchups = get_odds(matchups, run_date)
 
     entries = []
     no_data = []

@@ -1,8 +1,9 @@
 import unittest
 from datetime import datetime, timezone
+from unittest.mock import Mock, patch
 
 from team_name_utils import normalize_team_name
-from kenpom_predictor import Team, predict_game, LAMBDA, TEMPO_SCALE
+from kenpom_predictor import Matchup, Team, get_odds, predict_game, LAMBDA, TEMPO_SCALE
 
 
 def compute_side_edge(kp_edge, tr_edge, threshold, distance=None):
@@ -54,6 +55,50 @@ class LogicTests(unittest.TestCase):
     def test_today_date_behavior(self):
         dt = datetime(2026, 3, 12, 1, 30, tzinfo=timezone.utc)
         self.assertRegex(local_iso_date(dt), r"\d{4}-\d{2}-\d{2}")
+
+    @patch("kenpom_predictor.requests.get")
+    def test_get_odds_filters_future_bracket_markets(self, mock_get):
+        mock_response = Mock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = [
+            {
+                "commence_time": "2026-03-29T18:20:50Z",
+                "home_team": "Duke Blue Devils",
+                "away_team": "Michigan St Spartans",
+                "bookmakers": [],
+            },
+            {
+                "commence_time": "2026-03-27T23:10:00Z",
+                "home_team": "Duke Blue Devils",
+                "away_team": "St. John's Red Storm",
+                "bookmakers": [
+                    {
+                        "markets": [
+                            {
+                                "key": "spreads",
+                                "outcomes": [
+                                    {"name": "Duke Blue Devils", "point": -6.5},
+                                    {"name": "St. John's Red Storm", "point": 6.5},
+                                ],
+                            },
+                            {
+                                "key": "totals",
+                                "outcomes": [
+                                    {"name": "Over", "point": 141.5},
+                                    {"name": "Under", "point": 141.5},
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            },
+        ]
+        mock_get.return_value = mock_response
+
+        [matchup] = get_odds([Matchup(home="Duke", away="St John's", neutral=True)], date_str="2026-03-27")
+
+        self.assertEqual(matchup.vegas_spread, -6.5)
+        self.assertEqual(matchup.vegas_total, 141.5)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
 import modelsData from "../data/team-models.json";
 import { normalizeTeamName } from "./teamName";
 import { predictGame, buildConsensus, type TeamRatings, type MatchupResult, type KenPomTeamInfo } from "./matchup";
+import { buildMatchupQueries, buildTeamQueryProfile, type TeamQueryProfile } from "./teamQueryNormalization";
+import { computeNarrativeEdge, computeVolatility, scoreTeamSentiment, type RedditTextSample, type TeamSentimentSummary, type VolatilitySummary, type NarrativeEdge } from "./redditSentimentScoring";
+import { REDDIT_LOW_SIGNAL_SAMPLE_THRESHOLD, REDDIT_SENTIMENT_SUBREDDITS, REDDIT_SENTMENT_CACHE_TTL_MS } from "./redditSentimentPhrases";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type TeamModelsPayload = {
@@ -16,6 +19,45 @@ type QuickMatchupBody = {
   useDampening: boolean;
 };
 
+
+type RedditSentimentBody = {
+  teamA: string;
+  teamB: string;
+};
+
+type RedditPhraseHit = {
+  phrase: string;
+  category: "negative" | "positive" | "buzz";
+  count: number;
+  weightedImpact: number;
+};
+
+type RedditSentimentResponse = {
+  teamA: TeamSentimentSummary & { phraseHits: RedditPhraseHit[] };
+  teamB: TeamSentimentSummary & { phraseHits: RedditPhraseHit[] };
+  volatility: VolatilitySummary;
+  narrativeEdge: NarrativeEdge;
+  fetchedAt: string;
+  sourceStatus: string;
+};
+
+type Env = {
+  APP_TITLE?: string;
+  REDDIT_CLIENT_ID?: string;
+  REDDIT_CLIENT_SECRET?: string;
+  REDDIT_USER_AGENT?: string;
+};
+
+type CachedSentimentEntry = {
+  expiresAt: number;
+  payload: RedditSentimentResponse;
+};
+
+type RedditTokenCache = {
+  token: string;
+  expiresAt: number;
+} | null;
+
 // ── Constants ────────────────────────────────────────────────────────────────
 const teamModels  = modelsData as TeamModelsPayload;
 const jsonHeaders = { "content-type": "application/json; charset=utf-8" } as const;
@@ -27,6 +69,9 @@ const KP_INFO_LABELS = [
   { key: "adjTempo", label: "Adj Tempo", format: "fixed1" },
   { key: "luck", label: "Luck", format: "signed3" },
 ] as const;
+
+const redditSentimentCache = new Map<string, CachedSentimentEntry>();
+let redditTokenCache: RedditTokenCache = null;
 
 const TEAM_ALIASES: Record<string, string> = {
   uconn        : "Connecticut",
@@ -87,6 +132,182 @@ const buildKenPomTeamInfo = (teamName: string | null, team: TeamRatings | undefi
     luck      : toFiniteNumber(team.luck),
   };
 };
+
+const buildSentimentCacheKey = (teamA: string, teamB: string): string => {
+  const names = [normalizeTeamName(teamA), normalizeTeamName(teamB)].sort();
+  return `${names.join("__")}::${REDDIT_SENTIMENT_SUBREDDITS.join(",")}`;
+};
+
+const readCache = (key: string): RedditSentimentResponse | null => {
+  const cached = redditSentimentCache.get(key);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    redditSentimentCache.delete(key);
+    return null;
+  }
+  return cached.payload;
+};
+
+const writeCache = (key: string, payload: RedditSentimentResponse): void => {
+  redditSentimentCache.set(key, {
+    expiresAt: Date.now() + REDDIT_SENTMENT_CACHE_TTL_MS,
+    payload,
+  });
+};
+
+const getRedditAccessToken = async (env: Env): Promise<string | null> => {
+  if (!env.REDDIT_CLIENT_ID || !env.REDDIT_CLIENT_SECRET) return null;
+  if (redditTokenCache && redditTokenCache.expiresAt > Date.now() + 15_000) return redditTokenCache.token;
+
+  const auth = btoa(`${env.REDDIT_CLIENT_ID}:${env.REDDIT_CLIENT_SECRET}`);
+  const response = await fetch("https://www.reddit.com/api/v1/access_token", {
+    method: "POST",
+    headers: {
+      authorization: `Basic ${auth}`,
+      "content-type": "application/x-www-form-urlencoded",
+      "user-agent": env.REDDIT_USER_AGENT || "CollegeBasketballALGO/1.0 by OpenAIAgent",
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  if (!response.ok) return null;
+  const data = await response.json() as { access_token?: string; expires_in?: number };
+  if (!data.access_token) return null;
+  redditTokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + Math.max(60, data.expires_in ?? 3600) * 1000,
+  };
+  return data.access_token;
+};
+
+const buildRedditHeaders = (token: string, env: Env): HeadersInit => ({
+  authorization: `Bearer ${token}`,
+  "user-agent": env.REDDIT_USER_AGENT || "CollegeBasketballALGO/1.0 by OpenAIAgent",
+});
+
+const fetchJson = async <T>(url: string, headers: HeadersInit): Promise<T> => {
+  const response = await fetch(url, { headers });
+  if (!response.ok) throw new Error(`Reddit request failed (${response.status})`);
+  return await response.json() as T;
+};
+
+const normalizeRedditText = (value: string): string => value.replace(/\s+/g, " ").trim();
+
+const buildSearchQueries = (teamA: TeamQueryProfile, teamB: TeamQueryProfile): { a: string[]; b: string[]; combined: string[] } => ({
+  a: [...teamA.matchupAliases].slice(0, 2),
+  b: [...teamB.matchupAliases].slice(0, 2),
+  combined: buildMatchupQueries(teamA, teamB),
+});
+
+const extractSamplesFromListing = (children: Array<{ data?: Record<string, unknown> }>): RedditTextSample[] => {
+  return children.flatMap((child) => {
+    const data = child.data ?? {};
+    const id = typeof data.id === "string" ? data.id : null;
+    const title = typeof data.title === "string" ? data.title : "";
+    const body = typeof data.selftext === "string" ? data.selftext : typeof data.body === "string" ? data.body : "";
+    if (!id) return [];
+    return [{
+      id,
+      body: normalizeRedditText(`${title} ${body}`),
+      createdUtc: typeof data.created_utc === "number" ? data.created_utc : Date.now() / 1000,
+      score: typeof data.score === "number" ? data.score : 0,
+      url: typeof data.permalink === "string" ? `https://reddit.com${data.permalink}` : undefined,
+    } satisfies RedditTextSample];
+  });
+};
+
+const filterSamplesForTeam = (profile: TeamQueryProfile, samples: RedditTextSample[]): RedditTextSample[] => {
+  return samples.filter((sample) => profile.matchupAliases.some((alias) => alias && sample.body.toLowerCase().includes(alias.toLowerCase())));
+};
+
+const fetchTeamSamples = async (token: string, env: Env, teamA: TeamQueryProfile, teamB: TeamQueryProfile): Promise<{ teamASamples: RedditTextSample[]; teamBSamples: RedditTextSample[]; sourceStatus: string }> => {
+  const headers = buildRedditHeaders(token, env);
+  const queries = buildSearchQueries(teamA, teamB);
+  const combinedSamples: RedditTextSample[] = [];
+
+  for (const subreddit of REDDIT_SENTIMENT_SUBREDDITS) {
+    for (const query of [...queries.a, ...queries.b, ...queries.combined]) {
+      const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&restrict_sr=1&sort=new&t=month&limit=8&type=link`;
+      const searchData = await fetchJson<{ data?: { children?: Array<{ data?: Record<string, unknown> }> } }>(searchUrl, headers);
+      const posts = extractSamplesFromListing(searchData.data?.children ?? []);
+      combinedSamples.push(...posts);
+
+      for (const post of posts.slice(0, 3)) {
+        const commentsUrl = `https://oauth.reddit.com${new URL(post.url || "https://reddit.com").pathname}.json?sort=new&limit=6`;
+        try {
+          const commentsData = await fetchJson<Array<{ data?: { children?: Array<{ data?: Record<string, unknown> }> } }>>(commentsUrl, headers);
+          const commentChildren = commentsData[1]?.data?.children ?? [];
+          combinedSamples.push(...extractSamplesFromListing(commentChildren));
+        } catch {
+          // Ignore per-thread comment fetch issues; search results are enough for a soft signal.
+        }
+      }
+    }
+  }
+
+  const deduped = [...new Map(combinedSamples.map((sample) => [sample.id + sample.body, sample])).values()].filter((sample) => sample.body);
+  return {
+    teamASamples: filterSamplesForTeam(teamA, deduped),
+    teamBSamples: filterSamplesForTeam(teamB, deduped),
+    sourceStatus: deduped.length ? "ok" : "limited",
+  };
+};
+
+const buildSentimentResponse = (teamA: TeamSentimentSummary, teamB: TeamSentimentSummary, sourceStatus: string): RedditSentimentResponse => ({
+  teamA,
+  teamB,
+  volatility: computeVolatility(teamA.phraseHits, teamB.phraseHits),
+  narrativeEdge: computeNarrativeEdge(teamA, teamB),
+  fetchedAt: new Date().toISOString(),
+  sourceStatus,
+});
+
+const handleRedditSentiment = async (request: Request, env: Env): Promise<Response> => {
+  let body: Partial<RedditSentimentBody>;
+  try {
+    body = await request.json() as Partial<RedditSentimentBody>;
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body." }), { status: 400, headers: jsonHeaders });
+  }
+
+  const teamAInput = String(body.teamA ?? "").trim();
+  const teamBInput = String(body.teamB ?? "").trim();
+  if (!teamAInput || !teamBInput) {
+    return new Response(JSON.stringify({ error: "teamA and teamB are required." }), { status: 400, headers: jsonHeaders });
+  }
+
+  const cacheKey = buildSentimentCacheKey(teamAInput, teamBInput);
+  const cached = readCache(cacheKey);
+  if (cached) {
+    return new Response(JSON.stringify({ ...cached, sourceStatus: `${cached.sourceStatus}:cache` }), { headers: jsonHeaders });
+  }
+
+  const token = await getRedditAccessToken(env);
+  if (!token) {
+    return new Response(JSON.stringify({
+      error: "Reddit sentiment is unavailable right now.",
+      sourceStatus: "unconfigured",
+    }), { status: 503, headers: jsonHeaders });
+  }
+
+  try {
+    const teamAProfile = buildTeamQueryProfile(teamAInput);
+    const teamBProfile = buildTeamQueryProfile(teamBInput);
+    const sampleData = await fetchTeamSamples(token, env, teamAProfile, teamBProfile);
+    const teamA = scoreTeamSentiment(teamAProfile, sampleData.teamASamples);
+    const teamB = scoreTeamSentiment(teamBProfile, sampleData.teamBSamples);
+    const limitedSignal = teamA.sampleCount < REDDIT_LOW_SIGNAL_SAMPLE_THRESHOLD && teamB.sampleCount < REDDIT_LOW_SIGNAL_SAMPLE_THRESHOLD;
+    const payload = buildSentimentResponse(teamA, teamB, limitedSignal ? "limited" : sampleData.sourceStatus);
+    writeCache(cacheKey, payload);
+    return new Response(JSON.stringify(payload), { headers: jsonHeaders });
+  } catch {
+    return new Response(JSON.stringify({
+      error: "Reddit sentiment is unavailable right now.",
+      sourceStatus: "error",
+    }), { status: 502, headers: jsonHeaders });
+  }
+};
+
 
 // ── Matchup API handler ───────────────────────────────────────────────────────
 const handleMatchup = async (request: Request): Promise<Response> => {
@@ -299,6 +520,39 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 .lean-result{margin-top:.85rem;display:flex;align-items:center;gap:.65rem}
 .lean-result .lean-label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 
+
+/* ── Fan sentiment ───────────────────────── */
+.fan-sentiment-card{background:linear-gradient(180deg,rgba(16,30,52,.96),rgba(12,22,40,.98));border:1px solid var(--border2);border-radius:16px;padding:1.2rem}
+.fan-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.fan-title-row{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.info-btn{width:24px;height:24px;border-radius:999px;border:1px solid var(--border2);background:var(--card2);color:var(--muted);font-size:.78rem;font-weight:800;cursor:pointer}
+.info-btn:hover,.info-btn:focus{color:var(--text);border-color:var(--blue);outline:none}
+.info-panel{display:none;margin-top:.75rem;background:rgba(10,21,37,.92);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;color:var(--muted);font-size:.82rem;line-height:1.5}
+.info-panel.open{display:block}
+.info-panel ul{margin:.45rem 0 0 1rem}
+.fan-meta{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;color:var(--muted);font-size:.78rem}
+.fan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+@media(max-width:700px){.fan-grid{grid-template-columns:1fr}}
+.fan-team-panel{background:rgba(10,21,37,.9);border:1px solid var(--border);border-radius:14px;padding:1rem}
+.fan-team-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;margin-bottom:.85rem}
+.fan-team-name{font-size:1rem;font-weight:700}
+.fan-score{font-size:1.35rem;font-weight:800}
+.fan-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-bottom:.85rem}
+.fan-kpi{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:.7rem .75rem}
+.fan-kpi-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.22rem}
+.fan-kpi-value{font-size:.95rem;font-weight:700}
+.chip-row{display:flex;gap:.45rem;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;padding:.3rem .65rem;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:.76rem;color:var(--text)}
+.chip-muted{color:var(--muted)}
+.edge-strip{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin:1rem 0;padding:.8rem .95rem;border-radius:12px;background:var(--card2);border:1px solid var(--border)}
+.subtle-note{margin-top:.95rem;color:var(--muted);font-size:.78rem}
+.sentiment-loading{display:flex;align-items:center;gap:.65rem;color:var(--muted);font-size:.88rem}
+.sentiment-dot{width:10px;height:10px;border-radius:999px;background:var(--blue);box-shadow:0 0 0 0 rgba(74,144,226,.55);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,144,226,.55)}70%{box-shadow:0 0 0 10px rgba(74,144,226,0)}100%{box-shadow:0 0 0 0 rgba(74,144,226,0)}}
+.sentiment-empty,.sentiment-error{border-radius:12px;padding:1rem 1.05rem;font-size:.88rem}
+.sentiment-empty{background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--muted)}
+.sentiment-error{background:rgba(240,112,112,.1);border:1px solid rgba(240,112,112,.3);color:var(--red)}
+
 /* ── Empty/loading states ────────────────── */
 #results{display:none}
 .loading-state{text-align:center;padding:2.5rem;color:var(--muted);font-size:.95rem}
@@ -470,7 +724,33 @@ h3{font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08e
 
     </div><!-- /.two-col -->
 
-    <!-- SECTION 6: Spread Evaluator -->
+
+    <!-- SECTION 6: Fan Sentiment -->
+    <section class="fan-sentiment-card section" id="fan-sentiment-section">
+      <div class="fan-header">
+        <div>
+          <div class="fan-title-row">
+            <h3 class="card-title" style="margin-bottom:0">Fan Sentiment</h3>
+            <button class="info-btn" id="fan-info-btn" type="button" aria-expanded="false" aria-controls="fan-info-panel">(i)</button>
+          </div>
+          <div class="fan-meta" id="fan-meta">Reddit-powered discussion scan for recent team chatter.</div>
+          <div class="info-panel" id="fan-info-panel">
+            We scan recent Reddit discussion for both teams and score several phrase groups:
+            <ul>
+              <li>Negative / risk: injury, out, questionable, suspended, slump, travel, foul trouble</li>
+              <li>Positive / momentum: healthy, returning, hot streak, momentum, breakout, dominant, depth</li>
+              <li>Buzz / volatility: upset, sleeper, fraud, trap game, cinderella, bracket</li>
+            </ul>
+            This is a soft narrative signal only and does not replace the model.
+          </div>
+        </div>
+        <button class="btn btn-primary" id="fan-refresh-btn" type="button">Scan Reddit</button>
+      </div>
+      <div id="fan-sentiment-content" class="sentiment-empty">Choose a matchup, then scan recent Reddit discussion.</div>
+      <div class="subtle-note">Soft signal based on recent Reddit discussion.</div>
+    </section>
+
+    <!-- SECTION 7: Spread Evaluator -->
     <section class="card section" id="evaluator-section">
       <h3 class="card-title">Spread Evaluator</h3>
       <div class="spread-row">
@@ -564,6 +844,7 @@ var appNeutral   = false;
 var appDampening = true;
 var appData      = null;
 var appSliders   = { injury: 0, hca: 0, tempo: 0, vol: 0 };
+var appSentiment = { data: null, loading: false, error: "" };
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function initApp() {
@@ -592,6 +873,8 @@ function initApp() {
   document.getElementById('ev-spread').addEventListener('input', function() { if (appData) renderEval(); });
   document.getElementById('predict-btn').addEventListener('click', runPredict);
   document.getElementById('reset-btn').addEventListener('click',  resetAll);
+  document.getElementById('fan-refresh-btn').addEventListener('click', fetchRedditSentiment);
+  document.getElementById('fan-info-btn').addEventListener('click', toggleFanInfo);
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -635,6 +918,13 @@ function resetAll() {
   document.getElementById('ev-team').innerHTML = '<option value="A">Team A</option><option value="B">Team B</option>';
   document.getElementById('kenpom-team-info').innerHTML = '';
   document.getElementById('results').style.display = 'none';
+  appSentiment = { data: null, loading: false, error: '' };
+  document.getElementById('fan-meta').textContent = 'Reddit-powered discussion scan for recent team chatter.';
+  document.getElementById('fan-refresh-btn').textContent = 'Scan Reddit';
+  document.getElementById('fan-refresh-btn').disabled = false;
+  document.getElementById('fan-info-btn').setAttribute('aria-expanded', 'false');
+  document.getElementById('fan-info-panel').classList.remove('open');
+  renderSentimentCard();
   clearErr();
 }
 function setBadge(id, text, cls) {
@@ -686,6 +976,97 @@ function showErr(msg, warn) {
 }
 function clearErr() { document.getElementById('builder-error').innerHTML = ''; }
 
+
+function toggleFanInfo() {
+  var btn = document.getElementById('fan-info-btn');
+  var panel = document.getElementById('fan-info-panel');
+  var open = panel.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function formatSentimentScore(score) {
+  if (typeof score !== 'number' || !isFinite(score)) return '—';
+  return (score > 0 ? '+' : '') + score.toFixed(1);
+}
+function renderThemeChips(themes) {
+  if (!themes || !themes.length) return '<span class="chip chip-muted">Limited theme data</span>';
+  return themes.map(function(theme) { return '<span class="chip">' + htmlEsc(theme) + '</span>'; }).join('');
+}
+function renderSentimentPanel(team) {
+  return '<div class="fan-team-panel">'
+    + '<div class="fan-team-head"><div><div class="fan-team-name">' + htmlEsc(team.teamName) + '</div><div class="fan-meta">Recent Reddit discussion signal</div></div><div class="fan-score">' + htmlEsc(formatSentimentScore(team.score)) + '</div></div>'
+    + '<div class="fan-kpis">'
+      + '<div class="fan-kpi"><div class="fan-kpi-label">Sentiment</div><div class="fan-kpi-value">' + htmlEsc(team.label) + '</div></div>'
+      + '<div class="fan-kpi"><div class="fan-kpi-label">Samples</div><div class="fan-kpi-value">' + htmlEsc(String(team.sampleCount || 0)) + '</div></div>'
+    + '</div>'
+    + '<div class="fan-kpi-label" style="margin-bottom:.45rem">Top themes</div><div class="chip-row">' + renderThemeChips(team.topThemes) + '</div>'
+    + '</div>';
+}
+function renderSentimentCard() {
+  var content = document.getElementById('fan-sentiment-content');
+  var meta = document.getElementById('fan-meta');
+  if (!appData) {
+    content.className = 'sentiment-empty';
+    content.innerHTML = 'Choose a matchup, then scan recent Reddit discussion.';
+    return;
+  }
+  if (appSentiment.loading) {
+    content.className = '';
+    content.innerHTML = '<div class="sentiment-loading"><span class="sentiment-dot"></span><span>Scanning Reddit discussion...</span></div>';
+    return;
+  }
+  if (appSentiment.error) {
+    content.className = 'sentiment-error';
+    content.textContent = appSentiment.error;
+    return;
+  }
+  if (!appSentiment.data) {
+    content.className = 'sentiment-empty';
+    content.innerHTML = 'Scan Reddit to add a soft narrative signal for ' + htmlEsc(appData.teamA) + ' and ' + htmlEsc(appData.teamB) + '.';
+    return;
+  }
+  var data = appSentiment.data;
+  meta.textContent = 'Source: r/CollegeBasketball · Updated ' + new Date(data.fetchedAt).toLocaleString();
+  var limited = data.sourceStatus.indexOf('limited') !== -1 || ((data.teamA.sampleCount || 0) < 4 && (data.teamB.sampleCount || 0) < 4);
+  content.className = '';
+  content.innerHTML = (limited ? '<div class="sentiment-empty" style="margin-bottom:1rem">Limited recent Reddit discussion found.</div>' : '')
+    + '<div class="fan-grid">' + renderSentimentPanel(data.teamA) + renderSentimentPanel(data.teamB) + '</div>'
+    + '<div class="edge-strip"><div class="chip-row"><span class="chip">Sentiment Edge: ' + htmlEsc(data.narrativeEdge.label) + '</span><span class="chip">Buzz Volatility: ' + htmlEsc(data.volatility.label) + ' (' + htmlEsc(String(data.volatility.score)) + ')</span></div><span class="fan-meta">Soft signal only</span></div>';
+}
+function fetchRedditSentiment() {
+  if (!appData || appSentiment.loading) return;
+  var btn = document.getElementById('fan-refresh-btn');
+  appSentiment.loading = true;
+  appSentiment.error = '';
+  renderSentimentCard();
+  btn.disabled = true;
+  btn.textContent = appSentiment.data ? 'Refreshing…' : 'Scanning…';
+  fetch('/api/reddit-sentiment', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ teamA: appData.teamA, teamB: appData.teamB })
+  })
+  .then(function(res) {
+    return res.json().then(function(payload) {
+      if (!res.ok) throw new Error(payload.error || 'Reddit sentiment is unavailable right now.');
+      return payload;
+    });
+  })
+  .then(function(payload) {
+    appSentiment.data = payload;
+    appSentiment.error = '';
+    btn.textContent = 'Refresh Reddit';
+  })
+  .catch(function(err) {
+    appSentiment.error = err.message || 'Reddit sentiment is unavailable right now.';
+  })
+  .finally(function() {
+    appSentiment.loading = false;
+    btn.disabled = false;
+    if (!appSentiment.data) btn.textContent = 'Scan Reddit';
+    renderSentimentCard();
+  });
+}
+
 // ── Predict API call ──────────────────────────────────────────────────────────
 function runPredict() {
   var ta = document.getElementById('ta-input').value.trim();
@@ -707,7 +1088,11 @@ function runPredict() {
     if (!data.kenpom && !data.trank) { showErr('No model data found. Check team names.'); return; }
     if (data.notes && data.notes.length) showErr(data.notes.join(' '), true);
     appData = data;
+    appSentiment = { data: null, loading: false, error: '' };
+    document.getElementById('fan-meta').textContent = 'Reddit-powered discussion scan for recent team chatter.';
+    document.getElementById('fan-refresh-btn').textContent = 'Scan Reddit';
     recompute();
+    renderSentimentCard();
     document.getElementById('results').style.display = 'block';
   })
   .catch(function(e) { showErr(e.message || 'Network error.'); })
@@ -912,7 +1297,7 @@ if (document.readyState === 'loading') {
 
 // ── Worker entry point ─────────────────────────────────────────────────────────
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/") {
@@ -927,6 +1312,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/api/matchup") {
       return handleMatchup(request);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/reddit-sentiment") {
+      return handleRedditSentiment(request, env);
     }
 
     return new Response("Not found", { status: 404 });
